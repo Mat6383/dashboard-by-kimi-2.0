@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const testmoService = require('../services/testmo.service');
 const logger = require('../services/logger.service');
+const { safeErrorResponse } = require('../utils/errorResponse');
 
 /**
  * Nettoie le cache (maintenance)
@@ -15,15 +16,10 @@ router.post('/clear', (req, res) => {
     res.json({
       success: true,
       message: 'Cache cleared successfully',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    logger.error('Erreur POST /api/cache/clear:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
+    res.status(500).json(safeErrorResponse(error, 'POST /api/cache/clear'));
   }
 });
 

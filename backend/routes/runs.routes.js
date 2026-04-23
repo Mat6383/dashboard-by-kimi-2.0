@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const testmoService = require('../services/testmo.service');
 const logger = require('../services/logger.service');
-const { validateParams, runIdParam } = require('../validators');
+const { safeErrorResponse } = require('../utils/errorResponse');
+const { validateParams, validateQuery, runIdParam, runResultsQuery } = require('../validators');
 
 /**
  * Détails d'un run spécifique
@@ -17,16 +18,10 @@ router.get('/:runId', validateParams(runIdParam), async (req, res) => {
     res.json({
       success: true,
       data: runDetails,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    logger.error(`Erreur GET /api/runs/${req.params.runId}:`, error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json(safeErrorResponse(error, `GET /api/runs/${req.params.runId}`));
   }
 });
 
@@ -34,7 +29,7 @@ router.get('/:runId', validateParams(runIdParam), async (req, res) => {
  * Résultats détaillés d'un run
  * API Testmo 2025: Nouveau endpoint
  */
-router.get('/:runId/results', validateParams(runIdParam), async (req, res) => {
+router.get('/:runId/results', validateParams(runIdParam), validateQuery(runResultsQuery), async (req, res) => {
   try {
     const runId = parseInt(req.params.runId);
     const statusFilter = req.query.status; // Ex: '3,5' pour Failed+Blocked
@@ -44,16 +39,10 @@ router.get('/:runId/results', validateParams(runIdParam), async (req, res) => {
     res.json({
       success: true,
       data: results,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    logger.error(`Erreur GET /api/runs/${req.params.runId}/results:`, error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json(safeErrorResponse(error, `GET /api/runs/${req.params.runId}/results`));
   }
 });
 

@@ -11,8 +11,8 @@
  * @author Matou - Neo-Logix QA Lead
  */
 
-const fs     = require('fs');
-const path   = require('path');
+const fs = require('fs');
+const path = require('path');
 const logger = require('./logger.service');
 
 // Chemin du fichier de persistance (ignoré par git via .gitignore)
@@ -21,12 +21,12 @@ const CONFIG_FILE = path.join(__dirname, '..', 'data', 'auto-sync-config.json');
 // ─── Valeurs par défaut (lues depuis .env au démarrage) ───────────────────────
 function _defaultConfig() {
   return {
-    enabled:         process.env.SYNC_AUTO_ENABLED === 'true',
-    runId:           parseInt(process.env.SYNC_AUTO_RUN_ID)          || null,
-    iterationName:   process.env.SYNC_AUTO_ITERATION_NAME            || '',
-    gitlabProjectId: process.env.SYNC_AUTO_GITLAB_PROJECT_ID         || '',
-    version:         process.env.SYNC_AUTO_VERSION                   || '',
-    updatedAt:       null
+    enabled: process.env.SYNC_AUTO_ENABLED === 'true',
+    runId: parseInt(process.env.SYNC_AUTO_RUN_ID) || null,
+    iterationName: process.env.SYNC_AUTO_ITERATION_NAME || '',
+    gitlabProjectId: process.env.SYNC_AUTO_GITLAB_PROJECT_ID || '',
+    version: process.env.SYNC_AUTO_VERSION || '',
+    updatedAt: null,
   };
 }
 
@@ -45,12 +45,14 @@ function load() {
   return _defaultConfig();
 }
 
-// ─── Sauvegarde dans fichier ──────────────────────────────────────────────────
+// ─── Sauvegarde atomique dans fichier ─────────────────────────────────────────
 function save(config) {
   try {
     const dir = path.dirname(CONFIG_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8');
+    const tmpFile = `${CONFIG_FILE}.tmp`;
+    fs.writeFileSync(tmpFile, JSON.stringify(config, null, 2), 'utf-8');
+    fs.renameSync(tmpFile, CONFIG_FILE);
     logger.info(`[AutoSyncConfig] Config sauvegardée dans ${CONFIG_FILE}`);
   } catch (err) {
     logger.error(`[AutoSyncConfig] Impossible de sauvegarder la config: ${err.message}`);
@@ -101,10 +103,10 @@ function updateConfig(patch) {
  */
 function validate() {
   const errors = [];
-  if (!_config.enabled)          errors.push('Auto-sync désactivé (enabled=false)');
-  if (!_config.runId)            errors.push('runId manquant ou invalide');
-  if (!_config.iterationName)    errors.push('iterationName manquant');
-  if (!_config.gitlabProjectId)  errors.push('gitlabProjectId manquant');
+  if (!_config.enabled) errors.push('Auto-sync désactivé (enabled=false)');
+  if (!_config.runId) errors.push('runId manquant ou invalide');
+  if (!_config.iterationName) errors.push('iterationName manquant');
+  if (!_config.gitlabProjectId) errors.push('gitlabProjectId manquant');
   return { valid: errors.length === 0, errors };
 }
 

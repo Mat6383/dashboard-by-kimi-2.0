@@ -3,6 +3,7 @@ const router = express.Router();
 const testmoService = require('../services/testmo.service');
 const ReportService = require('../services/report.service');
 const logger = require('../services/logger.service');
+const { safeErrorResponse } = require('../utils/errorResponse');
 const { validateBody, reportsGenerateBody } = require('../validators');
 
 const reportService = new ReportService(testmoService);
@@ -23,9 +24,7 @@ router.post('/generate', validateBody(reportsGenerateBody), async (req, res) => 
       if (milestoneId) {
         logger.info(`runIds absent, fallback sur milestoneId=${milestoneId}`);
         const allRuns = await testmoService.apiGet(`/projects/${projectId}/runs?limit=50`);
-        resolvedRunIds = (allRuns.result || [])
-          .filter(r => r.milestone_id === milestoneId)
-          .map(r => r.id);
+        resolvedRunIds = (allRuns.result || []).filter((r) => r.milestone_id === milestoneId).map((r) => r.id);
         if (resolvedRunIds.length === 0) {
           return res.status(400).json({ success: false, error: `Aucun run trouvé pour le milestone ${milestoneId}` });
         }
@@ -34,7 +33,9 @@ router.post('/generate', validateBody(reportsGenerateBody), async (req, res) => 
       }
     }
 
-    logger.info(`Génération rapport: project=${projectId}, runIds=${JSON.stringify(resolvedRunIds)}, formats=${JSON.stringify(formats)}`);
+    logger.info(
+      `Génération rapport: project=${projectId}, runIds=${JSON.stringify(resolvedRunIds)}, formats=${JSON.stringify(formats)}`
+    );
 
     // 1. Collect data — fetch each run by ID
     const data = await reportService.collectReportData(projectId, resolvedRunIds);
@@ -66,10 +67,8 @@ router.post('/generate', validateBody(reportsGenerateBody), async (req, res) => 
 
     logger.info(`Rapport généré: ${data.milestoneName} — ${data.verdict}`);
     res.json(result);
-
   } catch (error) {
-    logger.error('Erreur POST /api/reports/generate:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json(safeErrorResponse(error, 'POST /api/reports/generate'));
   }
 });
 

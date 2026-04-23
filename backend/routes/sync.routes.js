@@ -7,6 +7,8 @@ const statusSyncService = require('../services/status-sync.service');
 const autoSyncConfig = require('../services/auto-sync-config.service');
 const PROJECTS = require('../config/projects.config');
 const gitlabServiceInstance = require('../services/gitlab.service');
+const requireAdminAuth = require('../middleware/adminAuth');
+const { safeErrorResponse } = require('../utils/errorResponse');
 const {
   validateParams,
   validateBody,
@@ -15,7 +17,7 @@ const {
   syncExecuteBody,
   syncIterationBody,
   syncStatusToGitlabBody,
-  autoConfigBody
+  autoConfigBody,
 } = require('../validators');
 
 // ---- Dashboard 6: Multi-project Sync API --------------------------------
@@ -25,10 +27,10 @@ const {
  * Retourne la liste des projets configurés (id, label, configured)
  */
 router.get('/projects', (req, res) => {
-  const list = PROJECTS.map(p => ({
+  const list = PROJECTS.map((p) => ({
     id: p.id,
     label: p.label,
-    configured: p.configured
+    configured: p.configured,
   }));
   res.json({ success: true, data: list, timestamp: new Date().toISOString() });
 });
@@ -43,12 +45,14 @@ router.get('/:projectId/iterations', validateParams(syncProjectIdParam), async (
     const { projectId } = req.params;
     const search = req.query.search || '';
 
-    const project = PROJECTS.find(p => p.id === projectId);
+    const project = PROJECTS.find((p) => p.id === projectId);
     if (!project) {
       return res.status(404).json({ success: false, error: `Projet "${projectId}" inconnu` });
     }
     if (!project.configured) {
-      return res.status(400).json({ success: false, error: `Projet "${project.label}" non configuré (pas d'accès GitLab)` });
+      return res
+        .status(400)
+        .json({ success: false, error: `Projet "${project.label}" non configuré (pas d'accès GitLab)` });
     }
     if (!project.gitlab.projectId) {
       return res.status(400).json({ success: false, error: `Projet "${project.label}" sans projectId GitLab` });
@@ -58,17 +62,16 @@ router.get('/:projectId/iterations', validateParams(syncProjectIdParam), async (
 
     res.json({
       success: true,
-      data: iterations.map(it => ({
+      data: iterations.map((it) => ({
         id: it.id,
         title: it.title,
         state: it.state,
-        web_url: it.web_url
+        web_url: it.web_url,
       })),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error(`Erreur GET /api/sync/${req.params.projectId}/iterations:`, error);
-    res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+    res.status(500).json(safeErrorResponse(error, `GET /api/sync/${req.params.projectId}/iterations`));
   }
 });
 
@@ -81,14 +84,14 @@ router.post('/preview', validateBody(syncPreviewBody), async (req, res) => {
   try {
     const { projectId, iterationName } = req.body;
 
-    const project = PROJECTS.find(p => p.id === projectId);
+    const project = PROJECTS.find((p) => p.id === projectId);
     if (!project) {
       return res.status(404).json({ success: false, error: `Projet "${projectId}" inconnu` });
     }
     if (!project.configured) {
       return res.status(400).json({
         success: false,
-        error: `Projet "${project.label}" non configuré — accès GitLab manquant`
+        error: `Projet "${project.label}" non configuré — accès GitLab manquant`,
       });
     }
 
@@ -100,13 +103,12 @@ router.post('/preview', validateBody(syncPreviewBody), async (req, res) => {
       created: preview.summary.toCreate,
       updated: preview.summary.toUpdate,
       skipped: preview.summary.toSkip,
-      total: preview.summary.total
+      total: preview.summary.total,
     });
 
     res.json({ success: true, data: preview, timestamp: new Date().toISOString() });
   } catch (error) {
-    logger.error('Erreur POST /api/sync/preview:', error);
-    res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+    res.status(500).json(safeErrorResponse(error, 'POST /api/sync/preview'));
   }
 });
 
@@ -118,14 +120,14 @@ router.post('/preview', validateBody(syncPreviewBody), async (req, res) => {
 router.post('/execute', validateBody(syncExecuteBody), async (req, res) => {
   const { projectId, iterationName } = req.body;
 
-  const project = PROJECTS.find(p => p.id === projectId);
+  const project = PROJECTS.find((p) => p.id === projectId);
   if (!project) {
     return res.status(404).json({ success: false, error: `Projet "${projectId}" inconnu` });
   }
   if (!project.configured) {
     return res.status(400).json({
       success: false,
-      error: `Projet "${project.label}" non configuré — accès GitLab manquant`
+      error: `Projet "${project.label}" non configuré — accès GitLab manquant`,
     });
   }
 
@@ -150,10 +152,8 @@ router.post('/execute', validateBody(syncExecuteBody), async (req, res) => {
   try {
     logger.info(`Execute: ${project.label} / "${iterationName}"`);
 
-    const stats = await syncService.syncIteration(
-      iterationName,
-      { projectConfig: project },
-      (type, data) => send(type, data)
+    const stats = await syncService.syncIteration(iterationName, { projectConfig: project }, (type, data) =>
+      send(type, data)
     );
 
     // Enregistrer en historique
@@ -165,7 +165,7 @@ router.post('/execute', validateBody(syncExecuteBody), async (req, res) => {
     }
   } catch (error) {
     logger.error('Execute SSE error:', error);
-    send('error', { message: error.message });
+    send('error', { message: 'Erreur interne du serveur' });
   } finally {
     clearInterval(heartbeat);
     res.end();
@@ -181,8 +181,7 @@ router.get('/history', (req, res) => {
     const rows = syncHistoryService.getHistory(50);
     res.json({ success: true, data: rows, timestamp: new Date().toISOString() });
   } catch (error) {
-    logger.error('Erreur GET /api/sync/history:', error);
-    res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+    res.status(500).json(safeErrorResponse(error, 'GET /api/sync/history'));
   }
 });
 
@@ -190,14 +189,13 @@ router.get('/history', (req, res) => {
  * Test API Testmo — Valide les endpoints folders/cases (beta)
  * Crée un dossier [TEST-API] R06 > R06 - run 1 + un case de test
  */
-router.post('/test-api', async (req, res) => {
+router.post('/test-api', requireAdminAuth, async (req, res) => {
   try {
     logger.info('Lancement test API Testmo...');
     const result = await syncService.testTestmoApi();
     res.json({ success: result.success, data: result, timestamp: new Date().toISOString() });
   } catch (error) {
-    logger.error('Erreur POST /api/sync/test-api:', error);
-    res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+    res.status(500).json(safeErrorResponse(error, 'POST /api/sync/test-api'));
   }
 });
 
@@ -212,8 +210,7 @@ router.post('/iteration', validateBody(syncIterationBody), async (req, res) => {
     const result = await syncService.syncIteration(iteration, { isTest, dryRun });
     res.json({ success: true, data: result, timestamp: new Date().toISOString() });
   } catch (error) {
-    logger.error('Erreur POST /api/sync/iteration:', error);
-    res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+    res.status(500).json(safeErrorResponse(error, 'POST /api/sync/iteration'));
   }
 });
 
@@ -257,7 +254,7 @@ router.post('/status-to-gitlab', validateBody(syncStatusToGitlabBody), async (re
     );
   } catch (error) {
     logger.error('Erreur POST /api/sync/status-to-gitlab:', error);
-    send('error', { message: error.message });
+    send('error', { message: 'Erreur interne du serveur' });
   } finally {
     clearInterval(heartbeat);
     res.end();
@@ -267,13 +264,12 @@ router.post('/status-to-gitlab', validateBody(syncStatusToGitlabBody), async (re
 /**
  * Nettoyage du dossier de test [TEST-API]
  */
-router.delete('/test-cleanup', async (req, res) => {
+router.delete('/test-cleanup', requireAdminAuth, async (req, res) => {
   try {
     const result = await syncService.cleanupTestFolder();
     res.json({ success: result.success, data: result, timestamp: new Date().toISOString() });
   } catch (error) {
-    logger.error('Erreur DELETE /api/sync/test-cleanup:', error);
-    res.status(500).json({ success: false, error: error.message, timestamp: new Date().toISOString() });
+    res.status(500).json(safeErrorResponse(error, 'DELETE /api/sync/test-cleanup'));
   }
 });
 
@@ -307,8 +303,7 @@ router.put('/auto-config', validateBody(autoConfigBody), (req, res) => {
     logger.info(`[AutoSync] Config mise à jour via API: ${JSON.stringify(updated)}`);
     res.json({ success: true, data: updated, timestamp: new Date().toISOString() });
   } catch (err) {
-    logger.error('Erreur PUT /api/sync/auto-config:', err);
-    res.status(500).json({ success: false, error: err.message, timestamp: new Date().toISOString() });
+    res.status(500).json(safeErrorResponse(err, 'PUT /api/sync/auto-config'));
   }
 });
 

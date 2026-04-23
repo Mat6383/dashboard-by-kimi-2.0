@@ -10,20 +10,18 @@
  */
 
 const TODO_STATUS_GID = 'gid://gitlab/WorkItems::Statuses::Custom::Status/15';
-const OK_STATUS_GID   = 'gid://gitlab/WorkItems::Statuses::Custom::Status/18';
-const KO_STATUS_GID   = 'gid://gitlab/WorkItems::Statuses::Custom::Status/17';
+const OK_STATUS_GID = 'gid://gitlab/WorkItems::Statuses::Custom::Status/18';
+const KO_STATUS_GID = 'gid://gitlab/WorkItems::Statuses::Custom::Status/17';
 
 // ─── Fonctions pures extraites de gitlab.service.js ──────────────────────────
 
 function buildVersionAndStatusMap(graphqlNodes) {
   const map = new Map();
-  for (const node of (graphqlNodes || [])) {
-    const cfWidget    = node?.widgets?.find(w => Array.isArray(w.customFieldValues));
-    const statusWidget = node?.widgets?.find(w => w.type === 'STATUS');
-    const versionProd  = cfWidget?.customFieldValues?.find(
-      cf => cf.customField?.name === 'Version Prod'
-    );
-    const version   = versionProd?.selectedOptions?.[0]?.value || null;
+  for (const node of graphqlNodes || []) {
+    const cfWidget = node?.widgets?.find((w) => Array.isArray(w.customFieldValues));
+    const statusWidget = node?.widgets?.find((w) => w.type === 'STATUS');
+    const versionProd = cfWidget?.customFieldValues?.find((cf) => cf.customField?.name === 'Version Prod');
+    const version = versionProd?.selectedOptions?.[0]?.value || null;
     const statusGid = statusWidget?.status?.id || null;
     map.set(node.id, { version, statusGid });
   }
@@ -32,8 +30,8 @@ function buildVersionAndStatusMap(graphqlNodes) {
 
 function filterIssuesByVersionOnly(allIssues, graphqlNodes, targetVersion, todoStatusGid) {
   const infoMap = buildVersionAndStatusMap(graphqlNodes);
-  return allIssues.filter(issue => {
-    const gid  = `gid://gitlab/WorkItem/${issue.id}`;
+  return allIssues.filter((issue) => {
+    const gid = `gid://gitlab/WorkItem/${issue.id}`;
     const info = infoMap.get(gid);
     return info?.version === targetVersion && info?.statusGid === todoStatusGid;
   });
@@ -43,7 +41,7 @@ function filterIssuesByVersionOnly(allIssues, graphqlNodes, targetVersion, todoS
 
 function resolveMode(iterationName, version) {
   if (iterationName) return 'iteration';
-  if (version)       return 'version-only';
+  if (version) return 'version-only';
   throw new Error('iterationName ou version requis');
 }
 
@@ -56,13 +54,15 @@ const MOCK_NODES = [
     widgets: [
       {
         type: 'CUSTOM_FIELDS',
-        customFieldValues: [{
-          customField: { id: 'gid://gitlab/Issuables::CustomField/1', name: 'Version Prod' },
-          selectedOptions: [{ value: 'R06 - Pilot' }]
-        }]
+        customFieldValues: [
+          {
+            customField: { id: 'gid://gitlab/Issuables::CustomField/1', name: 'Version Prod' },
+            selectedOptions: [{ value: 'R06 - Pilot' }],
+          },
+        ],
       },
-      { type: 'STATUS', status: { id: TODO_STATUS_GID, name: 'Test TODO' } }
-    ]
+      { type: 'STATUS', status: { id: TODO_STATUS_GID, name: 'Test TODO' } },
+    ],
   },
   // Issue 101 : version R06, status OK → exclue (pas TODO)
   {
@@ -70,13 +70,15 @@ const MOCK_NODES = [
     widgets: [
       {
         type: 'CUSTOM_FIELDS',
-        customFieldValues: [{
-          customField: { id: 'gid://gitlab/Issuables::CustomField/1', name: 'Version Prod' },
-          selectedOptions: [{ value: 'R06 - Pilot' }]
-        }]
+        customFieldValues: [
+          {
+            customField: { id: 'gid://gitlab/Issuables::CustomField/1', name: 'Version Prod' },
+            selectedOptions: [{ value: 'R06 - Pilot' }],
+          },
+        ],
       },
-      { type: 'STATUS', status: { id: OK_STATUS_GID, name: 'Test OK' } }
-    ]
+      { type: 'STATUS', status: { id: OK_STATUS_GID, name: 'Test OK' } },
+    ],
   },
   // Issue 102 : version R14, status TODO → exclue (mauvaise version)
   {
@@ -84,21 +86,23 @@ const MOCK_NODES = [
     widgets: [
       {
         type: 'CUSTOM_FIELDS',
-        customFieldValues: [{
-          customField: { id: 'gid://gitlab/Issuables::CustomField/1', name: 'Version Prod' },
-          selectedOptions: [{ value: 'R14 - Pilot' }]
-        }]
+        customFieldValues: [
+          {
+            customField: { id: 'gid://gitlab/Issuables::CustomField/1', name: 'Version Prod' },
+            selectedOptions: [{ value: 'R14 - Pilot' }],
+          },
+        ],
       },
-      { type: 'STATUS', status: { id: TODO_STATUS_GID, name: 'Test TODO' } }
-    ]
+      { type: 'STATUS', status: { id: TODO_STATUS_GID, name: 'Test TODO' } },
+    ],
   },
   // Issue 103 : sans Version Prod, status TODO → exclue (version null)
   {
     id: 'gid://gitlab/WorkItem/103',
     widgets: [
       { type: 'CUSTOM_FIELDS', customFieldValues: [] },
-      { type: 'STATUS', status: { id: TODO_STATUS_GID, name: 'Test TODO' } }
-    ]
+      { type: 'STATUS', status: { id: TODO_STATUS_GID, name: 'Test TODO' } },
+    ],
   },
   // Issue 104 : version R06, sans widget STATUS → exclue (statusGid null)
   {
@@ -106,13 +110,15 @@ const MOCK_NODES = [
     widgets: [
       {
         type: 'CUSTOM_FIELDS',
-        customFieldValues: [{
-          customField: { id: 'gid://gitlab/Issuables::CustomField/1', name: 'Version Prod' },
-          selectedOptions: [{ value: 'R06 - Pilot' }]
-        }]
-      }
-    ]
-  }
+        customFieldValues: [
+          {
+            customField: { id: 'gid://gitlab/Issuables::CustomField/1', name: 'Version Prod' },
+            selectedOptions: [{ value: 'R06 - Pilot' }],
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 const MOCK_ISSUES = [
@@ -120,7 +126,7 @@ const MOCK_ISSUES = [
   { id: 101, iid: 201, title: 'Test logout' },
   { id: 102, iid: 202, title: 'Test export R14' },
   { id: 103, iid: 203, title: 'Test sans version' },
-  { id: 104, iid: 204, title: 'Test sans status' }
+  { id: 104, iid: 204, title: 'Test sans status' },
 ];
 
 // ─── 1. buildVersionAndStatusMap ─────────────────────────────────────────────
@@ -130,7 +136,7 @@ describe('buildVersionAndStatusMap — Map GID → { version, statusGid }', () =
     const map = buildVersionAndStatusMap(MOCK_NODES);
     expect(map.get('gid://gitlab/WorkItem/100')).toEqual({
       version: 'R06 - Pilot',
-      statusGid: TODO_STATUS_GID
+      statusGid: TODO_STATUS_GID,
     });
   });
 
@@ -138,7 +144,7 @@ describe('buildVersionAndStatusMap — Map GID → { version, statusGid }', () =
     const map = buildVersionAndStatusMap(MOCK_NODES);
     expect(map.get('gid://gitlab/WorkItem/101')).toEqual({
       version: 'R06 - Pilot',
-      statusGid: OK_STATUS_GID
+      statusGid: OK_STATUS_GID,
     });
   });
 
@@ -173,7 +179,7 @@ describe('buildVersionAndStatusMap — Map GID → { version, statusGid }', () =
 // ─── 2. filterIssuesByVersionOnly ────────────────────────────────────────────
 
 describe('filterIssuesByVersionOnly — filtre version ET status Test TODO', () => {
-  test('retourne uniquement l\'issue avec version=R06 ET status=TODO', () => {
+  test("retourne uniquement l'issue avec version=R06 ET status=TODO", () => {
     const result = filterIssuesByVersionOnly(MOCK_ISSUES, MOCK_NODES, 'R06 - Pilot', TODO_STATUS_GID);
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe(100);
@@ -181,22 +187,22 @@ describe('filterIssuesByVersionOnly — filtre version ET status Test TODO', () 
 
   test('exclut les issues avec la bonne version mais status ≠ TODO', () => {
     const result = filterIssuesByVersionOnly(MOCK_ISSUES, MOCK_NODES, 'R06 - Pilot', TODO_STATUS_GID);
-    expect(result.map(i => i.id)).not.toContain(101); // OK status
+    expect(result.map((i) => i.id)).not.toContain(101); // OK status
   });
 
   test('exclut les issues avec status TODO mais mauvaise version', () => {
     const result = filterIssuesByVersionOnly(MOCK_ISSUES, MOCK_NODES, 'R06 - Pilot', TODO_STATUS_GID);
-    expect(result.map(i => i.id)).not.toContain(102); // R14 version
+    expect(result.map((i) => i.id)).not.toContain(102); // R14 version
   });
 
   test('exclut les issues sans Version Prod (version null)', () => {
     const result = filterIssuesByVersionOnly(MOCK_ISSUES, MOCK_NODES, 'R06 - Pilot', TODO_STATUS_GID);
-    expect(result.map(i => i.id)).not.toContain(103);
+    expect(result.map((i) => i.id)).not.toContain(103);
   });
 
   test('exclut les issues sans widget STATUS (statusGid null)', () => {
     const result = filterIssuesByVersionOnly(MOCK_ISSUES, MOCK_NODES, 'R06 - Pilot', TODO_STATUS_GID);
-    expect(result.map(i => i.id)).not.toContain(104);
+    expect(result.map((i) => i.id)).not.toContain(104);
   });
 
   test('version inexistante dans les nodes → 0 résultats', () => {
@@ -266,16 +272,15 @@ describe('syncStatusToGitlabBody validator — iterationName optionnel avec vers
 
   beforeAll(() => {
     const { z } = require('zod');
-    schema = z.object({
-      runId: z.number().int().positive(),
-      iterationName: z.string().optional(),
-      gitlabProjectId: z.union([z.string(), z.number()]),
-      dryRun: z.boolean().optional(),
-      version: z.string().optional()
-    }).refine(
-      data => data.iterationName || data.version,
-      { message: 'iterationName ou version requis' }
-    );
+    schema = z
+      .object({
+        runId: z.number().int().positive(),
+        iterationName: z.string().optional(),
+        gitlabProjectId: z.union([z.string(), z.number()]),
+        dryRun: z.boolean().optional(),
+        version: z.string().optional(),
+      })
+      .refine((data) => data.iterationName || data.version, { error: 'iterationName ou version requis' });
   });
 
   test('iterationName seul → valide', () => {
@@ -333,25 +338,31 @@ describe('syncStatusToGitlabBody (production) — iterationName optionnel avec v
   });
 
   test('version seule (sans iterationName) → parse réussit', () => {
-    expect(() => syncStatusToGitlabBody.parse({
-      runId: 279,
-      version: 'R06 - Pilot',
-      gitlabProjectId: 63
-    })).not.toThrow();
+    expect(() =>
+      syncStatusToGitlabBody.parse({
+        runId: 279,
+        version: 'R06 - Pilot',
+        gitlabProjectId: 63,
+      })
+    ).not.toThrow();
   });
 
   test('ni iterationName ni version → parse échoue', () => {
-    expect(() => syncStatusToGitlabBody.parse({
-      runId: 279,
-      gitlabProjectId: 63
-    })).toThrow();
+    expect(() =>
+      syncStatusToGitlabBody.parse({
+        runId: 279,
+        gitlabProjectId: 63,
+      })
+    ).toThrow();
   });
 
   test('iterationName seul → parse réussit (rétrocompatible)', () => {
-    expect(() => syncStatusToGitlabBody.parse({
-      runId: 279,
-      iterationName: 'R10 - run 1',
-      gitlabProjectId: 63
-    })).not.toThrow();
+    expect(() =>
+      syncStatusToGitlabBody.parse({
+        runId: 279,
+        iterationName: 'R10 - run 1',
+        gitlabProjectId: 63,
+      })
+    ).not.toThrow();
   });
 });

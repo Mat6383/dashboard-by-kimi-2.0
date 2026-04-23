@@ -18,30 +18,32 @@ jest.mock('../../services/testmo.service', () => {
     statusDistribution: {
       labels: ['Passed', 'Failed', 'Blocked', 'Skipped'],
       values: [95, 2, 1, 2],
-      colors: ['#10B981', '#EF4444', '#F59E0B', '#6B7280']
+      colors: ['#10B981', '#EF4444', '#F59E0B', '#6B7280'],
     },
     lean: { wipTotal: 5, throughput: 10 },
-    itil: { changeSuccessRate: 98, changeFailRate: 2, mttr: 30 }
+    itil: { changeSuccessRate: 98, changeFailRate: 2, mttr: 30 },
   };
 
   return {
     clearCache: jest.fn(() => true),
     getProjects: jest.fn(() => Promise.resolve({ result: [{ id: 1, name: 'Test Project' }] })),
     getProjectMetrics: jest.fn(() => Promise.resolve(mockMetrics)),
-    getEscapeAndDetectionRates: jest.fn(() => Promise.resolve({
-      escapeRate: 2,
-      detectionRate: 98,
-      bugsInProd: 1,
-      bugsInTest: 49,
-      totalBugs: 50
-    })),
+    getEscapeAndDetectionRates: jest.fn(() =>
+      Promise.resolve({
+        escapeRate: 2,
+        detectionRate: 98,
+        bugsInProd: 1,
+        bugsInTest: 49,
+        totalBugs: 50,
+      })
+    ),
     getAnnualQualityTrends: jest.fn(() => Promise.resolve({ years: [], data: [] })),
     getProjectRuns: jest.fn(() => Promise.resolve([])),
     getProjectMilestones: jest.fn(() => Promise.resolve([])),
     getRunDetails: jest.fn(() => Promise.resolve({})),
     getRunResults: jest.fn(() => Promise.resolve([])),
     getAutomationRuns: jest.fn(() => Promise.resolve([])),
-    apiGet: jest.fn(() => Promise.resolve({ result: [] }))
+    apiGet: jest.fn(() => Promise.resolve({ result: [] })),
   };
 });
 
@@ -92,11 +94,18 @@ describe('API Integration Tests', () => {
   });
 
   describe('POST /api/cache/clear', () => {
-    it('clears the cache', async () => {
+    it('refuses without admin token', async () => {
       const res = await request(app).post('/api/cache/clear');
+      expect(res.status).toBe(501);
+    });
+
+    it('clears the cache with admin token', async () => {
+      process.env.ADMIN_API_TOKEN = 'test-admin-token';
+      const res = await request(app).post('/api/cache/clear').set('X-Admin-Token', 'test-admin-token');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.message).toMatch(/cleared/i);
+      delete process.env.ADMIN_API_TOKEN;
     });
   });
 
@@ -128,9 +137,7 @@ describe('API Integration Tests', () => {
     });
 
     it('returns 400 when missing required fields', async () => {
-      const res = await request(app)
-        .post('/api/crosstest/comments')
-        .send({ comment: 'Missing iid' });
+      const res = await request(app).post('/api/crosstest/comments').send({ comment: 'Missing iid' });
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
     });

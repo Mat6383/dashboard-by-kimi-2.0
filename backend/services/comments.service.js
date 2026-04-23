@@ -17,6 +17,7 @@ const migrate = require('../db/migrate');
 class CommentsService {
   constructor() {
     this.db = null;
+    this.projectId = parseInt(process.env.CROSSTEST_PROJECT_ID) || 63;
   }
 
   /**
@@ -42,9 +43,9 @@ class CommentsService {
    */
   getAll() {
     try {
-      const rows = this.db.prepare(
-        'SELECT * FROM crosstest_comments WHERE gitlab_project_id = 63 ORDER BY updated_at DESC'
-      ).all();
+      const rows = this.db
+        .prepare('SELECT * FROM crosstest_comments WHERE gitlab_project_id = ? ORDER BY updated_at DESC')
+        .all(this.projectId);
 
       const result = {};
       for (const row of rows) {
@@ -69,17 +70,17 @@ class CommentsService {
       const now = new Date().toISOString();
       const stmt = this.db.prepare(`
         INSERT INTO crosstest_comments (issue_iid, gitlab_project_id, milestone_context, comment, created_at, updated_at)
-        VALUES (@iid, 63, @milestoneContext, @comment, @now, @now)
+        VALUES (@iid, @projectId, @milestoneContext, @comment, @now, @now)
         ON CONFLICT(issue_iid, gitlab_project_id) DO UPDATE SET
           comment           = excluded.comment,
           milestone_context = excluded.milestone_context,
           updated_at        = excluded.updated_at
       `);
-      stmt.run({ iid, milestoneContext, comment, now });
+      stmt.run({ iid, projectId: this.projectId, milestoneContext, comment, now });
 
-      const row = this.db.prepare(
-        'SELECT * FROM crosstest_comments WHERE issue_iid = ? AND gitlab_project_id = 63'
-      ).get(iid);
+      const row = this.db
+        .prepare('SELECT * FROM crosstest_comments WHERE issue_iid = ? AND gitlab_project_id = ?')
+        .get(iid, this.projectId);
       return row;
     } catch (error) {
       logger.error(`CommentsService: Erreur upsert iid=${iid}:`, error);
@@ -94,9 +95,9 @@ class CommentsService {
    */
   delete(iid) {
     try {
-      const result = this.db.prepare(
-        'DELETE FROM crosstest_comments WHERE issue_iid = ? AND gitlab_project_id = 63'
-      ).run(iid);
+      const result = this.db
+        .prepare('DELETE FROM crosstest_comments WHERE issue_iid = ? AND gitlab_project_id = ?')
+        .run(iid, this.projectId);
       return result.changes > 0;
     } catch (error) {
       logger.error(`CommentsService: Erreur delete iid=${iid}:`, error);

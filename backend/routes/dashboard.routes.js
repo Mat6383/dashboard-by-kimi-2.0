@@ -2,14 +2,15 @@ const express = require('express');
 const router = express.Router();
 const testmoService = require('../services/testmo.service');
 const logger = require('../services/logger.service');
-const { validateParams, projectIdParam } = require('../validators');
+const { safeErrorResponse } = require('../utils/errorResponse');
+const { validateParams, validateQuery, projectIdParam, milestonesQuery } = require('../validators');
 
 /**
  * Métriques ISTQB complètes d'un projet
  * ISTQB Section 5.4.2: Test Summary Report
  * Endpoint principal du dashboard
  */
-router.get('/:projectId', validateParams(projectIdParam), async (req, res) => {
+router.get('/:projectId', validateParams(projectIdParam), validateQuery(milestonesQuery), async (req, res) => {
   try {
     const projectId = parseInt(req.params.projectId);
     const preprodMilestones = req.query.preprodMilestones ? req.query.preprodMilestones.split(',').map(Number) : null;
@@ -22,23 +23,17 @@ router.get('/:projectId', validateParams(projectIdParam), async (req, res) => {
     if (!metrics.slaStatus.ok) {
       logger.warn('Alertes SLA détectées:', {
         projectId,
-        alerts: metrics.slaStatus.alerts
+        alerts: metrics.slaStatus.alerts,
       });
     }
 
     res.json({
       success: true,
       data: metrics,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    logger.error(`Erreur GET /api/dashboard/${req.params.projectId}:`, error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json(safeErrorResponse(error, `GET /api/dashboard/${req.params.projectId}`));
   }
 });
 
@@ -46,30 +41,29 @@ router.get('/:projectId', validateParams(projectIdParam), async (req, res) => {
  * Taux d'échappement et de détection
  * Endpoint pour le Dashboard 3
  */
-router.get('/:projectId/quality-rates', validateParams(projectIdParam), async (req, res) => {
-  try {
-    const projectId = parseInt(req.params.projectId);
-    const preprodMilestones = req.query.preprodMilestones ? req.query.preprodMilestones.split(',').map(Number) : null;
-    const prodMilestones = req.query.prodMilestones ? req.query.prodMilestones.split(',').map(Number) : null;
+router.get(
+  '/:projectId/quality-rates',
+  validateParams(projectIdParam),
+  validateQuery(milestonesQuery),
+  async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const preprodMilestones = req.query.preprodMilestones ? req.query.preprodMilestones.split(',').map(Number) : null;
+      const prodMilestones = req.query.prodMilestones ? req.query.prodMilestones.split(',').map(Number) : null;
 
-    logger.info(`Récupération Quality Rates pour projet ${projectId}`);
-    const rates = await testmoService.getEscapeAndDetectionRates(projectId, preprodMilestones, prodMilestones);
+      logger.info(`Récupération Quality Rates pour projet ${projectId}`);
+      const rates = await testmoService.getEscapeAndDetectionRates(projectId, preprodMilestones, prodMilestones);
 
-    res.json({
-      success: true,
-      data: rates,
-      timestamp: new Date().toISOString()
-    });
-
-  } catch (error) {
-    logger.error(`Erreur GET /api/dashboard/${req.params.projectId}/quality-rates:`, error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+      res.json({
+        success: true,
+        data: rates,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      res.status(500).json(safeErrorResponse(error, `GET /api/dashboard/${req.params.projectId}/quality-rates`));
+    }
   }
-});
+);
 
 /**
  * Tendances annuelles de qualité (Dashboard 5)
@@ -85,16 +79,10 @@ router.get('/:projectId/annual-trends', validateParams(projectIdParam), async (r
     res.json({
       success: true,
       data: trends,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    logger.error(`Erreur GET /api/dashboard/${req.params.projectId}/annual-trends:`, error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json(safeErrorResponse(error, `GET /api/dashboard/${req.params.projectId}/annual-trends`));
   }
 });
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const testmoService = require('../services/testmo.service');
-const logger = require('../services/logger.service');
+const { safeErrorResponse } = require('../utils/errorResponse');
 const { validateParams, projectIdParam } = require('../validators');
 
 /**
@@ -15,16 +15,10 @@ router.get('/', async (req, res) => {
     res.json({
       success: true,
       data: projects,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    logger.error('Erreur GET /api/projects:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json(safeErrorResponse(error, 'GET /api/projects'));
   }
 });
 
@@ -42,16 +36,10 @@ router.get('/:projectId/runs', validateParams(projectIdParam), async (req, res) 
     res.json({
       success: true,
       data: runs,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    logger.error(`Erreur GET /api/projects/${req.params.projectId}/runs:`, error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json(safeErrorResponse(error, `GET /api/projects/${req.params.projectId}/runs`));
   }
 });
 
@@ -67,16 +55,10 @@ router.get('/:projectId/milestones', validateParams(projectIdParam), async (req,
     res.json({
       success: true,
       data: milestones,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    logger.error(`Erreur GET /api/projects/${req.params.projectId}/milestones:`, error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json(safeErrorResponse(error, `GET /api/projects/${req.params.projectId}/milestones`));
   }
 });
 
@@ -93,16 +75,10 @@ router.get('/:projectId/automation', validateParams(projectIdParam), async (req,
     res.json({
       success: true,
       data: automationRuns,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
-    logger.error(`Erreur GET /api/projects/${req.params.projectId}/automation:`, error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      timestamp: new Date().toISOString()
-    });
+    res.status(500).json(safeErrorResponse(error, `GET /api/projects/${req.params.projectId}/automation`));
   }
 });
 
