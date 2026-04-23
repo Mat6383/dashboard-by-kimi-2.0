@@ -18,9 +18,9 @@ export default defineConfig(({ mode }) => {
         // Proxy vers le backend — configurable via BACKEND_URL dans .env
         '/api': {
           target: backendUrl,
-          changeOrigin: true
-        }
-      }
+          changeOrigin: true,
+        },
+      },
     },
     build: {
       outDir: 'dist',
@@ -29,25 +29,38 @@ export default defineConfig(({ mode }) => {
       minify: 'terser',
       terserOptions: {
         compress: {
-          drop_console: true
-        }
+          drop_console: true,
+        },
       },
       rollupOptions: {
         output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-charts': ['chart.js', 'react-chartjs-2'],
-            'vendor-export': ['html2canvas', 'jspdf', 'docx'],
-            'vendor-ui': ['lucide-react']
-          }
-        }
-      }
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (['react', 'react-dom', 'react-router-dom'].some((m) => id.includes(m))) return 'vendor-react';
+              if (['chart.js', 'react-chartjs-2'].some((m) => id.includes(m))) return 'vendor-charts';
+              if (['html2canvas', 'jspdf', 'docx'].some((m) => id.includes(m))) return 'vendor-export';
+              if (id.includes('lucide-react')) return 'vendor-ui';
+            }
+          },
+        },
+      },
     },
     test: {
       globals: true,
       environment: 'jsdom',
       setupFiles: './src/test/setup.js',
-      include: ['src/**/*.{test,spec}.{js,jsx}']
-    }
+      include: ['src/**/*.{test,spec}.{js,jsx}'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html'],
+        thresholds: {
+          branches: 50,
+          functions: 50,
+          lines: 50,
+          statements: 50,
+        },
+        exclude: ['src/test/setup.js', 'src/**/*.test.{js,jsx}', 'src/**/*.spec.{js,jsx}'],
+      },
+    },
   };
 });
