@@ -43,3 +43,8 @@ build/
 
 # Runtime databases (SQLite — generated at startup)
 backend/db/
+
+# Coverage reports
+coverage/
+backend/coverage/
+frontend/coverage/

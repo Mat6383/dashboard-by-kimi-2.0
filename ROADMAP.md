@@ -145,6 +145,16 @@
 - [x] **P4#4 Dashboard de synthèse multi-projets** — Endpoint `/api/dashboard/multi` + composant `MultiProjectDashboard` + tests
 - [x] **P4#5 Couverture de tests** — Seuils ajustés (backend 50 % / 45 % / 30 % branches, frontend 50 %) + exclusions services externe + 15 nouveaux tests
 
+---
+
+## 🚀 P5 — Prochaine session
+
+- [ ] **P5#1 CI/CD GitHub Actions** — Pipeline test + build + lint à chaque push/PR
+- [ ] **P5#2 Tests des gros modaux** — QuickClosureModal, ReportGeneratorModal, TestClosureModal → frontend 60 %
+- [ ] **P5#3 Split App.jsx** — ~420 lignes → cible < 100
+- [ ] **P5#4 Tests routes backend** — crosstest, featureFlags, reports, sync → backend 60 %+
+- [ ] **P5#5 Export CSV/Excel** — Complément au PDF/PPTX existant
+
 ## 📝 Notes
 
 > **Règle d'or :** Une PR = un item de cette checklist. Pas de mega-PR.
