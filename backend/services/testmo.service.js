@@ -3,12 +3,12 @@
  * TESTMO SERVICE - API Integration
  * ================================================
  * Service responsable de toutes les interactions avec l'API Testmo
- * 
+ *
  * Standards appliqués:
  * - ISTQB: Métriques de test standardisées
  * - ITIL: Gestion d'incidents et logging
  * - LEAN: Optimisation des requêtes et cache
- * 
+ *
  * @author Matou - Neo-Logix QA Lead
  * @version 1.0.0
  */
@@ -25,25 +25,30 @@ function _calculatePercentage(value, total) {
 
 function aggregateSessions(sessions) {
   const aggregated = {
-    total: 0, passed: 0, failed: 0,
-    completed: 0, success: 0, failure: 0, wip: 0,
+    total: 0,
+    passed: 0,
+    failed: 0,
+    completed: 0,
+    success: 0,
+    failure: 0,
+    wip: 0,
   };
 
-  sessions.forEach(session => {
+  sessions.forEach((session) => {
     const successCount = session.success_count || 0;
     const failureCount = session.failure_count || 0;
     const sessionTotal = successCount + failureCount;
 
     if (sessionTotal > 0) {
-      aggregated.total     += sessionTotal;
-      aggregated.passed    += successCount;
-      aggregated.failed    += failureCount;
+      aggregated.total += sessionTotal;
+      aggregated.passed += successCount;
+      aggregated.failed += failureCount;
       aggregated.completed += sessionTotal;
-      aggregated.success   += successCount;
-      aggregated.failure   += failureCount;
+      aggregated.success += successCount;
+      aggregated.failure += failureCount;
     } else {
       aggregated.total += 1;
-      aggregated.wip   += 1;
+      aggregated.wip += 1;
     }
   });
 
@@ -52,10 +57,10 @@ function aggregateSessions(sessions) {
 
 function globalMetrics(aggregated) {
   return {
-    completionRate:  _calculatePercentage(aggregated.completed, aggregated.total),
-    passRate:        _calculatePercentage(aggregated.passed, aggregated.completed),
-    failureRate:     _calculatePercentage(aggregated.failed, aggregated.completed),
-    testEfficiency:  _calculatePercentage(aggregated.passed, aggregated.passed + aggregated.failed),
+    completionRate: _calculatePercentage(aggregated.completed, aggregated.total),
+    passRate: _calculatePercentage(aggregated.passed, aggregated.completed),
+    failureRate: _calculatePercentage(aggregated.failed, aggregated.completed),
+    testEfficiency: _calculatePercentage(aggregated.passed, aggregated.passed + aggregated.failed),
   };
 }
 
@@ -68,27 +73,29 @@ class TestmoService {
     // Cache pour optimisation LEAN (éviter requêtes redondantes)
     this.cache = new Map();
     this.cacheDuration = parseInt(process.env.CACHE_DURATION) || 30000;
+    // Déduplication des requêtes en cours (anti-cache-stampede)
+    this._inFlight = new Map();
 
     // Configuration axios
     this.client = axios.create({
       baseURL: `${this.baseURL}/api/v1`,
       timeout: this.timeout,
       headers: {
-        'Authorization': `Bearer ${this.token}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     // Intercepteur pour logging ITIL
     this.client.interceptors.response.use(
-      response => {
+      (response) => {
         logger.info(`API Success: ${response.config.method.toUpperCase()} ${response.config.url}`);
         return response;
       },
-      error => {
+      (error) => {
         logger.error(`API Error: ${error.response?.status} ${error.config?.url}`, {
           status: error.response?.status,
-          data: error.response?.data
+          data: error.response?.data,
         });
         return Promise.reject(error);
       }
@@ -111,111 +118,82 @@ class TestmoService {
    */
   async getProjects() {
     const cacheKey = 'projects';
-
-    // Cache LEAN
-    if (this._isCacheValid(cacheKey)) {
-      logger.info('Cache hit: projects');
-      return this.cache.get(cacheKey).data;
-    }
-
-    try {
+    return this._withCache(cacheKey, async () => {
       const response = await this._withRetry(
-        () => this.client.get('/projects', {
-          params: { per_page: 100, sort: 'projects:created_at', order: 'desc' }
-        }),
+        () =>
+          this.client.get('/projects', {
+            params: { per_page: 100, sort: 'projects:created_at', order: 'desc' },
+          }),
         'getProjects'
       );
-      this._setCache(cacheKey, response.data);
       return response.data;
-    } catch (error) {
-      throw this._handleError('getProjects', error);
-    }
+    });
   }
 
   /**
    * Récupère les runs actifs d'un projet
    * ISTQB Section 5.3: Test Monitoring
-   * 
+   *
    * @param {number} projectId - ID du projet
    * @param {boolean} activeOnly - Uniquement runs actifs
    */
   async getProjectRuns(projectId, activeOnly = true) {
     const cacheKey = `runs_${projectId}_${activeOnly}`;
-
-    if (this._isCacheValid(cacheKey)) {
-      logger.info(`Cache hit: runs for project ${projectId}`);
-      return this.cache.get(cacheKey).data;
-    }
-
-    try {
+    return this._withCache(cacheKey, async () => {
       const response = await this._withRetry(
-        () => this.client.get(`/projects/${projectId}/runs`, {
-          params: {
-            is_closed: activeOnly ? 0 : undefined,
-            per_page: 100,
-            sort: 'runs:created_at',
-            order: 'desc',
-            expands: 'users,milestones,configs'
-          }
-        }),
+        () =>
+          this.client.get(`/projects/${projectId}/runs`, {
+            params: {
+              is_closed: activeOnly ? 0 : undefined,
+              per_page: 100,
+              sort: 'runs:created_at',
+              order: 'desc',
+              expands: 'users,milestones,configs',
+            },
+          }),
         'getProjectRuns'
       );
-      this._setCache(cacheKey, response.data);
       return response.data;
-    } catch (error) {
-      throw this._handleError('getProjectRuns', error);
-    }
+    });
   }
 
   /**
    * Récupère les sessions exploratoires d'un projet
-   * 
+   *
    * @param {number} projectId - ID du projet
    * @param {boolean} activeOnly - Uniquement sessions actives
    */
   async getProjectSessions(projectId, activeOnly = true) {
     const cacheKey = `sessions_${projectId}_${activeOnly}`;
-
-    if (this._isCacheValid(cacheKey)) {
-      logger.info(`Cache hit: sessions for project ${projectId}`);
-      return this.cache.get(cacheKey).data;
-    }
-
-    try {
+    return this._withCache(cacheKey, async () => {
       const response = await this.client.get(`/projects/${projectId}/sessions`, {
         params: {
           is_closed: activeOnly ? 0 : undefined,
           per_page: 100,
           sort: 'sessions:created_at',
           order: 'desc',
-          expands: 'users,milestones'
-        }
+          expands: 'users,milestones',
+        },
       });
-
-      this._setCache(cacheKey, response.data);
       return response.data;
-
-    } catch (error) {
-      throw this._handleError('getProjectSessions', error);
-    }
+    });
   }
 
   /**
    * Récupère les détails d'un run spécifique
    * ISTQB Section 5.4: Test Reporting
-   * 
+   *
    * @param {number} runId - ID du run
    */
   async getRunDetails(runId) {
     try {
       const response = await this.client.get(`/runs/${runId}`, {
         params: {
-          expands: 'users,milestones,configs,issues'
-        }
+          expands: 'users,milestones,configs,issues',
+        },
       });
 
       return response.data.result;
-
     } catch (error) {
       throw this._handleError('getRunDetails', error);
     }
@@ -223,37 +201,27 @@ class TestmoService {
 
   /**
    * Récupère les milestones d'un projet
-   * 
+   *
    * @param {number} projectId - ID du projet
    */
   async getProjectMilestones(projectId) {
     const cacheKey = `milestones_${projectId}`;
-
-    if (this._isCacheValid(cacheKey)) {
-      return this.cache.get(cacheKey).data;
-    }
-
-    try {
+    return this._withCache(cacheKey, async () => {
       const response = await this.client.get(`/projects/${projectId}/milestones`, {
         params: {
           per_page: 100,
           sort: 'milestones:created_at',
-          order: 'desc'
-        }
+          order: 'desc',
+        },
       });
-
-      this._setCache(cacheKey, response.data);
       return response.data;
-
-    } catch (error) {
-      throw this._handleError('getProjectMilestones', error);
-    }
+    });
   }
 
   /**
    * Récupère les résultats détaillés d'un run
    * API 2025: Nouveau endpoint /runs/{id}/results
-   * 
+   *
    * @param {number} runId - ID du run
    * @param {string} statusFilter - Filtrer par statut (ex: '3,5' pour Failed + Blocked)
    */
@@ -261,7 +229,7 @@ class TestmoService {
     try {
       const params = {
         per_page: 100,
-        expands: 'users,issues'
+        expands: 'users,issues',
       };
 
       if (statusFilter) {
@@ -270,7 +238,6 @@ class TestmoService {
 
       const response = await this.client.get(`/runs/${runId}/results`, { params });
       return response.data;
-
     } catch (error) {
       throw this._handleError('getRunResults', error);
     }
@@ -279,38 +246,28 @@ class TestmoService {
   /**
    * Récupère les runs d'automation
    * ISTQB: Automated Test Execution
-   * 
+   *
    * @param {number} projectId - ID du projet
    */
   async getAutomationRuns(projectId) {
     const cacheKey = `automation_${projectId}`;
-
-    if (this._isCacheValid(cacheKey)) {
-      return this.cache.get(cacheKey).data;
-    }
-
-    try {
+    return this._withCache(cacheKey, async () => {
       const response = await this.client.get(`/projects/${projectId}/automation/runs`, {
         params: {
           per_page: 100,
           sort: 'automation_runs:created_at',
           order: 'desc',
-          expands: 'users,milestones'
-        }
+          expands: 'users,milestones',
+        },
       });
-
-      this._setCache(cacheKey, response.data);
       return response.data;
-
-    } catch (error) {
-      throw this._handleError('getAutomationRuns', error);
-    }
+    });
   }
 
   /**
    * Agrège les métriques ISTQB pour un projet
    * ISTQB Section 5.4.2: Test Summary Report
-   * 
+   *
    * @param {number} projectId - ID du projet
    * @returns {Object} Métriques ISTQB complètes
    */
@@ -326,19 +283,28 @@ class TestmoService {
           // On récupère les runs (actifs et fermés) associés aux milestones
           const runPromises = [];
           for (const mId of preprodMilestones) {
-            runPromises.push(this.client.get(`/projects/${projectId}/runs`, { params: { milestone_id: mId, is_closed: 0, per_page: 100, expands: 'users,milestones,configs' } }));
-            runPromises.push(this.client.get(`/projects/${projectId}/runs`, { params: { milestone_id: mId, is_closed: 1, per_page: 100, expands: 'users,milestones,configs' } }));
+            runPromises.push(
+              this.client.get(`/projects/${projectId}/runs`, {
+                params: { milestone_id: mId, is_closed: 0, per_page: 100, expands: 'users,milestones,configs' },
+              })
+            );
+            runPromises.push(
+              this.client.get(`/projects/${projectId}/runs`, {
+                params: { milestone_id: mId, is_closed: 1, per_page: 100, expands: 'users,milestones,configs' },
+              })
+            );
           }
           const allRunsData = await Promise.all(runPromises);
 
           runs = [];
-          allRunsData.forEach(resp => {
+          allRunsData.forEach((resp) => {
             if (resp.data.result) {
               runs = runs.concat(resp.data.result);
             }
           });
-          logger.info(`[getProjectMetrics] Récupération de ${runs.length} runs pour les jalons ${preprodMilestones.join(', ')}`);
-
+          logger.info(
+            `[getProjectMetrics] Récupération de ${runs.length} runs pour les jalons ${preprodMilestones.join(', ')}`
+          );
         } catch (e) {
           logger.error(`Erreur lors de la récupération des runs filtrés par jalon:`, e);
         }
@@ -352,10 +318,10 @@ class TestmoService {
 
         // Filtrer par milestone si renseigné
         if (preprodMilestones && preprodMilestones.length > 0) {
-          sessions = sessions.filter(s => preprodMilestones.includes(s.milestone_id));
+          sessions = sessions.filter((s) => preprodMilestones.includes(s.milestone_id));
         } else {
           // Par défaut, on ne garde que les actives si pas de milestone
-          sessions = sessions.filter(s => !s.is_closed);
+          sessions = sessions.filter((s) => !s.is_closed);
         }
 
         logger.info(`[getProjectMetrics] RÃ©cupÃ©ration de ${sessions.length} sessions exploratoires`);
@@ -365,14 +331,18 @@ class TestmoService {
 
       // Fetch dynamic TV metrics (Closed Runs & Milestones)
       const [closedRunsResponse, milestonesResponse] = await Promise.all([
-        this.client.get(`/projects/${projectId}/runs`, { params: { is_closed: 1, per_page: 100 } }).catch(() => ({ data: { total: 0 } })),
-        this.client.get(`/projects/${projectId}/milestones`, { params: { per_page: 100 } }).catch(() => ({ data: { result: [] } }))
+        this.client
+          .get(`/projects/${projectId}/runs`, { params: { is_closed: 1, per_page: 100 } })
+          .catch(() => ({ data: { total: 0 } })),
+        this.client
+          .get(`/projects/${projectId}/milestones`, { params: { per_page: 100 } })
+          .catch(() => ({ data: { result: [] } })),
       ]);
 
       const closedRunsCount = closedRunsResponse.data.total || 0;
       const milestones = milestonesResponse.data.result || [];
       const milestonesTotal = milestones.length || 1; // avoid division by zero
-      const milestonesCompleted = milestones.filter(m => m.is_completed).length;
+      const milestonesCompleted = milestones.filter((m) => m.is_completed).length;
 
       if (runs.length === 0 && sessions.length === 0) {
         logger.warn(`No active runs or sessions found for project ${projectId}`);
@@ -380,38 +350,54 @@ class TestmoService {
       }
 
       // Agrégation des métriques (runs + sessions)
-      const aggregated = runs.reduce((acc, run) => ({
-        total: acc.total + (run.total_count || 0),
-        untested: acc.untested + (run.untested_count || 0),
-        passed: acc.passed + (run.status1_count || 0),
-        failed: acc.failed + (run.status2_count || 0),
-        retest: acc.retest + (run.status3_count || 0),
-        blocked: acc.blocked + (run.status4_count || 0),
-        skipped: acc.skipped + (run.status5_count || 0),
-        wip: acc.wip + (run.status7_count || 0),
-        completed: acc.completed + (run.completed_count || 0),
-        success: acc.success + (run.success_count || 0),
-        failure: acc.failure + (run.failure_count || 0)
-      }), {
-        total: 0, untested: 0, passed: 0, failed: 0,
-        retest: 0, blocked: 0, skipped: 0, wip: 0,
-        completed: 0, success: 0, failure: 0
-      });
+      const aggregated = runs.reduce(
+        (acc, run) => ({
+          total: acc.total + (run.total_count || 0),
+          untested: acc.untested + (run.untested_count || 0),
+          passed: acc.passed + (run.status1_count || 0),
+          failed: acc.failed + (run.status2_count || 0),
+          retest: acc.retest + (run.status3_count || 0),
+          blocked: acc.blocked + (run.status4_count || 0),
+          skipped: acc.skipped + (run.status5_count || 0),
+          wip: acc.wip + (run.status7_count || 0),
+          completed: acc.completed + (run.completed_count || 0),
+          success: acc.success + (run.success_count || 0),
+          failure: acc.failure + (run.failure_count || 0),
+        }),
+        {
+          total: 0,
+          untested: 0,
+          passed: 0,
+          failed: 0,
+          retest: 0,
+          blocked: 0,
+          skipped: 0,
+          wip: 0,
+          completed: 0,
+          success: 0,
+          failure: 0,
+        }
+      );
 
       // Ajout des sessions exploratoires dans la répartition globale
       // Les sessions utilisent "state_id" (custom) et non "status_id" — on utilise
       // donc success_count/failure_count pour ajouter les vrais résultats de test.
       const sessionAggregated = aggregateSessions(sessions);
-      aggregated.total     += sessionAggregated.total;
-      aggregated.passed    += sessionAggregated.passed;
-      aggregated.failed    += sessionAggregated.failed;
+      aggregated.total += sessionAggregated.total;
+      aggregated.passed += sessionAggregated.passed;
+      aggregated.failed += sessionAggregated.failed;
       aggregated.completed += sessionAggregated.completed;
-      aggregated.success   += sessionAggregated.success;
-      aggregated.failure   += sessionAggregated.failure;
-      aggregated.wip       += sessionAggregated.wip;
+      aggregated.success += sessionAggregated.success;
+      aggregated.failure += sessionAggregated.failure;
+      aggregated.wip += sessionAggregated.wip;
 
       // Dynamic ITIL-like calculations based on real run data
-      const leadTime = Math.round(runs.reduce((acc, r) => acc + (Date.now() - new Date(r.created_at).getTime()) / (1000 * 3600), 0) / (runs.length || 1) * 10) / 10;
+      const leadTime =
+        Math.round(
+          (runs.reduce((acc, r) => acc + (Date.now() - new Date(r.created_at).getTime()) / (1000 * 3600), 0) /
+            (runs.length || 1)) *
+            10
+        ) / 10;
       const mttr = Math.round(leadTime * (aggregated.failed / (aggregated.passed || 1)) * 10) / 10;
 
       // Calculs ISTQB
@@ -427,10 +413,7 @@ class TestmoService {
         skippedRate: _calculatePercentage(aggregated.skipped, aggregated.total),
 
         // Métriques dérivées
-        testEfficiency: _calculatePercentage(
-          aggregated.passed,
-          aggregated.passed + aggregated.failed
-        ),
+        testEfficiency: _calculatePercentage(aggregated.passed, aggregated.passed + aggregated.failed),
 
         // Distribution par statut (pour graphiques)
         statusDistribution: {
@@ -442,15 +425,15 @@ class TestmoService {
             aggregated.blocked,
             aggregated.skipped,
             aggregated.untested,
-            aggregated.wip
+            aggregated.wip,
           ],
-          colors: ['#10B981', '#EF4444', '#8B5CF6', '#F59E0B', '#6B7280', '#9CA3AF', '#3B82F6']
+          colors: ['#10B981', '#EF4444', '#8B5CF6', '#F59E0B', '#6B7280', '#9CA3AF', '#3B82F6'],
         },
 
         // Runs + Sessions détails
         runsCount: runs.length + sessions.length,
         runs: [
-          ...runs.map(run => ({
+          ...runs.map((run) => ({
             id: run.id,
             name: run.name,
             total: run.total_count || 0,
@@ -464,9 +447,9 @@ class TestmoService {
             passRate: _calculatePercentage(run.status1_count, run.completed_count),
             created_at: run.created_at,
             milestone: run.milestone_id,
-            isExploratory: false
+            isExploratory: false,
           })),
-          ...sessions.map(session => {
+          ...sessions.map((session) => {
             // Progression:
             // 1. Si session fermée (is_closed), progression = 100%
             // 2. Si session "libre" (total=0) mais avec au moins un résultat décisif, progression = 100%
@@ -474,8 +457,12 @@ class TestmoService {
             // Note: les sessions utilisent "state_id" (custom), pas "status_id"
             const isTerminal = !!session.is_closed;
             const total = session.total_count || 0;
-            const executed = (session.status1_count || 0) + (session.status2_count || 0) + (session.status4_count || 0) + (session.status5_count || 0);
-            
+            const executed =
+              (session.status1_count || 0) +
+              (session.status2_count || 0) +
+              (session.status4_count || 0) +
+              (session.status5_count || 0);
+
             let completionRate = 0;
             // Règle Sophie : si au moins un résultat décisif existe (Passed, Failed, Blocked, Skipped),
             // on considère la progression à 100% (on ignore les logs de type 'note' dans le total).
@@ -507,9 +494,9 @@ class TestmoService {
               created_at: session.created_at,
               milestone: session.milestone_id,
               isExploratory: true,
-              isClosed: !!session.is_closed
+              isClosed: !!session.is_closed,
             };
-          })
+          }),
         ],
 
         // Timestamp pour cache
@@ -522,13 +509,13 @@ class TestmoService {
           leadTime: leadTime,
           leadTimeTarget: 120,
           changeFailRate: _calculatePercentage(aggregated.failed, aggregated.completed),
-          changeFailRateTarget: 20
+          changeFailRateTarget: 20,
         },
         lean: {
           wipTotal: aggregated.wip,
           wipTarget: 20,
           activeRuns: runs.length,
-          closedRuns: closedRunsCount
+          closedRuns: closedRunsCount,
         },
         istqb: {
           avgPassRate: _calculatePercentage(aggregated.passed, aggregated.completed),
@@ -536,8 +523,8 @@ class TestmoService {
           milestonesCompleted: milestonesCompleted,
           milestonesTotal: milestonesTotal,
           blockRate: _calculatePercentage(aggregated.blocked, aggregated.total),
-          blockRateTarget: 5
-        }
+          blockRateTarget: 5,
+        },
       };
 
       // Trier par date de création décroissante
@@ -547,7 +534,6 @@ class TestmoService {
       resultMetrics.slaStatus = this._checkSLA(resultMetrics);
 
       return resultMetrics;
-
     } catch (error) {
       throw this._handleError('getProjectMetrics', error);
     }
@@ -561,48 +547,62 @@ class TestmoService {
     try {
       // --- LOGIQUE CONFIGURABLE (Si des jalons sont explicitement sélectionnés) ---
       if ((preprodMilestones && preprodMilestones.length > 0) || (prodMilestones && prodMilestones.length > 0)) {
-
         let allRuns = [];
         try {
           // Identifier tous les jalons requis (uniques)
-          const requiredMilestones = [...new Set([
-            ...(preprodMilestones || []),
-            ...(prodMilestones || [])
-          ])];
+          const requiredMilestones = [...new Set([...(preprodMilestones || []), ...(prodMilestones || [])])];
 
           // Récupérer les runs et sessions (actifs et fermés) associés à tous ces milestones
           const runPromises = [];
           const sessionPromises = [];
           for (const mId of requiredMilestones) {
-            runPromises.push(this.client.get(`/projects/${projectId}/runs`, { params: { milestone_id: mId, is_closed: 0, per_page: 100, expands: 'users,milestones,configs' } }));
-            runPromises.push(this.client.get(`/projects/${projectId}/runs`, { params: { milestone_id: mId, is_closed: 1, per_page: 100, expands: 'users,milestones,configs' } }));
-            sessionPromises.push(this.client.get(`/projects/${projectId}/sessions`, { params: { milestone_id: mId, is_closed: 0, per_page: 100 } }));
-            sessionPromises.push(this.client.get(`/projects/${projectId}/sessions`, { params: { milestone_id: mId, is_closed: 1, per_page: 100 } }));
+            runPromises.push(
+              this.client.get(`/projects/${projectId}/runs`, {
+                params: { milestone_id: mId, is_closed: 0, per_page: 100, expands: 'users,milestones,configs' },
+              })
+            );
+            runPromises.push(
+              this.client.get(`/projects/${projectId}/runs`, {
+                params: { milestone_id: mId, is_closed: 1, per_page: 100, expands: 'users,milestones,configs' },
+              })
+            );
+            sessionPromises.push(
+              this.client.get(`/projects/${projectId}/sessions`, {
+                params: { milestone_id: mId, is_closed: 0, per_page: 100 },
+              })
+            );
+            sessionPromises.push(
+              this.client.get(`/projects/${projectId}/sessions`, {
+                params: { milestone_id: mId, is_closed: 1, per_page: 100 },
+              })
+            );
           }
           const [allRunsData, allSessionsData] = await Promise.all([
             Promise.all(runPromises),
-            Promise.all(sessionPromises)
+            Promise.all(sessionPromises),
           ]);
 
-          allRunsData.forEach(resp => {
+          allRunsData.forEach((resp) => {
             if (resp.data.result) {
               allRuns = allRuns.concat(resp.data.result);
             }
           });
 
           let allSessions = [];
-          allSessionsData.forEach(resp => {
+          allSessionsData.forEach((resp) => {
             if (resp.data.result) {
               allSessions = allSessions.concat(resp.data.result);
             }
           });
 
           // Filtrer les doublons
-          allRuns = Array.from(new Map(allRuns.map(item => [item.id, item])).values());
-          allSessions = Array.from(new Map(allSessions.map(item => [item.id, item])).values());
-          
-          logger.info(`[getEscapeAndDetectionRates] Récupération unique de ${allRuns.length} runs et ${allSessions.length} sessions pour les jalons ${requiredMilestones.join(', ')}`);
-          
+          allRuns = Array.from(new Map(allRuns.map((item) => [item.id, item])).values());
+          allSessions = Array.from(new Map(allSessions.map((item) => [item.id, item])).values());
+
+          logger.info(
+            `[getEscapeAndDetectionRates] Récupération unique de ${allRuns.length} runs et ${allSessions.length} sessions pour les jalons ${requiredMilestones.join(', ')}`
+          );
+
           // Stocker temporairement les sessions pour les utiliser plus bas
           this._tempSessions = allSessions;
         } catch (e) {
@@ -614,12 +614,15 @@ class TestmoService {
 
         // Gestion de la Préproduction manuelle
         if (preprodMilestones && preprodMilestones.length > 0) {
-          preprodRuns = allRuns.filter(r => preprodMilestones.includes(r.milestone_id));
+          preprodRuns = allRuns.filter((r) => preprodMilestones.includes(r.milestone_id));
         } else {
           // Fallback (fonctionnement par défaut) pour la Préproduction si non configurée
-          const latestMiles = [...new Set(allRuns.filter(r => r.milestone_id).map(r => r.milestone_id))].slice(0, 3);
+          const latestMiles = [...new Set(allRuns.filter((r) => r.milestone_id).map((r) => r.milestone_id))].slice(
+            0,
+            3
+          );
           if (latestMiles.length > 0) {
-            preprodRuns = allRuns.filter(r => r.milestone_id === latestMiles[0]);
+            preprodRuns = allRuns.filter((r) => r.milestone_id === latestMiles[0]);
           }
         }
 
@@ -627,21 +630,31 @@ class TestmoService {
         if (prodMilestones && prodMilestones.length > 0) {
           const isProdRunFn = (runName) => {
             const name = runName.toLowerCase();
-            return name.includes('patch') || name.includes('retour de prod') || name.includes('retour') || name.includes('prod');
+            return (
+              name.includes('patch') ||
+              name.includes('retour de prod') ||
+              name.includes('retour') ||
+              name.includes('prod')
+            );
           };
-          prodRuns = allRuns.filter(r => prodMilestones.includes(r.milestone_id) && isProdRunFn(r.name));
+          prodRuns = allRuns.filter((r) => prodMilestones.includes(r.milestone_id) && isProdRunFn(r.name));
         } else {
           // Fallback (fonctionnement par défaut) pour la Production si non configurée
           const isProdRunFn = (runName) => {
             const name = runName.toLowerCase();
-            return name.includes('patch') || name.includes('retour de prod') || name.includes('retour') || name.includes('prod');
+            return (
+              name.includes('patch') ||
+              name.includes('retour de prod') ||
+              name.includes('retour') ||
+              name.includes('prod')
+            );
           };
-          const latestMiles = [...new Set(allRuns.filter(r => r.milestone_id).map(r => r.milestone_id))];
+          const latestMiles = [...new Set(allRuns.filter((r) => r.milestone_id).map((r) => r.milestone_id))];
 
           // Cherche la dernière production dans les jalons actuels/précédents
           for (let i = 0; i < latestMiles.length; i++) {
-            const milestoneRuns = allRuns.filter(r => r.milestone_id === latestMiles[i]);
-            const prodInMilestone = milestoneRuns.filter(r => isProdRunFn(r.name));
+            const milestoneRuns = allRuns.filter((r) => r.milestone_id === latestMiles[i]);
+            const prodInMilestone = milestoneRuns.filter((r) => isProdRunFn(r.name));
             if (prodInMilestone.length > 0) {
               prodRuns = prodInMilestone;
               break;
@@ -651,23 +664,28 @@ class TestmoService {
 
         if (preprodRuns.length === 0 || prodRuns.length === 0) {
           return {
-            escapeRate: 0, detectionRate: 0, bugsInProd: 0, bugsInTest: 0, totalBugs: 0,
-            preprodMilestone: 'Sélection incomplète', prodMilestone: 'Sélection incomplète',
-            message: 'Impossible de trouver des runs pour l\'un des environnements.'
+            escapeRate: 0,
+            detectionRate: 0,
+            bugsInProd: 0,
+            bugsInTest: 0,
+            totalBugs: 0,
+            preprodMilestone: 'Sélection incomplète',
+            prodMilestone: 'Sélection incomplète',
+            message: "Impossible de trouver des runs pour l'un des environnements.",
           };
         }
 
         // Bugs en TEST = failures in preprod runs + exploratory sessions
         let bugsInTest = 0;
         for (const run of preprodRuns) {
-          bugsInTest += (run.status2_count || 0);
+          bugsInTest += run.status2_count || 0;
         }
 
         // Ajouter les erreurs des sessions exploratoires associées aux jalons de préprod
         if (this._tempSessions && preprodMilestones) {
-          const preprodSessions = this._tempSessions.filter(s => preprodMilestones.includes(s.milestone_id));
+          const preprodSessions = this._tempSessions.filter((s) => preprodMilestones.includes(s.milestone_id));
           for (const session of preprodSessions) {
-            bugsInTest += (session.status2_count || 0);
+            bugsInTest += session.status2_count || 0;
           }
         }
         delete this._tempSessions;
@@ -681,13 +699,15 @@ class TestmoService {
               bugsInProd += runDetails.issues.length;
             } else {
               const results = await this.client.get(`/runs/${run.id}/results`, { params: { expands: 'issues' } });
-              const failedResultsWithIssues = (results.data.result || []).filter(res => res.issues && res.issues.length > 0);
+              const failedResultsWithIssues = (results.data.result || []).filter(
+                (res) => res.issues && res.issues.length > 0
+              );
               if (failedResultsWithIssues.length > 0) {
                 bugsInProd += failedResultsWithIssues.length;
               }
             }
           } catch (e) {
-            logger.error("Erreur details run production:", e);
+            logger.error('Erreur details run production:', e);
           }
         }
 
@@ -696,7 +716,12 @@ class TestmoService {
         let preprodMilestoneName = 'Sélection manuelle';
         if (preprodRuns.length > 0 && preprodRuns[0].milestones && preprodRuns[0].milestones.length > 0) {
           preprodMilestoneName = preprodRuns[0].milestones[0].name;
-          if (preprodRuns.length > 1 && preprodRuns[1].milestones && preprodRuns[1].milestones.length > 0 && preprodRuns[0].milestones[0].id !== preprodRuns[1].milestones[0].id) {
+          if (
+            preprodRuns.length > 1 &&
+            preprodRuns[1].milestones &&
+            preprodRuns[1].milestones.length > 0 &&
+            preprodRuns[0].milestones[0].id !== preprodRuns[1].milestones[0].id
+          ) {
             preprodMilestoneName += ' & ' + preprodRuns[1].milestones[0].name;
           }
         } else if (preprodRuns[0] && preprodRuns[0].milestone) {
@@ -706,7 +731,12 @@ class TestmoService {
         let prodMilestoneName = 'Sélection manuelle';
         if (prodRuns.length > 0 && prodRuns[0].milestones && prodRuns[0].milestones.length > 0) {
           prodMilestoneName = prodRuns[0].milestones[0].name;
-          if (prodRuns.length > 1 && prodRuns[1].milestones && prodRuns[1].milestones.length > 0 && prodRuns[0].milestones[0].id !== prodRuns[1].milestones[0].id) {
+          if (
+            prodRuns.length > 1 &&
+            prodRuns[1].milestones &&
+            prodRuns[1].milestones.length > 0 &&
+            prodRuns[0].milestones[0].id !== prodRuns[1].milestones[0].id
+          ) {
             prodMilestoneName += ' & ' + prodRuns[1].milestones[0].name;
           }
         } else if (prodRuns[0] && prodRuns[0].milestone) {
@@ -720,14 +750,14 @@ class TestmoService {
           bugsInTest,
           totalBugs,
           preprodMilestone: preprodMilestoneName,
-          prodMilestone: prodMilestoneName
+          prodMilestone: prodMilestoneName,
         };
       }
 
       // --- LOGIQUE PAR DEFAUT AUTOMATIQUE ---
       // 1. Récupérer les milestones actives (non complétées)
       const milestonesResponse = await this.client.get(`/projects/${projectId}/milestones`, {
-        params: { is_completed: 0, sort: 'milestones:created_at', order: 'desc', per_page: 100 }
+        params: { is_completed: 0, sort: 'milestones:created_at', order: 'desc', per_page: 100 },
       });
       const activeMilestones = milestonesResponse.data.result || [];
 
@@ -739,7 +769,7 @@ class TestmoService {
           bugsInTest: 0,
           preprodMilestone: activeMilestones[0] ? activeMilestones[0].name : 'N/A',
           prodMilestone: activeMilestones[2] ? activeMilestones[2].name : 'N/A',
-          message: 'Pas assez de milestones actives pour comparer (3 requises).'
+          message: 'Pas assez de milestones actives pour comparer (3 requises).',
         };
       }
 
@@ -752,14 +782,16 @@ class TestmoService {
       let milestonesWithActivityCount = 0;
 
       const milestoneData = await Promise.all(
-        activeMilestones.map(m => Promise.all([
-          this.client.get(`/projects/${projectId}/runs`, { params: { milestone_id: m.id, per_page: 100 } }),
-          this.client.get(`/projects/${projectId}/sessions`, { params: { milestone_id: m.id, per_page: 100 } })
-        ]).then(([runsResp, sessionsResp]) => ({
-          milestone: m,
-          runs: runsResp.data.result || [],
-          sessions: sessionsResp.data.result || []
-        })))
+        activeMilestones.map((m) =>
+          Promise.all([
+            this.client.get(`/projects/${projectId}/runs`, { params: { milestone_id: m.id, per_page: 100 } }),
+            this.client.get(`/projects/${projectId}/sessions`, { params: { milestone_id: m.id, per_page: 100 } }),
+          ]).then(([runsResp, sessionsResp]) => ({
+            milestone: m,
+            runs: runsResp.data.result || [],
+            sessions: sessionsResp.data.result || [],
+          }))
+        )
       );
 
       for (const item of milestoneData) {
@@ -784,7 +816,7 @@ class TestmoService {
           bugsInTest: 0,
           preprodMilestone: preprodMilestone ? preprodMilestone.name : 'N/A',
           prodMilestone: prodMilestone ? prodMilestone.name : 'N/A',
-          message: 'Impossible de trouver 3 milestones avec de l\'activité (runs/sessions).'
+          message: "Impossible de trouver 3 milestones avec de l'activité (runs/sessions).",
         };
       }
 
@@ -793,27 +825,29 @@ class TestmoService {
 
       const isProdRunFn = (runName) => {
         const name = runName.toLowerCase();
-        return name.includes('patch') || name.includes('retour de prod') || name.includes('retour') || name.includes('prod');
+        return (
+          name.includes('patch') || name.includes('retour de prod') || name.includes('retour') || name.includes('prod')
+        );
       };
 
-      const testRuns = prodRuns.filter(r => !isProdRunFn(r.name));
+      const testRuns = prodRuns.filter((r) => !isProdRunFn(r.name));
 
       for (const run of testRuns) {
-        bugsInTest += (run.status2_count || 0);
+        bugsInTest += run.status2_count || 0;
       }
-      
+
       // Ajouter les échecs des sessions exploratoires de la PROD (m-2)
       for (const session of prodSessions) {
-        bugsInTest += (session.status2_count || 0);
+        bugsInTest += session.status2_count || 0;
       }
 
       // 3. Bugs en PROD = somme des issues dans les runs contenant les mots clés de prod
       // LEAN: parallélisation des appels getRunDetails pour éviter le N+1 séquentiel
       let bugsInProd = 0;
-      const patchRuns = prodRuns.filter(r => isProdRunFn(r.name));
+      const patchRuns = prodRuns.filter((r) => isProdRunFn(r.name));
 
       const patchRunDetails = await Promise.all(
-        patchRuns.map(run => this.getRunDetails(run.id).then(details => ({ run, details })))
+        patchRuns.map((run) => this.getRunDetails(run.id).then((details) => ({ run, details })))
       );
 
       const fallbackRuns = [];
@@ -827,12 +861,12 @@ class TestmoService {
 
       if (fallbackRuns.length > 0) {
         const fallbackResponses = await Promise.all(
-          fallbackRuns.map(run => this.client.get(`/runs/${run.id}/results`, { params: { expands: 'issues' } }))
+          fallbackRuns.map((run) => this.client.get(`/runs/${run.id}/results`, { params: { expands: 'issues' } }))
         );
         for (let i = 0; i < fallbackRuns.length; i++) {
           const run = fallbackRuns[i];
           const results = fallbackResponses[i];
-          const failedResultsWithIssues = results.data.result.filter(res => res.issues && res.issues.length > 0);
+          const failedResultsWithIssues = results.data.result.filter((res) => res.issues && res.issues.length > 0);
           if (failedResultsWithIssues.length > 0) {
             bugsInProd += failedResultsWithIssues.length;
           } else if (run.status2_count > 0) {
@@ -853,9 +887,8 @@ class TestmoService {
         bugsInTest,
         totalBugs,
         preprodMilestone: preprodMilestone.name,
-        prodMilestone: prodMilestone.name
+        prodMilestone: prodMilestone.name,
       };
-
     } catch (error) {
       throw this._handleError('getEscapeAndDetectionRates', error);
     }
@@ -864,21 +897,17 @@ class TestmoService {
   /**
    * Récupère les tendances annuelles de qualité (Escape Rate & DDP)
    * Basé sur les 20 derniers jalons (Milestones)
-   * 
+   *
    * ISTQB: Test Process Improvement
    * LEAN: Analyse des tendances pour élimination du gaspillage
    */
   async getAnnualQualityTrends(projectId) {
     const cacheKey = `trends_${projectId}`;
 
-    if (this._isCacheValid(cacheKey)) {
-      return this.cache.get(cacheKey).data;
-    }
-
-    try {
+    return this._withCache(cacheKey, async () => {
       // 1. Récupérer les derniers jalons (Milestones)
       const milestonesResponse = await this.client.get(`/projects/${projectId}/milestones`, {
-        params: { sort: 'milestones:created_at', order: 'desc', per_page: 100 }
+        params: { sort: 'milestones:created_at', order: 'desc', per_page: 100 },
       });
       const milestones = (milestonesResponse.data.result || []).slice(0, 20);
 
@@ -887,33 +916,27 @@ class TestmoService {
       // 2. Récupérer les runs et sessions en VRAC (Bulk) pour le projet (LEAN)
       // On récupère les 200 derniers runs et sessions (ouverts et fermés)
       const [activeRunsResp, closedRunsResp, activeSessionsResp, closedSessionsResp] = await Promise.all([
-        this.client.get(`/projects/${projectId}/runs`, { 
-          params: { is_closed: 0, per_page: 100, expands: 'milestones' } 
+        this.client.get(`/projects/${projectId}/runs`, {
+          params: { is_closed: 0, per_page: 100, expands: 'milestones' },
         }),
-        this.client.get(`/projects/${projectId}/runs`, { 
-          params: { is_closed: 1, per_page: 100, expands: 'milestones' } 
+        this.client.get(`/projects/${projectId}/runs`, {
+          params: { is_closed: 1, per_page: 100, expands: 'milestones' },
         }),
-        this.client.get(`/projects/${projectId}/sessions`, { 
-          params: { is_closed: 0, per_page: 100 } 
+        this.client.get(`/projects/${projectId}/sessions`, {
+          params: { is_closed: 0, per_page: 100 },
         }),
-        this.client.get(`/projects/${projectId}/sessions`, { 
-          params: { is_closed: 1, per_page: 100 } 
-        })
+        this.client.get(`/projects/${projectId}/sessions`, {
+          params: { is_closed: 1, per_page: 100 },
+        }),
       ]);
 
-      const allRuns = [
-        ...(activeRunsResp.data.result || []),
-        ...(closedRunsResp.data.result || [])
-      ];
-      
-      const allSessions = [
-        ...(activeSessionsResp.data.result || []),
-        ...(closedSessionsResp.data.result || [])
-      ];
+      const allRuns = [...(activeRunsResp.data.result || []), ...(closedRunsResp.data.result || [])];
+
+      const allSessions = [...(activeSessionsResp.data.result || []), ...(closedSessionsResp.data.result || [])];
 
       // Grouper les runs par milestoneId
       const runsByMilestone = new Map();
-      allRuns.forEach(run => {
+      allRuns.forEach((run) => {
         if (run.milestone_id) {
           if (!runsByMilestone.has(run.milestone_id)) {
             runsByMilestone.set(run.milestone_id, []);
@@ -924,7 +947,7 @@ class TestmoService {
 
       // Grouper les sessions par milestoneId
       const sessionsByMilestone = new Map();
-      allSessions.forEach(session => {
+      allSessions.forEach((session) => {
         if (session.milestone_id) {
           if (!sessionsByMilestone.has(session.milestone_id)) {
             sessionsByMilestone.set(session.milestone_id, []);
@@ -936,7 +959,9 @@ class TestmoService {
       // 3. Traitement des données par milestone
       const isProdRunFn = (runName) => {
         const name = runName.toLowerCase();
-        return name.includes('patch') || name.includes('retour de prod') || name.includes('retour') || name.includes('prod');
+        return (
+          name.includes('patch') || name.includes('retour de prod') || name.includes('retour') || name.includes('prod')
+        );
       };
 
       const trends = [];
@@ -944,17 +969,18 @@ class TestmoService {
       for (const m of milestones) {
         const milestoneRuns = runsByMilestone.get(m.id) || [];
         const milestoneSessions = sessionsByMilestone.get(m.id) || [];
-        
+
         // On ne traite que les jalons qui ont au moins un run ou une session
         if (milestoneRuns.length === 0 && milestoneSessions.length === 0) continue;
 
-        const preprodRuns = milestoneRuns.filter(r => !isProdRunFn(r.name));
-        const prodRuns = milestoneRuns.filter(r => isProdRunFn(r.name));
+        const preprodRuns = milestoneRuns.filter((r) => !isProdRunFn(r.name));
+        const prodRuns = milestoneRuns.filter((r) => isProdRunFn(r.name));
 
         // Calcul bugs en TEST (Runs + Sessions)
-        const bugsInTest = preprodRuns.reduce((acc, r) => acc + (r.status2_count || 0), 0) + 
-                           milestoneSessions.reduce((acc, s) => acc + (s.status2_count || 0), 0);
-        
+        const bugsInTest =
+          preprodRuns.reduce((acc, r) => acc + (r.status2_count || 0), 0) +
+          milestoneSessions.reduce((acc, s) => acc + (s.status2_count || 0), 0);
+
         // Calcul bugs en PROD (status2_count dans les runs de patch/prod)
         const bugsInProd = prodRuns.reduce((acc, r) => acc + (r.status2_count || 0), 0);
 
@@ -974,19 +1000,15 @@ class TestmoService {
           bugsInProd,
           bugsInTest,
           totalBugs,
-          isCompleted: m.is_completed
+          isCompleted: m.is_completed,
         });
       }
 
       // Trier par date (chrono) pour le graphique
       const sortedTrends = trends.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-      this._setCache(cacheKey, sortedTrends);
       return sortedTrends;
-
-    } catch (error) {
-      throw this._handleError('getAnnualQualityTrends', error);
-    }
+    });
   }
 
   /**
@@ -1005,7 +1027,7 @@ class TestmoService {
       statusDistribution: {
         labels: ['Passed', 'Failed', 'Retest', 'Blocked', 'Skipped', 'Untested', 'WIP'],
         values: [0, 0, 0, 0, 0, 0, 0],
-        colors: ['#10B981', '#EF4444', '#8B5CF6', '#F59E0B', '#6B7280', '#9CA3AF', '#3B82F6']
+        colors: ['#10B981', '#EF4444', '#8B5CF6', '#F59E0B', '#6B7280', '#9CA3AF', '#3B82F6'],
       },
       runsCount: 0,
       runs: [],
@@ -1013,7 +1035,14 @@ class TestmoService {
       timestamp: new Date().toISOString(),
       itil: { mttr: 0, mttrTarget: 72, leadTime: 0, leadTimeTarget: 120, changeFailRate: 0, changeFailRateTarget: 20 },
       lean: { wipTotal: 0, wipTarget: 20, activeRuns: 0, closedRuns: 161 },
-      istqb: { avgPassRate: 0, passRateTarget: 80, milestonesCompleted: 13, milestonesTotal: 27, blockRate: 0, blockRateTarget: 5 }
+      istqb: {
+        avgPassRate: 0,
+        passRateTarget: 80,
+        milestonesCompleted: 13,
+        milestonesTotal: 27,
+        blockRate: 0,
+        blockRateTarget: 5,
+      },
     };
   }
 
@@ -1025,7 +1054,7 @@ class TestmoService {
     const SLA_THRESHOLDS = {
       passRate: { target: 95, warning: 90, critical: 85 },
       blockedRate: { max: 5 },
-      completionRate: { target: 90, warning: 80 }
+      completionRate: { target: 90, warning: 80 },
     };
 
     const alerts = [];
@@ -1037,7 +1066,7 @@ class TestmoService {
         metric: 'Pass Rate',
         value: metrics.passRate,
         threshold: SLA_THRESHOLDS.passRate.critical,
-        message: `Pass rate critique: ${metrics.passRate}% < ${SLA_THRESHOLDS.passRate.critical}%`
+        message: `Pass rate critique: ${metrics.passRate}% < ${SLA_THRESHOLDS.passRate.critical}%`,
       });
     } else if (metrics.passRate < SLA_THRESHOLDS.passRate.warning) {
       alerts.push({
@@ -1045,7 +1074,7 @@ class TestmoService {
         metric: 'Pass Rate',
         value: metrics.passRate,
         threshold: SLA_THRESHOLDS.passRate.warning,
-        message: `Pass rate en warning: ${metrics.passRate}% < ${SLA_THRESHOLDS.passRate.warning}%`
+        message: `Pass rate en warning: ${metrics.passRate}% < ${SLA_THRESHOLDS.passRate.warning}%`,
       });
     }
 
@@ -1056,7 +1085,7 @@ class TestmoService {
         metric: 'Blocked Rate',
         value: metrics.blockedRate,
         threshold: SLA_THRESHOLDS.blockedRate.max,
-        message: `Trop de tests bloqués: ${metrics.blockedRate}% > ${SLA_THRESHOLDS.blockedRate.max}%`
+        message: `Trop de tests bloqués: ${metrics.blockedRate}% > ${SLA_THRESHOLDS.blockedRate.max}%`,
       });
     }
 
@@ -1067,13 +1096,13 @@ class TestmoService {
         metric: 'Completion Rate',
         value: metrics.completionRate,
         threshold: SLA_THRESHOLDS.completionRate.warning,
-        message: `Avancement insuffisant: ${metrics.completionRate}% < ${SLA_THRESHOLDS.completionRate.warning}%`
+        message: `Avancement insuffisant: ${metrics.completionRate}% < ${SLA_THRESHOLDS.completionRate.warning}%`,
       });
     }
 
     return {
       ok: alerts.length === 0,
-      alerts: alerts
+      alerts: alerts,
     };
   }
 
@@ -1097,13 +1126,47 @@ class TestmoService {
   _setCache(key, data) {
     this.cache.set(key, {
       data: data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
+  }
+
+  /**
+   * Helper cache avec déduplication des requêtes en cours (anti-stampede).
+   * Si une requête identique est déjà en vol, retourne sa Promise existante.
+   *
+   * @param {string}   key     - Clé de cache
+   * @param {Function} fetchFn - Fonction async qui retourne les données
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _withCache(key, fetchFn) {
+    if (this._isCacheValid(key)) {
+      return this.cache.get(key).data;
+    }
+
+    if (this._inFlight.has(key)) {
+      return this._inFlight.get(key);
+    }
+
+    const promise = fetchFn().finally(() => {
+      this._inFlight.delete(key);
+    });
+
+    this._inFlight.set(key, promise);
+    const data = await promise;
+    this._setCache(key, data);
+    return data;
   }
 
   /**
    * Nettoie le cache (appel manuel si besoin)
    */
+  clearCache() {
+    this.cache.clear();
+    this._inFlight.clear();
+    logger.info('Cache LEAN vidé manuellement');
+  }
+
   // ============================================================
   // REPOSITORY API — Folders & Cases (Beta)
   // ============================================================
@@ -1139,7 +1202,7 @@ class TestmoService {
    */
   async findFolder(projectId, folderName, parentId = null) {
     const folders = await this.getFolders(projectId, parentId);
-    return folders.find(f => f.name === folderName) || null;
+    return folders.find((f) => f.name === folderName) || null;
   }
 
   /**
@@ -1193,7 +1256,7 @@ class TestmoService {
   async deleteFolders(projectId, folderIds) {
     try {
       const response = await this.client.delete(`/projects/${projectId}/folders`, {
-        data: { ids: folderIds }
+        data: { ids: folderIds },
       });
       logger.info(`Testmo: ${folderIds.length} folder(s) supprimé(s)`);
       return response.data;
@@ -1265,7 +1328,7 @@ class TestmoService {
    */
   async findCaseByName(projectId, name, folderId = null) {
     const cases = await this.getCases(projectId, folderId);
-    return cases.find(c => c.name === name) || null;
+    return cases.find((c) => c.name === name) || null;
   }
 
   /**
@@ -1279,10 +1342,12 @@ class TestmoService {
   async createCase(projectId, caseData) {
     try {
       if (caseData.custom_steps) {
-        logger.info(`Testmo: createCase payload custom_steps: ${JSON.stringify(caseData.custom_steps).substring(0, 500)}`);
+        logger.info(
+          `Testmo: createCase payload custom_steps: ${JSON.stringify(caseData.custom_steps).substring(0, 500)}`
+        );
       }
       const response = await this.client.post(`/projects/${projectId}/cases`, {
-        cases: [caseData]
+        cases: [caseData],
       });
       const created = response.data.result ? response.data.result[0] : response.data;
       if (created?.custom_steps) {
@@ -1328,28 +1393,24 @@ class TestmoService {
     if (testCase.issues && testCase.issues.length > 0) return true;
 
     // Tags : ignorer les tags auto (gitlab-#, iteration:, sync-auto)
-    const manualTags = (testCase.tags || []).filter(t => {
-      const name = typeof t === 'string' ? t : (t.name || t.tag || '');
+    const manualTags = (testCase.tags || []).filter((t) => {
+      const name = typeof t === 'string' ? t : t.name || t.tag || '';
       if (!name) return false;
       return !name.startsWith('gitlab-') && !name.startsWith('iteration-') && name !== 'sync-auto';
     });
     if (manualTags.length > 0) return true;
 
-    if (testCase.custom_priority && testCase.custom_priority !== 'Normal' && testCase.custom_priority !== 2) return true;
+    if (testCase.custom_priority && testCase.custom_priority !== 'Normal' && testCase.custom_priority !== 2)
+      return true;
     if (testCase.attachments && testCase.attachments.length > 0) return true;
     // Ne compter que les steps avec du contenu réel (format Testmo: text1 = contenu du step)
-    const nonEmptySteps = (testCase.custom_steps || []).filter(s => {
-      const content = typeof s === 'object' ? (s.text1 || s.step || s.content || '') : String(s || '');
+    const nonEmptySteps = (testCase.custom_steps || []).filter((s) => {
+      const content = typeof s === 'object' ? s.text1 || s.step || s.content || '' : String(s || '');
       return content.trim().length > 0;
     });
     if (nonEmptySteps.length > 0) return true;
 
     return false;
-  }
-
-  clearCache() {
-    this.cache.clear();
-    logger.info('Cache cleared');
   }
 
   /**
@@ -1372,12 +1433,19 @@ class TestmoService {
         lastError = err;
         const status = err.response?.status;
         // Ne pas réessayer sur les erreurs client 4xx (sauf 429 rate-limit)
-        const isRetryable = !status || status === 429 || status >= 500 ||
-          err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND';
+        const isRetryable =
+          !status ||
+          status === 429 ||
+          status >= 500 ||
+          err.code === 'ECONNRESET' ||
+          err.code === 'ETIMEDOUT' ||
+          err.code === 'ENOTFOUND';
         if (!isRetryable || attempt === maxRetries) break;
         const delay = baseDelay * Math.pow(2, attempt - 1); // 500ms, 1s, 2s
-        logger.warn(`[Retry] ${label} — tentative ${attempt}/${maxRetries} échouée (${err.message}), nouvel essai dans ${delay}ms`);
-        await new Promise(r => setTimeout(r, delay));
+        logger.warn(
+          `[Retry] ${label} — tentative ${attempt}/${maxRetries} échouée (${err.message}), nouvel essai dans ${delay}ms`
+        );
+        await new Promise((r) => setTimeout(r, delay));
       }
     }
     throw lastError;
@@ -1392,7 +1460,7 @@ class TestmoService {
       method: method,
       status: error.response?.status,
       message: error.response?.data?.message || error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     logger.error(`Testmo Service Error in ${method}:`, incident);
