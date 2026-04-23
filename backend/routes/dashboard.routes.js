@@ -1,9 +1,60 @@
 const express = require('express');
 const router = express.Router();
 const testmoService = require('../services/testmo.service');
+const alertService = require('../services/alert.service');
 const logger = require('../services/logger.service');
 const { safeErrorResponse } = require('../utils/errorResponse');
 const { validateParams, validateQuery, projectIdParam, milestonesQuery } = require('../validators');
+
+/**
+ * Synthèse multi-projets
+ * Agrège les métriques clés de tous les projets Testmo
+ */
+router.get('/multi', async (req, res) => {
+  try {
+    const projectsRaw = await testmoService.getProjects();
+    const projects = Array.isArray(projectsRaw) ? projectsRaw : projectsRaw?.result || [];
+    const summaries = await Promise.all(
+      projects.map(async (project) => {
+        try {
+          const metrics = await testmoService.getProjectMetrics(project.id);
+          return {
+            projectId: project.id,
+            projectName: project.name,
+            passRate: metrics.passRate,
+            completionRate: metrics.completionRate,
+            blockedRate: metrics.blockedRate,
+            escapeRate: metrics.escapeRate || 0,
+            detectionRate: metrics.detectionRate || 0,
+            slaStatus: metrics.slaStatus,
+            timestamp: metrics.timestamp,
+          };
+        } catch (err) {
+          logger.warn(`[MultiProject] Échec metrics projet ${project.id}:`, err.message);
+          return {
+            projectId: project.id,
+            projectName: project.name,
+            passRate: null,
+            completionRate: null,
+            blockedRate: null,
+            escapeRate: null,
+            detectionRate: null,
+            slaStatus: { ok: false, alerts: [{ severity: 'error', message: 'Données indisponibles' }] },
+            timestamp: new Date().toISOString(),
+          };
+        }
+      })
+    );
+
+    res.json({
+      success: true,
+      data: summaries,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json(safeErrorResponse(error, 'GET /api/dashboard/multi'));
+  }
+});
 
 /**
  * Métriques ISTQB complètes d'un projet
@@ -19,11 +70,14 @@ router.get('/:projectId', validateParams(projectIdParam), validateQuery(mileston
     logger.info(`Récupération métriques pour projet ${projectId}`);
     const metrics = await testmoService.getProjectMetrics(projectId, preprodMilestones, prodMilestones);
 
-    // Log des alertes SLA (ITIL)
+    // Log + alerte webhook des alertes SLA (ITIL)
     if (!metrics.slaStatus.ok) {
       logger.warn('Alertes SLA détectées:', {
         projectId,
         alerts: metrics.slaStatus.alerts,
+      });
+      alertService.sendSLAAlert(projectId, metrics.slaStatus.alerts).catch(() => {
+        /* silencieux — ne pas impacter le client */
       });
     }
 

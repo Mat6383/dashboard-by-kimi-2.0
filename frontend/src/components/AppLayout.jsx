@@ -7,6 +7,7 @@ const dashboardRoutes = [
   { path: '/quality-rates', label: 'Dashboard 3 (Quality Rates)' },
   { path: '/global-view', label: 'Dashboard 4 (Vue Globale & PDF)' },
   { path: '/annual-trends', label: 'Dashboard 5 (Tendances Annuelles)' },
+  { path: '/multi-project', label: 'Dashboard 6 (Multi-Projets)' },
   { path: '/sync-gitlab-to-testmo', label: '⚙ Sync GitLab → Testmo' },
   { path: '/configuration', label: '⚙️ Configuration des Cycles' },
   { path: '/crosstest', label: '🔗 CrossTest OK' },

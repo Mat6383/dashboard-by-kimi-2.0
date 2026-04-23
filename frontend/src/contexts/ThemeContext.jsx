@@ -1,12 +1,24 @@
-import React, { createContext, useState, useCallback, useEffect, useMemo } from 'react';
+import React, { createContext, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 
 export const ThemeContext = createContext(null);
 
+function getSystemPrefersDark() {
+  return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false;
+}
+
 export function ThemeProvider({ children }) {
-  const [isDark, setIsDark] = useState(() => localStorage.getItem('testmo_darkMode') === 'true');
+  const manualOverrideRef = useRef(false);
+
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('testmo_darkMode');
+    return saved !== null ? saved === 'true' : getSystemPrefersDark();
+  });
   const [tvMode, setTvMode] = useState(() => localStorage.getItem('testmo_tvMode') !== 'false');
 
-  const toggleDark = useCallback(() => setIsDark((prev) => !prev), []);
+  const toggleDark = useCallback(() => {
+    manualOverrideRef.current = true;
+    setIsDark((prev) => !prev);
+  }, []);
   const toggleTv = useCallback(() => setTvMode((prev) => !prev), []);
 
   useEffect(() => {
@@ -30,6 +42,19 @@ export function ThemeProvider({ children }) {
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  // Suivi de la préférence système quand aucun override manuel
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!mq) return;
+    const handler = (e) => {
+      if (!manualOverrideRef.current) {
+        setIsDark(e.matches);
+      }
+    };
+    mq.addEventListener?.('change', handler);
+    return () => mq.removeEventListener?.('change', handler);
   }, []);
 
   const value = useMemo(() => ({ isDark, toggleDark, tvMode, toggleTv }), [isDark, toggleDark, tvMode, toggleTv]);

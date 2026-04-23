@@ -10,8 +10,9 @@
  * @version 1.0.0
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import apiService from '../services/api.service';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 import {
   Link2,
@@ -27,6 +28,110 @@ import '../styles/Dashboard7.css';
 import CommentCell from './CommentCell';
 
 /* =========================================
+   Sous-composant : tableau virtualisé
+   ========================================= */
+function VirtualIssueTable({ issues, comments, selectedIteration, onCommentSaved, onCommentDeleted, tableWrapperRef }) {
+  const rowVirtualizer = useVirtualizer({
+    count: issues.length,
+    getScrollElement: () => tableWrapperRef.current,
+    estimateSize: () => 64,
+    overscan: 5,
+  });
+
+  return (
+    <div ref={tableWrapperRef} className="d7-table-wrapper">
+      <table className="d7-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Ticket</th>
+            <th>Assigné(s)</th>
+            <th>Statut</th>
+            <th>Commentaires</th>
+          </tr>
+        </thead>
+        <tbody style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const issue = issues[virtualRow.index];
+            return (
+              <tr
+                key={virtualRow.key}
+                style={{
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                }}
+              >
+                {/* IID */}
+                <td>{issue.iid}</td>
+
+                {/* Titre + lien + labels */}
+                <td>
+                  <a
+                    className="d7-issue-link"
+                    href={issue.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Ouvrir #${issue.iid} dans GitLab`}
+                  >
+                    <span className="d7-issue-iid">#{issue.iid}</span>
+                    {issue.title}
+                    <ExternalLink size={12} style={{ flexShrink: 0 }} />
+                  </a>
+                  {issue.labels && issue.labels.length > 0 && (
+                    <div className="d7-labels">
+                      {issue.labels.map((label) => (
+                        <span key={label} className="d7-label-chip">
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </td>
+
+                {/* Assignés */}
+                <td>
+                  {issue.assignees && issue.assignees.length > 0 ? (
+                    issue.assignees.join(', ')
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Non assigné</span>
+                  )}
+                </td>
+
+                {/* Statut */}
+                <td>
+                  {issue.state === 'closed' ? (
+                    <span className="d7-badge d7-badge-closed">
+                      <CheckCircle2 size={11} />
+                      Fermé
+                    </span>
+                  ) : (
+                    <span className="d7-badge d7-badge-open">
+                      <Clock size={11} />
+                      Ouvert
+                    </span>
+                  )}
+                </td>
+
+                {/* Commentaires */}
+                <td className="d7-comment-cell">
+                  <CommentCell
+                    issue={issue}
+                    comment={comments[issue.iid] || null}
+                    milestoneTitle={selectedIteration?.title}
+                    onSaved={onCommentSaved}
+                    onDeleted={onCommentDeleted}
+                  />
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* =========================================
    Composant principal Dashboard7
    ========================================= */
 export default function Dashboard7({ isDark: _isDark }) {
@@ -35,6 +140,8 @@ export default function Dashboard7({ isDark: _isDark }) {
   const [issues, setIssues] = useState([]);
   const [comments, setComments] = useState({}); // { [iid]: row }
   const [filter, setFilter] = useState('');
+
+  const tableWrapperRef = useRef(null);
 
   const [loadingIterations, setLoadingIterations] = useState(true);
   const [loadingIssues, setLoadingIssues] = useState(false);
@@ -271,86 +378,14 @@ export default function Dashboard7({ isDark: _isDark }) {
 
         {/* Tableau principal */}
         {!loadingIssues && !issuesError && filteredIssues.length > 0 && (
-          <div className="d7-table-wrapper">
-            <table className="d7-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Ticket</th>
-                  <th>Assigné(s)</th>
-                  <th>Statut</th>
-                  <th>Commentaires</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredIssues.map((issue) => (
-                  <tr key={issue.iid}>
-                    {/* IID */}
-                    <td>{issue.iid}</td>
-
-                    {/* Titre + lien + labels */}
-                    <td>
-                      <a
-                        className="d7-issue-link"
-                        href={issue.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={`Ouvrir #${issue.iid} dans GitLab`}
-                      >
-                        <span className="d7-issue-iid">#{issue.iid}</span>
-                        {issue.title}
-                        <ExternalLink size={12} style={{ flexShrink: 0 }} />
-                      </a>
-                      {issue.labels && issue.labels.length > 0 && (
-                        <div className="d7-labels">
-                          {issue.labels.map((label) => (
-                            <span key={label} className="d7-label-chip">
-                              {label}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-
-                    {/* Assignés */}
-                    <td>
-                      {issue.assignees && issue.assignees.length > 0 ? (
-                        issue.assignees.join(', ')
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Non assigné</span>
-                      )}
-                    </td>
-
-                    {/* Statut */}
-                    <td>
-                      {issue.state === 'closed' ? (
-                        <span className="d7-badge d7-badge-closed">
-                          <CheckCircle2 size={11} />
-                          Fermé
-                        </span>
-                      ) : (
-                        <span className="d7-badge d7-badge-open">
-                          <Clock size={11} />
-                          Ouvert
-                        </span>
-                      )}
-                    </td>
-
-                    {/* Commentaires */}
-                    <td className="d7-comment-cell">
-                      <CommentCell
-                        issue={issue}
-                        comment={comments[issue.iid] || null}
-                        milestoneTitle={selectedIteration?.title}
-                        onSaved={handleCommentSaved}
-                        onDeleted={handleCommentDeleted}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <VirtualIssueTable
+            issues={filteredIssues}
+            comments={comments}
+            selectedIteration={selectedIteration}
+            onCommentSaved={handleCommentSaved}
+            onCommentDeleted={handleCommentDeleted}
+            tableWrapperRef={tableWrapperRef}
+          />
         )}
       </div>
     </div>

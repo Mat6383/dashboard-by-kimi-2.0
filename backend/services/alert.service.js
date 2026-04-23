@@ -1,0 +1,72 @@
+const axios = require('axios');
+const logger = require('./logger.service');
+
+class AlertService {
+  constructor() {
+    this.slackWebhookUrl = process.env.SLACK_WEBHOOK_URL || null;
+    this.teamsWebhookUrl = process.env.TEAMS_WEBHOOK_URL || null;
+  }
+
+  /**
+   * Envoie une alerte SLA aux webhooks configurés
+   * @param {number} projectId
+   * @param {Array} alerts - Liste des alertes SLA
+   */
+  async sendSLAAlert(projectId, alerts) {
+    if (!alerts || alerts.length === 0) return;
+
+    const text = this._formatSlackMessage(projectId, alerts);
+    const teamsCard = this._formatTeamsCard(projectId, alerts);
+
+    await Promise.all([this._sendSlack(text), this._sendTeams(teamsCard)]);
+  }
+
+  _formatSlackMessage(projectId, alerts) {
+    const lines = alerts.map(
+      (a) => `• *[${a.severity.toUpperCase()}]* ${a.metric}: ${a.value}% (seuil: ${a.threshold}%)`
+    );
+    return `🚨 *Alertes SLA — Projet ${projectId}*\n${lines.join('\n')}`;
+  }
+
+  _formatTeamsCard(projectId, alerts) {
+    const facts = alerts.map((a) => ({
+      name: `${a.severity.toUpperCase()} — ${a.metric}`,
+      value: `${a.value}% (seuil: ${a.threshold}%)`,
+    }));
+
+    return {
+      '@type': 'MessageCard',
+      '@context': 'https://schema.org/extensions',
+      themeColor: 'EF4444',
+      summary: `Alertes SLA — Projet ${projectId}`,
+      sections: [
+        {
+          activityTitle: `🚨 Alertes SLA — Projet ${projectId}`,
+          facts,
+        },
+      ],
+    };
+  }
+
+  async _sendSlack(text) {
+    if (!this.slackWebhookUrl) return;
+    try {
+      await axios.post(this.slackWebhookUrl, { text }, { timeout: 5000 });
+      logger.info('[AlertService] Slack alert sent');
+    } catch (err) {
+      logger.warn('[AlertService] Slack webhook failed:', err.message);
+    }
+  }
+
+  async _sendTeams(card) {
+    if (!this.teamsWebhookUrl) return;
+    try {
+      await axios.post(this.teamsWebhookUrl, card, { timeout: 5000 });
+      logger.info('[AlertService] Teams alert sent');
+    } catch (err) {
+      logger.warn('[AlertService] Teams webhook failed:', err.message);
+    }
+  }
+}
+
+module.exports = new AlertService();

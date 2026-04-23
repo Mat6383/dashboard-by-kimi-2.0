@@ -5,6 +5,7 @@
   "private": true,
   "dependencies": {
     "@sentry/react": "^10.49.0",
+    "@tanstack/react-virtual": "^3.13.24",
     "axios": "^1.6.5",
     "chart.js": "^4.4.1",
     "docx": "^9.6.1",

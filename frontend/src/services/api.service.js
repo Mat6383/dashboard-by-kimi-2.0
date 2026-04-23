@@ -83,6 +83,18 @@ const apiService = {
   },
 
   /**
+   * Récupère la synthèse multi-projets
+   */
+  async getMultiProjectSummary() {
+    try {
+      const response = await apiClient.get('/dashboard/multi');
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Get Multi-Project Summary', error);
+    }
+  },
+
+  /**
    * Récupère les métriques ISTQB d'un projet
    * Endpoint principal du dashboard
    *

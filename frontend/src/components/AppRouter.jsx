@@ -13,6 +13,7 @@ const AnnualTrendsDashboard = lazy(() => import('./AnnualTrendsDashboard'));
 const GitLabToTestmoSync = lazy(() => import('./GitLabToTestmoSync'));
 const CrossTestDashboard = lazy(() => import('./CrossTestDashboard'));
 const AutoSyncDashboard = lazy(() => import('./AutoSyncDashboard'));
+const MultiProjectDashboard = lazy(() => import('./MultiProjectDashboard'));
 
 function LoadingFallback() {
   return (
@@ -87,6 +88,7 @@ export default function AppRouter({
         <Route path="/sync-gitlab-to-testmo" element={<GitLabToTestmoSync isDark={darkMode} />} />
         <Route path="/crosstest" element={<CrossTestDashboard isDark={darkMode} />} />
         <Route path="/auto-sync" element={<AutoSyncDashboard isDark={darkMode} />} />
+        <Route path="/multi-project" element={<MultiProjectDashboard isDark={darkMode} />} />
         <Route
           path="/configuration"
           element={
