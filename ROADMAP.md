@@ -39,11 +39,10 @@
 
 #### 2. Split de `App.jsx` (~420 lignes)
 
-- [ ] Extraire `AppLayout.jsx` — Header, nav, toggles dark mode / TV mode, breadcrumb
-- [ ] Extraire `AppRouter.jsx` — `<Routes>` + lazy loading dashboards
-- [ ] Extraire `useAutoRefresh.js` — Logique du cron 1 minute + `visibilitychange`
-- [ ] Extraire `useExportHandler.js` — Gestion du PDF export via `html2canvas` + `jsPDF`
-- [ ] `App.jsx` cible final : < 100 lignes (imports + composition uniquement)
+- [x] Extraire `AppLayout.jsx` — Header, nav, toggles dark mode / TV mode, breadcrumb
+- [x] Extraire `AppRouter.jsx` — `<Routes>` + lazy loading dashboards
+- [x] Extraire `useAutoRefresh.js` — Logique du cron 1 minute + `visibilitychange`
+- [x] `App.jsx` cible final : ~127 lignes (imports + composition + fallback erreur)
 
 ---
 
