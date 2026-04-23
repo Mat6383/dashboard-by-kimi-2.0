@@ -1,0 +1,51 @@
+/**
+ * ================================================
+ * TESTMO DASHBOARD - Entry Point
+ * ================================================
+ * Point d'entrée principal de l'application React
+ * 
+ * @author Matou - Neo-Logix QA Lead
+ */
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
+
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    environment: import.meta.env.MODE,
+    release: import.meta.env.VITE_APP_VERSION || '2.0.0',
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration({ maskAllText: false, blockAllMedia: false }),
+    ],
+    tracesSampleRate: parseFloat(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE) || 0.1,
+    replaysSessionSampleRate: 0.0,
+    replaysOnErrorSampleRate: 1.0,
+  });
+}
+import { ThemeProvider } from './contexts/ThemeContext';
+import { PreferencesProvider } from './contexts/PreferencesContext';
+import { DashboardProvider } from './contexts/DashboardContext';
+import { ToastProvider } from './contexts/ToastContext';
+import App from './App';
+
+// Montage de l'application
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <ThemeProvider>
+        <PreferencesProvider>
+          <DashboardProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </DashboardProvider>
+        </PreferencesProvider>
+      </ThemeProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);

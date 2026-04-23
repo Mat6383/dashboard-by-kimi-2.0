@@ -1,0 +1,46 @@
+{
+  "name": "testmo-dashboard-frontend",
+  "version": "1.0.0",
+  "description": "Dashboard React pour monitoring Testmo - ISTQB compliant",
+  "private": true,
+  "dependencies": {
+    "@sentry/react": "^10.49.0",
+    "axios": "^1.6.5",
+    "chart.js": "^4.4.1",
+    "docx": "^9.6.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.0",
+    "lucide-react": "^0.263.1",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^14.2.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "jsdom": "^24.0.0",
+    "terser": "^5.46.1",
+    "vite": "^5.0.8",
+    "vitest": "^1.3.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
