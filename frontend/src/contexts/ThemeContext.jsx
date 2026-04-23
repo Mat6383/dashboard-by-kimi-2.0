@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useCallback, useEffect, useMemo } from 'react';
 
 export const ThemeContext = createContext(null);
 
@@ -6,12 +6,16 @@ export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(() => localStorage.getItem('testmo_darkMode') === 'true');
   const [tvMode, setTvMode] = useState(() => localStorage.getItem('testmo_tvMode') !== 'false');
 
-  const toggleDark = useCallback(() => setIsDark(prev => !prev), []);
-  const toggleTv = useCallback(() => setTvMode(prev => !prev), []);
+  const toggleDark = useCallback(() => setIsDark((prev) => !prev), []);
+  const toggleTv = useCallback(() => setTvMode((prev) => !prev), []);
 
   useEffect(() => {
-    localStorage.setItem('testmo_darkMode', isDark);
-    localStorage.setItem('testmo_tvMode', tvMode);
+    try {
+      localStorage.setItem('testmo_darkMode', isDark);
+      localStorage.setItem('testmo_tvMode', tvMode);
+    } catch (err) {
+      console.warn('localStorage quota exceeded:', err);
+    }
   }, [isDark, tvMode]);
 
   // Sync cross-onglets via événement storage
@@ -28,9 +32,7 @@ export function ThemeProvider({ children }) {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  return (
-    <ThemeContext.Provider value={{ isDark, toggleDark, tvMode, toggleTv }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  const value = useMemo(() => ({ isDark, toggleDark, tvMode, toggleTv }), [isDark, toggleDark, tvMode, toggleTv]);
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

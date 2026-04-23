@@ -3,37 +3,28 @@
  * TESTMO DASHBOARD - Main Application
  * ================================================
  * Dashboard principal de monitoring des tests
- * 
+ *
  * Standards:
  * - ISTQB: Test Monitoring & Control
  * - LEAN: Auto-refresh 1m
  * - ITIL: Service Level Management
- * 
+ *
  * @author Matou - Neo-Logix QA Lead
  * @version 2.0.0
  */
 
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
 import { usePreferences } from './hooks/usePreferences';
 import { useDashboard } from './hooks/useDashboard';
 import { useToast } from './hooks/useToast';
-import apiService from './services/api.service';
+
 import MetricsCards from './components/MetricsCards';
 import StatusChart from './components/StatusChart';
 import RunsList from './components/RunsList';
 import ConfigurationScreen from './components/ConfigurationScreen';
-import {
-  RefreshCw,
-  AlertCircle,
-  Activity,
-  CheckCircle2,
-  Database,
-  Settings,
-  Monitor,
-  Download
-} from 'lucide-react';
+import { RefreshCw, AlertCircle, Activity, CheckCircle2, Database, Settings, Monitor, Download } from 'lucide-react';
 import './styles/App.css';
 
 const REFRESH_COOLDOWN = 5000;
@@ -63,18 +54,42 @@ function App() {
   const { darkMode, tvMode, toggleDarkMode, toggleTvMode } = useTheme();
   const { useBusinessTerms, setUseBusinessTerms, autoRefresh, setAutoRefresh } = usePreferences();
   const {
-    projectId, setProjectId, projects, metrics, loading, error, lastUpdate,
-    backendStatus, exportHandler, setExportHandler,
-    selectedPreprodMilestones, setSelectedPreprodMilestones,
-    selectedProdMilestones, setSelectedProdMilestones,
-    showProductionSection, setShowProductionSection,
-    checkBackendHealth, loadProjects, loadDashboardMetrics, handleClearCache,
-    isLoadingRef, lastRefreshRef
+    projectId,
+    setProjectId,
+    projects,
+    metrics,
+    loading,
+    error,
+    lastUpdate,
+    backendStatus,
+    exportHandler,
+    setExportHandler,
+    selectedPreprodMilestones,
+    setSelectedPreprodMilestones,
+    selectedProdMilestones,
+    setSelectedProdMilestones,
+    showProductionSection,
+    setShowProductionSection,
+    checkBackendHealth,
+    loadProjects,
+    loadDashboardMetrics,
+    handleClearCache,
+    isLoadingRef,
+    lastRefreshRef,
   } = useDashboard();
-  const { showToast } = useToast();
-
   const navigate = useNavigate();
   const location = useLocation();
+
+  const currentProject = useMemo(() => projects.find((p) => p.id === projectId), [projects, projectId]);
+
+  const handleSaveSelection = useCallback(
+    (preprodMilestones, prodMilestones) => {
+      setSelectedPreprodMilestones(preprodMilestones || []);
+      setSelectedProdMilestones(prodMilestones || []);
+      navigate('/');
+    },
+    [navigate, setSelectedPreprodMilestones, setSelectedProdMilestones]
+  );
 
   // Effet initial: vérifier backend et charger données
   useEffect(() => {
@@ -141,7 +156,7 @@ function App() {
     const statusConfig = {
       checking: { icon: Activity, color: '#F59E0B', text: 'Connexion...' },
       ok: { icon: CheckCircle2, color: '#10B981', text: 'Backend OK' },
-      error: { icon: AlertCircle, color: '#EF4444', text: 'Backend Error' }
+      error: { icon: AlertCircle, color: '#EF4444', text: 'Backend Error' },
     };
 
     const config = statusConfig[backendStatus];
@@ -179,9 +194,7 @@ function App() {
           <Database size={32} color="#3B82F6" />
           <div className="header-title">
             <h1>Testmo Dashboard</h1>
-            <p className="header-subtitle">
-              ISTQB Compliant | LEAN Optimized | ITIL SLA Monitoring
-            </p>
+            <p className="header-subtitle">ISTQB Compliant | LEAN Optimized | ITIL SLA Monitoring</p>
           </div>
         </div>
 
@@ -192,8 +205,9 @@ function App() {
               value={projectId}
               onChange={handleProjectChange}
               className="project-selector"
+              aria-label="Sélectionner un projet"
             >
-              {projects.map(project => (
+              {projects.map((project) => (
                 <option key={project.id} value={project.id}>
                   {project.name}
                 </option>
@@ -202,24 +216,19 @@ function App() {
           )}
 
           {/* Toggle TV Mode */}
-          <button
-            className={`btn-toggle ${tvMode ? 'active' : ''}`}
-            onClick={() => toggleTvMode()}
-            title="Mode TV"
-          >
+          <button className={`btn-toggle ${tvMode ? 'active' : ''}`} onClick={() => toggleTvMode()} title="Mode TV">
             <Monitor size={16} />
             {tvMode ? 'Mode TV' : 'Mode Standard'}
           </button>
 
           {/* Toggle Dark Theme Switch */}
-          <div className="switch-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px', marginRight: '8px' }}>
+          <div
+            className="switch-container"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px', marginRight: '8px' }}
+          >
             <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>Dark thème</span>
-            <label className="theme-switch">
-              <input
-                type="checkbox"
-                checked={darkMode}
-                onChange={() => toggleDarkMode()}
-              />
+            <label className="theme-switch" aria-label="Activer le thème sombre">
+              <input type="checkbox" checked={darkMode} onChange={() => toggleDarkMode()} aria-label="Thème sombre" />
               <span className="slider round"></span>
             </label>
           </div>
@@ -230,9 +239,14 @@ function App() {
               value={currentPath}
               onChange={handleDashboardChange}
               className="project-selector"
-              style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-color)', border: '1px solid var(--border-color)' }}
+              style={{
+                backgroundColor: 'var(--card-bg)',
+                color: 'var(--text-color)',
+                border: '1px solid var(--border-color)',
+              }}
+              aria-label="Sélectionner un dashboard"
             >
-              {dashboardRoutes.map(route => (
+              {dashboardRoutes.map((route) => (
                 <option key={route.path} value={route.path}>
                   {route.label}
                 </option>
@@ -253,13 +267,19 @@ function App() {
           )}
 
           {/* Toggle Vocabulaire Métier Switch */}
-          <div className="switch-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px', marginRight: '8px' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>Vocabulaire Métier</span>
-            <label className="theme-switch">
+          <div
+            className="switch-container"
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px', marginRight: '8px' }}
+          >
+            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>
+              Vocabulaire Métier
+            </span>
+            <label className="theme-switch" aria-label="Activer le vocabulaire métier">
               <input
                 type="checkbox"
                 checked={useBusinessTerms}
                 onChange={() => setUseBusinessTerms(!useBusinessTerms)}
+                aria-label="Vocabulaire métier"
               />
               <span className="slider round"></span>
             </label>
@@ -276,21 +296,12 @@ function App() {
           </button>
 
           {/* Refresh manuel */}
-          <button
-            className="btn-icon"
-            onClick={() => loadDashboardMetrics()}
-            disabled={loading}
-            title="Actualiser"
-          >
+          <button className="btn-icon" onClick={() => loadDashboardMetrics()} disabled={loading} title="Actualiser">
             <RefreshCw size={16} className={loading ? 'spinning' : ''} />
           </button>
 
           {/* Clear cache */}
-          <button
-            className="btn-icon"
-            onClick={handleClearCache}
-            title="Nettoyer le cache"
-          >
+          <button className="btn-icon" onClick={handleClearCache} title="Nettoyer le cache">
             <Settings size={16} />
           </button>
 
@@ -307,90 +318,106 @@ function App() {
             <p>Chargement des métriques ISTQB...</p>
           </div>
         ) : (
-          <Suspense fallback={
-            <div className="loading-container">
-              <RefreshCw size={48} className="spinner" />
-              <p>Chargement du dashboard...</p>
-            </div>
-          }>
+          <Suspense
+            fallback={
+              <div className="loading-container">
+                <RefreshCw size={48} className="spinner" />
+                <p>Chargement du dashboard...</p>
+              </div>
+            }
+          >
             <Routes>
-              <Route path="/tv" element={
-                <TvModeDashboard
-                  metrics={metrics}
-                  project={projects.find(p => p.id === projectId)}
-                  isDark={darkMode}
-                  useBusiness={useBusinessTerms}
-                />
-              } />
-              <Route path="/quality-rates" element={
-                <QualityRatesDashboard
-                  metrics={metrics}
-                  project={projects.find(p => p.id === projectId)}
-                  isDark={darkMode}
-                  useBusiness={useBusinessTerms}
-                />
-              } />
-              <Route path="/global-view" element={
-                <GlobalViewDashboard
-                  metrics={metrics}
-                  project={projects.find(p => p.id === projectId)}
-                  projects={projects}
-                  projectId={projectId}
-                  onProjectChange={(id) => setProjectId(id)}
-                  isDark={darkMode}
-                  useBusiness={useBusinessTerms}
-                  setExportHandler={setExportHandler}
-                  showProductionSection={showProductionSection}
-                  onToggleProductionSection={setShowProductionSection}
-                />
-              } />
-              <Route path="/annual-trends" element={
-                <AnnualTrendsDashboard
-                  projectId={projectId}
-                  isDark={darkMode}
-                  useBusiness={useBusinessTerms}
-                />
-              } />
-              <Route path="/sync-gitlab-to-testmo" element={
-                <GitLabToTestmoSync isDark={darkMode} />
-              } />
-              <Route path="/crosstest" element={
-                <CrossTestDashboard isDark={darkMode} />
-              } />
-              <Route path="/auto-sync" element={
-                <AutoSyncDashboard isDark={darkMode} />
-              } />
-              <Route path="/configuration" element={
-                <ConfigurationScreen
-                  projectId={projectId}
-                  isDark={darkMode}
-                  initialPreprodMilestones={selectedPreprodMilestones}
-                  initialProdMilestones={selectedProdMilestones}
-                  onSaveSelection={(preprodMilestones, prodMilestones) => {
-                    setSelectedPreprodMilestones(preprodMilestones || []);
-                    setSelectedProdMilestones(prodMilestones || []);
-                    navigate('/');
-                  }}
-                />
-              } />
-              <Route path="/" element={
-                <>
-                  <section className="section">
-                    <MetricsCards metrics={metrics} useBusiness={useBusinessTerms} />
-                  </section>
-                  <section className="section charts-section">
-                    <div className="chart-container">
-                      <StatusChart metrics={metrics} chartType="doughnut" useBusiness={useBusinessTerms} isDark={darkMode} />
-                    </div>
-                    <div className="chart-container">
-                      <StatusChart metrics={metrics} chartType="bar" useBusiness={useBusinessTerms} isDark={darkMode} />
-                    </div>
-                  </section>
-                  <section className="section">
-                    <RunsList metrics={metrics} useBusiness={useBusinessTerms} />
-                  </section>
-                </>
-              } />
+              <Route
+                path="/tv"
+                element={
+                  <TvModeDashboard
+                    metrics={metrics}
+                    project={currentProject}
+                    isDark={darkMode}
+                    useBusiness={useBusinessTerms}
+                  />
+                }
+              />
+              <Route
+                path="/quality-rates"
+                element={
+                  <QualityRatesDashboard
+                    metrics={metrics}
+                    project={currentProject}
+                    isDark={darkMode}
+                    useBusiness={useBusinessTerms}
+                  />
+                }
+              />
+              <Route
+                path="/global-view"
+                element={
+                  <GlobalViewDashboard
+                    metrics={metrics}
+                    project={currentProject}
+                    projects={projects}
+                    projectId={projectId}
+                    onProjectChange={setProjectId}
+                    isDark={darkMode}
+                    useBusiness={useBusinessTerms}
+                    setExportHandler={setExportHandler}
+                    showProductionSection={showProductionSection}
+                    onToggleProductionSection={setShowProductionSection}
+                  />
+                }
+              />
+              <Route
+                path="/annual-trends"
+                element={
+                  <AnnualTrendsDashboard projectId={projectId} isDark={darkMode} useBusiness={useBusinessTerms} />
+                }
+              />
+              <Route path="/sync-gitlab-to-testmo" element={<GitLabToTestmoSync isDark={darkMode} />} />
+              <Route path="/crosstest" element={<CrossTestDashboard isDark={darkMode} />} />
+              <Route path="/auto-sync" element={<AutoSyncDashboard isDark={darkMode} />} />
+              <Route
+                path="/configuration"
+                element={
+                  <ConfigurationScreen
+                    projectId={projectId}
+                    isDark={darkMode}
+                    initialPreprodMilestones={selectedPreprodMilestones}
+                    initialProdMilestones={selectedProdMilestones}
+                    onSaveSelection={handleSaveSelection}
+                  />
+                }
+              />
+              <Route
+                path="/"
+                element={
+                  <>
+                    <section className="section">
+                      <MetricsCards metrics={metrics} useBusiness={useBusinessTerms} />
+                    </section>
+                    <section className="section charts-section">
+                      <div className="chart-container">
+                        <StatusChart
+                          metrics={metrics}
+                          chartType="doughnut"
+                          useBusiness={useBusinessTerms}
+                          isDark={darkMode}
+                        />
+                      </div>
+                      <div className="chart-container">
+                        <StatusChart
+                          metrics={metrics}
+                          chartType="bar"
+                          useBusiness={useBusinessTerms}
+                          isDark={darkMode}
+                        />
+                      </div>
+                    </section>
+                    <section className="section">
+                      <RunsList metrics={metrics} useBusiness={useBusinessTerms} />
+                    </section>
+                  </>
+                }
+              />
             </Routes>
           </Suspense>
         )}
@@ -401,9 +428,7 @@ function App() {
         <div className="footer-content">
           <span>© 2026 Neo-Logix | QA Dashboard by Matou</span>
           {lastUpdate && (
-            <span className="last-update">
-              Dernière mise à jour: {lastUpdate.toLocaleTimeString('fr-FR')}
-            </span>
+            <span className="last-update">Dernière mise à jour: {lastUpdate.toLocaleTimeString('fr-FR')}</span>
           )}
           <span>Standards: ISTQB | LEAN | ITIL</span>
         </div>

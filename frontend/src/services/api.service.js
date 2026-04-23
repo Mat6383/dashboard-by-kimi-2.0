@@ -3,7 +3,7 @@
  * API SERVICE - Frontend
  * ================================================
  * Service pour communiquer avec le backend Express
- * 
+ *
  * @author Matou - Neo-Logix QA Lead
  */
 
@@ -13,34 +13,39 @@ import axios from 'axios';
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const API_TIMEOUT = 30000; // 30 secondes pour compenser le chargement des multiples jalons
 
+function generateRequestId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 });
 
-// Intercepteur pour logging
 apiClient.interceptors.request.use(
-  config => {
+  (config) => {
+    config.headers['x-request-id'] = config.headers['x-request-id'] || generateRequestId();
     // eslint-disable-next-line no-console
     console.log(`[API] ${config.method.toUpperCase()} ${config.url}`);
     return config;
   },
-  error => {
+  (error) => {
+    // eslint-disable-next-line no-console
     console.error('[API] Request error:', error);
     return Promise.reject(error);
   }
 );
 
 apiClient.interceptors.response.use(
-  response => {
+  (response) => {
     // eslint-disable-next-line no-console
     console.log(`[API] Response:`, response.status, response.data);
     return response;
   },
-  error => {
+  (error) => {
     if (error.name === 'CanceledError' || error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
       return Promise.reject(error);
     }
@@ -80,7 +85,7 @@ const apiService = {
   /**
    * Récupère les métriques ISTQB d'un projet
    * Endpoint principal du dashboard
-   * 
+   *
    * @param {number} projectId - ID du projet
    */
   async getDashboardMetrics(projectId, preprodMilestones = null, prodMilestones = null, signal = null) {
@@ -130,7 +135,7 @@ const apiService = {
   async getProjectRuns(projectId, activeOnly = true) {
     try {
       const response = await apiClient.get(`/projects/${projectId}/runs`, {
-        params: { active: activeOnly }
+        params: { active: activeOnly },
       });
       return response.data;
     } catch (error) {
@@ -140,7 +145,7 @@ const apiService = {
 
   /**
    * Récupère les milestones d'un projet
-   * 
+   *
    * @param {number} projectId - ID du projet
    */
   async getProjectMilestones(projectId) {
@@ -154,7 +159,7 @@ const apiService = {
 
   /**
    * Récupère les détails d'un run
-   * 
+   *
    * @param {number} runId - ID du run
    */
   async getRunDetails(runId) {
@@ -168,7 +173,7 @@ const apiService = {
 
   /**
    * Récupère les résultats d'un run
-   * 
+   *
    * @param {number} runId - ID du run
    * @param {string} statusFilter - Filtrer par statut (ex: '3,5')
    */
@@ -184,7 +189,7 @@ const apiService = {
 
   /**
    * Récupère les runs d'automation
-   * 
+   *
    * @param {number} projectId - ID du projet
    */
   async getAutomationRuns(projectId) {
@@ -198,7 +203,7 @@ const apiService = {
 
   /**
    * Récupère les tendances annuelles d'un projet
-   * 
+   *
    * @param {number} projectId - ID du projet
    */
   async getAnnualTrends(projectId) {
@@ -261,7 +266,7 @@ const apiService = {
   async getSyncIterations(projectId, search = '') {
     try {
       const response = await apiClient.get(`/sync/${projectId}/iterations`, {
-        params: search ? { search } : {}
+        params: search ? { search } : {},
       });
       return response.data.data;
     } catch (error) {
@@ -315,7 +320,7 @@ const apiService = {
   async getCrosstestIterations(search = '') {
     try {
       const response = await apiClient.get('/crosstest/iterations', {
-        params: search ? { search } : {}
+        params: search ? { search } : {},
       });
       return response.data.data;
     } catch (error) {
@@ -362,7 +367,7 @@ const apiService = {
       const response = await apiClient.post('/crosstest/comments', {
         issue_iid: iid,
         comment,
-        milestone_context: milestoneContext
+        milestone_context: milestoneContext,
       });
       return response.data.data;
     } catch (error) {
@@ -426,7 +431,7 @@ const apiService = {
     console.error(`[API Service] ${operation} failed:`, errorMessage);
 
     return new Error(`${operation}: ${errorMessage}`);
-  }
+  },
 };
 
 export default apiService;

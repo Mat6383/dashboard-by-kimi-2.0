@@ -25,7 +25,7 @@ import {
   AlertCircle,
   Plus,
   ChevronDown,
-  X
+  X,
 } from 'lucide-react';
 import '../styles/Dashboard7.css';
 
@@ -96,34 +96,24 @@ function CommentCell({ issue, comment, milestoneTitle, onSaved, onDeleted }) {
           ref={textareaRef}
           className="d7-comment-textarea"
           value={draft}
-          onChange={e => setDraft(e.target.value)}
+          onChange={(e) => setDraft(e.target.value)}
           placeholder="Saisir un commentaire..."
           rows={3}
           disabled={saving}
-          onKeyDown={e => {
+          onKeyDown={(e) => {
             if (e.key === 'Escape') cancelEdit();
             if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSave();
           }}
         />
         <div className="d7-comment-form-actions">
-          <button
-            className="d7-comment-save-btn"
-            onClick={handleSave}
-            disabled={saving || !draft.trim()}
-          >
+          <button className="d7-comment-save-btn" onClick={handleSave} disabled={saving || !draft.trim()}>
             {saving ? <RefreshCw size={12} className="d7-spinner" /> : null}
             {saving ? 'Sauvegarde...' : 'Enregistrer'}
           </button>
-          <button
-            className="d7-comment-cancel-btn"
-            onClick={cancelEdit}
-            disabled={saving}
-          >
+          <button className="d7-comment-cancel-btn" onClick={cancelEdit} disabled={saving}>
             Annuler
           </button>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            Ctrl+Entrée pour sauvegarder
-          </span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Ctrl+Entrée pour sauvegarder</span>
         </div>
       </div>
     );
@@ -135,47 +125,45 @@ function CommentCell({ issue, comment, milestoneTitle, onSaved, onDeleted }) {
       <div className="d7-comment-view" style={{ position: 'relative' }}>
         <span className="d7-comment-text">{comment.comment}</span>
         <div className="d7-comment-actions">
-          <button
-            className="d7-icon-btn edit"
-            title="Modifier le commentaire"
-            onClick={openEdit}
-            disabled={saving}
-          >
+          <button className="d7-icon-btn edit" title="Modifier le commentaire" onClick={openEdit} disabled={saving}>
             <Pencil size={13} />
           </button>
-          <button
-            className="d7-icon-btn del"
-            title="Supprimer le commentaire"
-            onClick={handleDelete}
-            disabled={saving}
-          >
+          <button className="d7-icon-btn del" title="Supprimer le commentaire" onClick={handleDelete} disabled={saving}>
             {saving ? <RefreshCw size={13} className="d7-spinner" /> : <Trash2 size={13} />}
           </button>
         </div>
         {showConfirm && (
-          <div style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999
-          }}>
-            <div style={{
-              backgroundColor: 'var(--card-bg)',
-              padding: '1.5rem',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-              maxWidth: '320px',
-              width: '90%'
-            }}>
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: 'var(--card-bg)',
+                padding: '1.5rem',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                maxWidth: '320px',
+                width: '90%',
+              }}
+            >
               <p style={{ margin: '0 0 1rem', fontSize: '0.95rem', color: 'var(--text-color)' }}>
                 Supprimer le commentaire pour <strong>#{issue.iid}</strong> ?
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowConfirm(false)} className="d7-comment-cancel-btn">Annuler</button>
-                <button onClick={confirmDelete} className="d7-comment-save-btn" style={{ backgroundColor: '#EF4444' }}>Supprimer</button>
+                <button onClick={() => setShowConfirm(false)} className="d7-comment-cancel-btn">
+                  Annuler
+                </button>
+                <button onClick={confirmDelete} className="d7-comment-save-btn" style={{ backgroundColor: '#EF4444' }}>
+                  Supprimer
+                </button>
               </div>
             </div>
           </div>
@@ -200,7 +188,7 @@ export default function Dashboard7({ isDark }) {
   const [iterations, setIterations] = useState([]);
   const [selectedIteration, setSelectedIteration] = useState(null);
   const [issues, setIssues] = useState([]);
-  const [comments, setComments] = useState({});   // { [iid]: row }
+  const [comments, setComments] = useState({}); // { [iid]: row }
   const [filter, setFilter] = useState('');
 
   const [loadingIterations, setLoadingIterations] = useState(true);
@@ -218,7 +206,7 @@ export default function Dashboard7({ isDark }) {
       try {
         const [iters, cmts] = await Promise.all([
           apiService.getCrosstestIterations(),
-          apiService.getCrosstestComments()
+          apiService.getCrosstestComments(),
         ]);
         if (cancelled) return;
         setIterations(iters || []);
@@ -236,7 +224,9 @@ export default function Dashboard7({ isDark }) {
     }
 
     loadAll();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -260,7 +250,9 @@ export default function Dashboard7({ isDark }) {
     }
 
     loadIssues();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [selectedIteration]);
 
   /* ---- Rafraîchir les commentaires (après changement de milestone) ---- */
@@ -281,7 +273,7 @@ export default function Dashboard7({ isDark }) {
     try {
       const [data, cmts] = await Promise.all([
         apiService.getCrosstestIssues(selectedIteration.id),
-        apiService.getCrosstestComments()
+        apiService.getCrosstestComments(),
       ]);
       setIssues(data || []);
       setComments(cmts || {});
@@ -294,11 +286,11 @@ export default function Dashboard7({ isDark }) {
 
   /* ---- Callbacks commentaires ---- */
   const handleCommentSaved = useCallback((iid, row) => {
-    setComments(prev => ({ ...prev, [iid]: row }));
+    setComments((prev) => ({ ...prev, [iid]: row }));
   }, []);
 
   const handleCommentDeleted = useCallback((iid) => {
-    setComments(prev => {
+    setComments((prev) => {
       const next = { ...prev };
       delete next[iid];
       return next;
@@ -307,7 +299,7 @@ export default function Dashboard7({ isDark }) {
 
   /* ---- Filtrage ---- */
   const filteredIssues = filter
-    ? issues.filter(issue => {
+    ? issues.filter((issue) => {
         const q = filter.toLowerCase();
         return (
           String(issue.iid).includes(q) ||
@@ -337,22 +329,19 @@ export default function Dashboard7({ isDark }) {
             Chargement...
           </span>
         ) : iterationsError ? (
-          <span style={{ color: '#ef4444', fontSize: '0.875rem' }}>
-            Erreur: {iterationsError}
-          </span>
+          <span style={{ color: '#ef4444', fontSize: '0.875rem' }}>Erreur: {iterationsError}</span>
         ) : (
           <select
             className="d7-select"
             value={selectedIteration?.id ?? ''}
-            onChange={e => {
-              const found = iterations.find(it => String(it.id) === e.target.value);
+            onChange={(e) => {
+              const found = iterations.find((it) => String(it.id) === e.target.value);
               setSelectedIteration(found || null);
             }}
+            aria-label="Sélectionner une itération"
           >
-            {iterations.length === 0 && (
-              <option value="">Aucune itération disponible</option>
-            )}
-            {iterations.map(it => (
+            {iterations.length === 0 && <option value="">Aucune itération disponible</option>}
+            {iterations.map((it) => (
               <option key={it.id} value={it.id}>
                 {it.title}
                 {it.state === 'closed' ? ' (terminée)' : ''}
@@ -378,7 +367,8 @@ export default function Dashboard7({ isDark }) {
           className="d7-filter-input"
           placeholder="Filtrer par titre, assigné, label..."
           value={filter}
-          onChange={e => setFilter(e.target.value)}
+          onChange={(e) => setFilter(e.target.value)}
+          aria-label="Filtrer les tickets"
         />
       </div>
 
@@ -388,9 +378,8 @@ export default function Dashboard7({ isDark }) {
           <strong>{filteredIssues.length}</strong>
           {filter
             ? ` ticket${filteredIssues.length !== 1 ? 's' : ''} correspondant au filtre (sur ${issues.length})`
-            : ` ticket${issues.length !== 1 ? 's' : ''}`
-          }
-          {' '}avec <strong>CrossTest::OK</strong> pour <strong>{selectedIteration.title}</strong>
+            : ` ticket${issues.length !== 1 ? 's' : ''}`}{' '}
+          avec <strong>CrossTest::OK</strong> pour <strong>{selectedIteration.title}</strong>
         </p>
       )}
 
@@ -409,7 +398,9 @@ export default function Dashboard7({ isDark }) {
           <div className="d7-state-box">
             <RefreshCw size={36} className="d7-spinner" />
             <p className="d7-state-title">Chargement des tickets...</p>
-            <p className="d7-state-desc">Interrogation de l'API GitLab pour <strong>{selectedIteration?.title}</strong>.</p>
+            <p className="d7-state-desc">
+              Interrogation de l&apos;API GitLab pour <strong>{selectedIteration?.title}</strong>.
+            </p>
           </div>
         )}
 
@@ -429,7 +420,8 @@ export default function Dashboard7({ isDark }) {
             <MessageSquare size={36} />
             <p className="d7-state-title">Aucun ticket trouvé</p>
             <p className="d7-state-desc">
-              Aucune issue avec le label <strong>CrossTest::OK</strong> pour l'itération <strong>{selectedIteration.title}</strong>.
+              Aucune issue avec le label <strong>CrossTest::OK</strong> pour l&apos;itération{' '}
+              <strong>{selectedIteration.title}</strong>.
             </p>
           </div>
         )}
@@ -438,7 +430,7 @@ export default function Dashboard7({ isDark }) {
           <div className="d7-state-box">
             <MessageSquare size={36} />
             <p className="d7-state-title">Aucun résultat</p>
-            <p className="d7-state-desc">Aucun ticket ne correspond au filtre "{filter}".</p>
+            <p className="d7-state-desc">Aucun ticket ne correspond au filtre &quot;{filter}&quot;.</p>
           </div>
         )}
 
@@ -456,7 +448,7 @@ export default function Dashboard7({ isDark }) {
                 </tr>
               </thead>
               <tbody>
-                {filteredIssues.map(issue => (
+                {filteredIssues.map((issue) => (
                   <tr key={issue.iid}>
                     {/* IID */}
                     <td>{issue.iid}</td>
@@ -476,8 +468,10 @@ export default function Dashboard7({ isDark }) {
                       </a>
                       {issue.labels && issue.labels.length > 0 && (
                         <div className="d7-labels">
-                          {issue.labels.map(label => (
-                            <span key={label} className="d7-label-chip">{label}</span>
+                          {issue.labels.map((label) => (
+                            <span key={label} className="d7-label-chip">
+                              {label}
+                            </span>
                           ))}
                         </div>
                       )}
@@ -485,10 +479,11 @@ export default function Dashboard7({ isDark }) {
 
                     {/* Assignés */}
                     <td>
-                      {issue.assignees && issue.assignees.length > 0
-                        ? issue.assignees.join(', ')
-                        : <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Non assigné</span>
-                      }
+                      {issue.assignees && issue.assignees.length > 0 ? (
+                        issue.assignees.join(', ')
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Non assigné</span>
+                      )}
                     </td>
 
                     {/* Statut */}

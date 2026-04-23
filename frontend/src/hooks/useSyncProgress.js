@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -16,64 +16,75 @@ export function useSyncProgress(endpoint) {
   const abortRef = useRef(null);
 
   const pushLog = useCallback((entry) => {
-    setLogs(prev => [...prev, entry]);
+    setLogs((prev) => [...prev, entry]);
   }, []);
 
-  const start = useCallback(async (body = {}) => {
-    if (running) return;
-    setLogs([]);
-    setRunning(true);
-    setError(null);
+  const start = useCallback(
+    async (body = {}) => {
+      if (running) return;
+      setLogs([]);
+      setRunning(true);
+      setError(null);
 
-    const controller = new AbortController();
-    abortRef.current = controller;
+      const controller = new AbortController();
+      abortRef.current = controller;
 
-    try {
-      const res = await fetch(`${API_BASE}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
+      try {
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: res.statusText }));
-        throw new Error(err.error || `HTTP ${res.status}`);
-      }
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: res.statusText }));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop();
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const event = JSON.parse(line.slice(6));
-              pushLog(event);
-            } catch { /* ignore parse errors */ }
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const event = JSON.parse(line.slice(6));
+                pushLog(event);
+              } catch {
+                /* ignore parse errors */
+              }
+            }
           }
         }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          setError(err.message);
+          pushLog({ type: 'error', message: err.message });
+        }
+      } finally {
+        setRunning(false);
       }
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        setError(err.message);
-        pushLog({ type: 'error', message: err.message });
-      }
-    } finally {
-      setRunning(false);
-    }
-  }, [endpoint, running, pushLog]);
+    },
+    [endpoint, running, pushLog]
+  );
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
     setRunning(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
   }, []);
 
   return { logs, running, error, start, stop };

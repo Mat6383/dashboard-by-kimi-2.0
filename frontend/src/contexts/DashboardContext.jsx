@@ -1,4 +1,4 @@
-import React, { createContext, useState, useCallback, useRef, useEffect } from 'react';
+import React, { createContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import apiService from '../services/api.service';
 
 export const DashboardContext = createContext(null);
@@ -48,7 +48,7 @@ export function DashboardProvider({ children }) {
         setProjects(response.data.result);
       }
     } catch (err) {
-      console.error('Erreur chargement projets:', err);
+      setError(err.message || 'Erreur chargement projets');
     }
   }, []);
 
@@ -56,64 +56,71 @@ export function DashboardProvider({ children }) {
     try {
       await apiService.clearCache();
     } catch (err) {
-      console.error('Erreur nettoyage cache:', err);
+      setError(err.message || 'Erreur nettoyage cache');
     }
   }, []);
 
-  const loadDashboardMetrics = useCallback(async (force = false) => {
-    if (isLoadingRef.current && !force) {
-      console.log('[loadDashboardMetrics] Chargement déjà en cours, ignoré');
-      return;
-    }
-
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-    isLoadingRef.current = true;
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const preprod = selectedPreprodMilestones.length > 0 ? selectedPreprodMilestones : null;
-      const prod = selectedProdMilestones.length > 0 ? selectedProdMilestones : null;
-
-      const [metricsResponse, qualityResponse] = await Promise.all([
-        apiService.getDashboardMetrics(projectId, preprod, prod, controller.signal),
-        apiService.getQualityRates(projectId, preprod, prod, controller.signal)
-      ]);
-
-      if (controller.signal.aborted) return;
-
-      if (metricsResponse.success) {
-        setMetrics({
-          ...metricsResponse.data,
-          qualityRates: qualityResponse.success ? qualityResponse.data : null
-        });
-        setLastUpdate(new Date());
-        lastRefreshRef.current = Date.now();
-      } else {
-        throw new Error(metricsResponse.error || 'Erreur inconnue');
+  const loadDashboardMetrics = useCallback(
+    async (force = false) => {
+      if (isLoadingRef.current && !force) {
+        console.log('[loadDashboardMetrics] Chargement déjà en cours, ignoré');
+        return;
       }
-    } catch (err) {
-      if (err.name === 'AbortError' || err.name === 'CanceledError' || controller.signal.aborted) return;
-      setError(err.message);
-      console.error('Erreur chargement métriques:', err);
-    } finally {
-      if (!controller.signal.aborted) {
-        setLoading(false);
+
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
-      isLoadingRef.current = false;
-    }
-  }, [projectId, selectedPreprodMilestones, selectedProdMilestones]);
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      isLoadingRef.current = true;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const preprod = selectedPreprodMilestones.length > 0 ? selectedPreprodMilestones : null;
+        const prod = selectedProdMilestones.length > 0 ? selectedProdMilestones : null;
+
+        const [metricsResponse, qualityResponse] = await Promise.all([
+          apiService.getDashboardMetrics(projectId, preprod, prod, controller.signal),
+          apiService.getQualityRates(projectId, preprod, prod, controller.signal),
+        ]);
+
+        if (controller.signal.aborted) return;
+
+        if (metricsResponse.success) {
+          setMetrics({
+            ...metricsResponse.data,
+            qualityRates: qualityResponse.success ? qualityResponse.data : null,
+          });
+          setLastUpdate(new Date());
+          lastRefreshRef.current = Date.now();
+        } else {
+          throw new Error(metricsResponse.error || 'Erreur inconnue');
+        }
+      } catch (err) {
+        if (err.name === 'AbortError' || err.name === 'CanceledError' || controller.signal.aborted) return;
+        setError(err.message);
+        console.error('Erreur chargement métriques:', err);
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+        isLoadingRef.current = false;
+      }
+    },
+    [projectId, selectedPreprodMilestones, selectedProdMilestones]
+  );
 
   useEffect(() => {
-    localStorage.setItem('testmo_projectId', projectId);
-    localStorage.setItem('testmo_selectedPreprodMilestones', JSON.stringify(selectedPreprodMilestones));
-    localStorage.setItem('testmo_selectedProdMilestones', JSON.stringify(selectedProdMilestones));
-    localStorage.setItem('testmo_showProductionSection', showProductionSection);
+    try {
+      localStorage.setItem('testmo_projectId', projectId);
+      localStorage.setItem('testmo_selectedPreprodMilestones', JSON.stringify(selectedPreprodMilestones));
+      localStorage.setItem('testmo_selectedProdMilestones', JSON.stringify(selectedProdMilestones));
+      localStorage.setItem('testmo_showProductionSection', showProductionSection);
+    } catch (err) {
+      console.warn('localStorage quota exceeded:', err);
+    }
   }, [projectId, selectedPreprodMilestones, selectedProdMilestones, showProductionSection]);
 
   // Sync cross-onglets via événement storage
@@ -131,32 +138,57 @@ export function DashboardProvider({ children }) {
   // Validation des IDs projets au chargement
   useEffect(() => {
     if (projects.length > 0) {
-      const exists = projects.find(p => p.id === projectId);
+      const exists = projects.find((p) => p.id === projectId);
       if (!exists) {
         setProjectId(projects[0].id);
       }
     }
   }, [projects, projectId]);
 
-  return (
-    <DashboardContext.Provider value={{
-      projectId, setProjectId,
+  const value = useMemo(
+    () => ({
+      projectId,
+      setProjectId,
       projects,
-      metrics, loading, error, lastUpdate,
+      metrics,
+      loading,
+      error,
+      lastUpdate,
       backendStatus,
-      exportHandler, setExportHandler,
-      selectedPreprodMilestones, setSelectedPreprodMilestones,
-      selectedProdMilestones, setSelectedProdMilestones,
-      showProductionSection, setShowProductionSection,
+      exportHandler,
+      setExportHandler,
+      selectedPreprodMilestones,
+      setSelectedPreprodMilestones,
+      selectedProdMilestones,
+      setSelectedProdMilestones,
+      showProductionSection,
+      setShowProductionSection,
       checkBackendHealth,
       loadProjects,
       loadDashboardMetrics,
       handleClearCache,
       isLoadingRef,
       lastRefreshRef,
-      abortControllerRef
-    }}>
-      {children}
-    </DashboardContext.Provider>
+      abortControllerRef,
+    }),
+    [
+      projectId,
+      projects,
+      metrics,
+      loading,
+      error,
+      lastUpdate,
+      backendStatus,
+      exportHandler,
+      selectedPreprodMilestones,
+      selectedProdMilestones,
+      showProductionSection,
+      checkBackendHealth,
+      loadProjects,
+      loadDashboardMetrics,
+      handleClearCache,
+    ]
   );
+
+  return <DashboardContext.Provider value={value}>{children}</DashboardContext.Provider>;
 }
