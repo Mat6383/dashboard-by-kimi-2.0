@@ -50,11 +50,12 @@
 
 #### 3. Split de `server.js`
 
-- [ ] Extraire `middleware/security.js` — Helmet, CORS, rate-limiting, compression
-- [ ] Extraire `middleware/logging.js` — Request ID + logger Winston
-- [ ] Extraire `jobs/autoSyncJob.js` — Cron node-cron + logique d'appel
-- [ ] Extraire `bootstrap/gracefulShutdown.js` — Gestion SIGTERM/SIGINT
-- [ ] `server.js` cible final : < 80 lignes (config + montage)
+- [x] Extraire `middleware/security.js` — Helmet, CORS, rate-limiting, compression
+- [x] Extraire `middleware/requestLogger.js` — Logger Winston par requête
+- [x] Extraire `jobs/autoSyncJob.js` — Cron node-cron + logique d'appel
+- [x] Extraire `bootstrap/gracefulShutdown.js` — Gestion SIGTERM/SIGINT
+- [x] Extraire `bootstrap/envCheck.js` — Validation variables d'environnement
+- [x] `server.js` cible final : ~99 lignes (config + montage)
 
 #### 4. Couverture tests frontend
 
