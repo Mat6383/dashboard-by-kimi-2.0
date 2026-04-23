@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const testmoService = require('../services/testmo.service');
-const logger = require('../services/logger.service');
 const { safeErrorResponse } = require('../utils/errorResponse');
 const { validateParams, validateQuery, runIdParam, runResultsQuery } = require('../validators');
 

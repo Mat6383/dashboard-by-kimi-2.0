@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const logger = require('../services/logger.service');
 const gitlabServiceInstance = require('../services/gitlab.service');
 const commentsService = require('../services/comments.service');
 const { safeErrorResponse } = require('../utils/errorResponse');

@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const syncHistoryService = require('../services/syncHistory.service');
 const commentsService = require('../services/comments.service');
-const { safeErrorResponse } = require('../utils/errorResponse');
 
 /**
  * Route de santé (Health Check)

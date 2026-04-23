@@ -3,12 +3,20 @@
 > Dashboard professionnel de monitoring des tests Testmo  
 > **Standards**: ISTQB | LEAN | ITIL | DevOps  
 > **Auteur**: Matou - Neo-Logix QA Lead
+>
+> [![CI](https://github.com/Mat6383/dashboard-by-kimi-2.0/actions/workflows/ci.yml/badge.svg)](https://github.com/Mat6383/dashboard-by-kimi-2.0/actions/workflows/ci.yml)
+> [![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+> [![Express](https://img.shields.io/badge/Express-5.x-000000?logo=express&logoColor=white)](https://expressjs.com/)
+> [![React](https://img.shields.io/badge/React-18.x-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+> [![Vite](https://img.shields.io/badge/Vite-8.x-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+> [![License](https://img.shields.io/badge/License-Private-red)](https://github.com/Mat6383/dashboard-by-kimi-2.0)
 
 ---
 
 ## 🎯 **VUE D'ENSEMBLE**
 
 Ce dashboard permet de monitorer en temps réel les métriques de test depuis Testmo avec :
+
 - **4 KPIs ISTQB** : Completion Rate, Pass Rate, Failure Rate, Test Efficiency
 - **Graphiques visuels** : Distribution des statuts (Doughnut & Bar charts)
 - **Suivi des runs** : Liste des runs actifs avec métriques détaillées
@@ -20,11 +28,13 @@ Ce dashboard permet de monitorer en temps réel les métriques de test depuis Te
 ## 📋 **PRÉ-REQUIS**
 
 ### Logiciels nécessaires
+
 - **Node.js** v18+ ([Télécharger](https://nodejs.org/))
 - **npm** v9+ (inclus avec Node.js)
 - **Compte Testmo** avec accès API
 
 ### Vérification
+
 ```bash
 node --version  # Doit afficher v18.x ou supérieur
 npm --version   # Doit afficher v9.x ou supérieur
@@ -59,6 +69,7 @@ nano .env  # ou votre éditeur préféré
 ```
 
 **Contenu du fichier .env à compléter** :
+
 ```bash
 TESTMO_URL=https://votre-instance.testmo.net
 TESTMO_TOKEN=votre_token_api_copié_ci_dessus
@@ -80,11 +91,14 @@ npm install
 ### **Étape 4: Lancement**
 
 **Terminal 1 - Backend** :
+
 ```bash
 cd backend
 npm start
 ```
+
 Vous devriez voir :
+
 ```
 ╔════════════════════════════════════════════════╗
 ║   TESTMO DASHBOARD - Backend Server Started   ║
@@ -97,11 +111,14 @@ Vous devriez voir :
 ```
 
 **Terminal 2 - Frontend** :
+
 ```bash
 cd frontend
 npm run dev
 ```
+
 Vous devriez voir :
+
 ```
   VITE v5.x.x  ready in xxx ms
 
@@ -162,6 +179,7 @@ Par défaut, le dashboard affiche le projet avec `ID = 1`. Pour changer :
 
 1. Ouvrir `frontend/src/App.jsx`
 2. Ligne ~28, modifier :
+
 ```javascript
 const [projectId, setProjectId] = useState(1); // Changer le 1
 ```
@@ -174,6 +192,7 @@ Par défaut: 1 minute (principe LEAN). Pour changer :
 
 1. Ouvrir `frontend/src/App.jsx`
 2. Ligne ~98, modifier :
+
 ```javascript
 const interval = setInterval(() => {
   loadDashboardMetrics();
@@ -183,11 +202,12 @@ const interval = setInterval(() => {
 ### **Modifier les Seuils SLA**
 
 Ouvrir `backend/services/testmo.service.js`, ligne ~232 :
+
 ```javascript
 const SLA_THRESHOLDS = {
   passRate: { target: 95, warning: 90, critical: 85 },
   blockedRate: { max: 5 },
-  completionRate: { target: 90, warning: 80 }
+  completionRate: { target: 90, warning: 80 },
 };
 ```
 
@@ -196,41 +216,53 @@ const SLA_THRESHOLDS = {
 ## 📊 **MÉTRIQUES ISTQB EXPLIQUÉES**
 
 ### **1. Completion Rate (Taux de Complétion)**
+
 ```
 Formule: (Tests Complétés / Total Tests) × 100
 Exemple: (800 / 1000) × 100 = 80%
 ```
+
 **Interprétation ISTQB** :
+
 - ≥ 90% : Excellent (Vert)
 - 80-89% : Acceptable (Orange)
 - < 80% : Insuffisant (Rouge)
 
 ### **2. Pass Rate (Taux de Succès)**
+
 ```
 Formule: (Tests Passés / Tests Complétés) × 100
 Exemple: (760 / 800) × 100 = 95%
 ```
+
 **Interprétation ISTQB** :
+
 - ≥ 95% : Excellent (Vert)
 - 90-94% : Acceptable (Orange)
 - < 90% : Problème qualité (Rouge)
 
 ### **3. Failure Rate (Taux d'Échec)**
+
 ```
 Formule: (Tests Échoués / Tests Complétés) × 100
 Exemple: (40 / 800) × 100 = 5%
 ```
+
 **Interprétation ISTQB** :
+
 - ≤ 5% : Normal (Vert)
 - 5-10% : Attention (Orange)
 - > 10% : Problème critique (Rouge)
 
 ### **4. Test Efficiency (Efficacité QA)**
+
 ```
 Formule: (Tests Passés / (Tests Passés + Tests Échoués)) × 100
 Exemple: (760 / (760 + 40)) × 100 = 95%
 ```
+
 **Interprétation LEAN** :
+
 - Mesure l'efficacité du processus de test
 - Exclut les tests non exécutés pour focus sur la qualité
 
@@ -240,30 +272,33 @@ Exemple: (760 / (760 + 40)) × 100 = 95%
 
 ### **Backend (http://localhost:3001/api)**
 
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| GET | `/health` | Health check du serveur |
-| GET | `/projects` | Liste tous les projets |
-| GET | `/dashboard/:projectId` | **Principal** - Métriques complètes |
-| GET | `/projects/:projectId/runs` | Runs actifs d'un projet |
-| GET | `/runs/:runId` | Détails d'un run |
-| GET | `/runs/:runId/results` | Résultats détaillés d'un run |
-| GET | `/projects/:projectId/automation` | Runs d'automation |
-| POST | `/cache/clear` | Nettoie le cache backend |
+| Méthode | Endpoint                          | Description                         |
+| ------- | --------------------------------- | ----------------------------------- |
+| GET     | `/health`                         | Health check du serveur             |
+| GET     | `/projects`                       | Liste tous les projets              |
+| GET     | `/dashboard/:projectId`           | **Principal** - Métriques complètes |
+| GET     | `/projects/:projectId/runs`       | Runs actifs d'un projet             |
+| GET     | `/runs/:runId`                    | Détails d'un run                    |
+| GET     | `/runs/:runId/results`            | Résultats détaillés d'un run        |
+| GET     | `/projects/:projectId/automation` | Runs d'automation                   |
+| POST    | `/cache/clear`                    | Nettoie le cache backend            |
 
 ### **Exemples d'utilisation**
 
 **Test du backend** :
+
 ```bash
 curl http://localhost:3001/api/health
 ```
 
 **Récupérer les projets** :
+
 ```bash
 curl http://localhost:3001/api/projects
 ```
 
 **Récupérer les métriques du projet 1** :
+
 ```bash
 curl http://localhost:3001/api/dashboard/1
 ```
@@ -273,28 +308,36 @@ curl http://localhost:3001/api/dashboard/1
 ## 🐛 **DÉPANNAGE**
 
 ### **Erreur: "Authentification Testmo échouée"**
+
 ✅ **Solution** : Vérifier le token dans `.env`
+
 ```bash
 # Vérifier que le token est correct
 cat backend/.env | grep TESTMO_TOKEN
 ```
 
 ### **Erreur: "Cannot GET /api/..."**
+
 ✅ **Solution** : Le backend n'est pas démarré
+
 ```bash
 cd backend
 npm start
 ```
 
 ### **Erreur: "CORS policy blocked"**
+
 ✅ **Solution** : Vérifier `FRONTEND_URL` dans `.env`
+
 ```bash
 # Doit correspondre à l'URL du frontend
 FRONTEND_URL=http://localhost:3000
 ```
 
 ### **Erreur: "Module not found"**
+
 ✅ **Solution** : Réinstaller les dépendances
+
 ```bash
 # Backend
 cd backend
@@ -308,7 +351,9 @@ npm install
 ```
 
 ### **Dashboard ne charge pas de données**
+
 ✅ **Checklist** :
+
 1. Backend démarré ? (`npm start` dans backend/)
 2. Token API valide dans `.env` ?
 3. URL Testmo correcte dans `.env` ?
@@ -320,12 +365,14 @@ npm install
 ## 🔒 **SÉCURITÉ - IMPORTANT**
 
 ### **⚠️ NE JAMAIS FAIRE**
+
 - ❌ Commiter le fichier `.env` dans Git
 - ❌ Exposer le token API côté client
 - ❌ Partager le token dans des captures d'écran
 - ❌ Logger le token dans la console
 
 ### **✅ BONNES PRATIQUES**
+
 - ✅ `.env` est dans `.gitignore`
 - ✅ Token stocké uniquement côté backend
 - ✅ Communication frontend ↔ backend via API
@@ -344,6 +391,7 @@ NODE_ENV=production npm start
 ```
 
 **Variables d'environnement production** :
+
 ```bash
 NODE_ENV=production
 TESTMO_URL=https://votre-instance.testmo.net
