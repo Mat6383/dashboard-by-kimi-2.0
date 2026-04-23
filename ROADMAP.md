@@ -7,8 +7,8 @@
 ## Version actuelle
 
 **Branch :** `main`  
-**Commits récents :** 5 commits de hardening (avril 2026)  
-**Tests :** 291/291 backend ✅ | Build frontend ✅
+**Commits récents :** P0/P1/P2/P3 terminés (avril 2026)  
+**Tests :** 296/296 backend ✅ | 67/67 frontend ✅ | Build ✅
 
 ---
 
@@ -127,7 +127,7 @@
 | Métrique            | Actuel       | Cible |
 | ------------------- | ------------ | ----- |
 | Tests backend       | 296 / 296 ✅ | 350+  |
-| Tests frontend      | 60 / 60 ✅   | 80+   |
+| Tests frontend      | 67 / 67 ✅   | 80+   |
 | Couverture backend  | ~? %         | 70 %  |
 | Couverture frontend | ~? %         | 60 %  |
 | Vulnérabilités npm  | 0 ✅         | 0     |
@@ -136,6 +136,16 @@
 | Lignes `server.js`  | ~170         | < 80  |
 
 ---
+
+## 🎯 Prochaine session — Nouvelles features suggérées
+
+La feuille de route P0→P3 est **complète**. Voici des pistes pour la suite :
+
+1. **Couverture de tests** — Passer les seuils cibles (backend 70 %, frontend 60 %)
+2. **Virtualisation des listes** — `react-window` dans Dashboard7 pour les grandes listes d'issues
+3. **Mode sombre auto** — Détection `prefers-color-scheme` + persistance localStorage
+4. **Alerting Slack/Teams** — Webhook quand un metric passe en rouge
+5. **Dashboard de synthèse multi-projets** — Vue consolidée across tous les projets Testmo
 
 ## 📝 Notes
 
