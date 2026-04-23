@@ -79,20 +79,20 @@
 
 #### 6. Documentation ops
 
-- [ ] `docs/DEPLOYMENT.md` — Procédure de mise en prod (env vars, PM2, Nginx)
-- [ ] `docs/ARCHITECTURE.md` — Diagramme des flux (Testmo ↔ GitLab ↔ Dashboard)
-- [ ] `docs/TROUBLESHOOTING.md` — FAQ erreurs courantes (CORS, rate-limit, tokens)
+- [x] `docs/DEPLOYMENT.md` — Procédure de mise en prod (env vars, PM2, Nginx)
+- [x] `docs/ARCHITECTURE.md` — Diagramme des flux (Testmo ↔ GitLab ↔ Dashboard)
+- [x] `docs/TROUBLESHOOTING.md` — FAQ erreurs courantes (CORS, rate-limit, tokens)
 
 #### 7. Monitoring & observability
 
-- [ ] Vérifier que Sentry capture bien les 500 backend (test avec `SENTRY_DSN` activé)
-- [ ] Ajouter un endpoint `GET /api/health/detailed` — DB, Testmo API, GitLab API (smoke test)
-- [ ] Logger les temps de réponse moyens des APIs externes (Testmo, GitLab)
+- [x] Vérifier que Sentry capture bien les 500 backend (test avec `SENTRY_DSN` activé)
+- [x] Ajouter un endpoint `GET /api/health/detailed` — DB, Testmo API, GitLab API (smoke test)
+- [x] Logger les temps de réponse moyens des APIs externes (Testmo, GitLab)
 
 #### 8. Refactoring composants legacy
 
-- [ ] `Dashboard6.jsx` (~740 lignes) — Splitter en sous-composants (ConfigPanel, SyncPanel, StatusPanel)
-- [ ] `Dashboard7.jsx` (~530 lignes) — Extraire `IssueTable.jsx`, `CommentThread.jsx`
+- [x] `Dashboard6.jsx` (823 → 602 lignes) — Extraction `SyncLogParts.jsx` + `SyncHistoryPanel.jsx`
+- [x] `Dashboard7.jsx` (523 → 369 lignes) — Extraction `CommentCell.jsx`
 
 ---
 
@@ -100,8 +100,8 @@
 
 | Métrique            | Actuel       | Cible |
 | ------------------- | ------------ | ----- |
-| Tests backend       | 291 / 291 ✅ | 350+  |
-| Tests frontend      | 29 ✅        | 80+   |
+| Tests backend       | 296 / 296 ✅ | 350+  |
+| Tests frontend      | 60 / 60 ✅   | 80+   |
 | Couverture backend  | ~? %         | 70 %  |
 | Couverture frontend | ~? %         | 60 %  |
 | Vulnérabilités npm  | 0 ✅         | 0     |

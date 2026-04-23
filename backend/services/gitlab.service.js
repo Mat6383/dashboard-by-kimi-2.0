@@ -11,6 +11,7 @@
 
 const axios = require('axios');
 const logger = require('./logger.service');
+const { instrumentAxios } = require('./apiTimer.service');
 
 class GitLabService {
   constructor() {
@@ -26,19 +27,18 @@ class GitLabService {
     // Délai entre requêtes API (rate-limit protection)
     this.apiDelay = 300;
 
-    const httpsAgent = this.verifySsl === false
-      ? new (require('https').Agent)({ rejectUnauthorized: false })
-      : undefined;
+    const httpsAgent =
+      this.verifySsl === false ? new (require('https').Agent)({ rejectUnauthorized: false }) : undefined;
 
     this.client = axios.create({
       baseURL: `${this.baseURL}/api/v4`,
       timeout: this.timeout,
       headers: {
         'PRIVATE-TOKEN': this.token,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       // Support self-signed certificates (GitLab on-premise)
-      ...(httpsAgent && { httpsAgent })
+      ...(httpsAgent && { httpsAgent }),
     });
 
     // Client dédié aux opérations d'écriture (labels, etc.)
@@ -47,20 +47,23 @@ class GitLabService {
       timeout: this.timeout,
       headers: {
         'PRIVATE-TOKEN': this.writeToken,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      ...(httpsAgent && { httpsAgent })
+      ...(httpsAgent && { httpsAgent }),
     });
 
+    instrumentAxios(this.client, 'gitlab');
+    instrumentAxios(this.writeClient, 'gitlab-write');
+
     this.client.interceptors.response.use(
-      response => {
+      (response) => {
         logger.info(`GitLab API Success: ${response.config.method.toUpperCase()} ${response.config.url}`);
         return response;
       },
-      error => {
+      (error) => {
         logger.error(`GitLab API Error: ${error.response?.status} ${error.config?.url}`, {
           status: error.response?.status,
-          data: error.response?.data
+          data: error.response?.data,
         });
         return Promise.reject(error);
       }
@@ -71,7 +74,7 @@ class GitLabService {
    * Pause entre requêtes API
    */
   _delay() {
-    return new Promise(resolve => setTimeout(resolve, this.apiDelay));
+    return new Promise((resolve) => setTimeout(resolve, this.apiDelay));
   }
 
   /**
@@ -93,12 +96,19 @@ class GitLabService {
       } catch (err) {
         lastError = err;
         const status = err.response?.status;
-        const isRetryable = !status || status === 429 || status >= 500 ||
-          err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT' || err.code === 'ENOTFOUND';
+        const isRetryable =
+          !status ||
+          status === 429 ||
+          status >= 500 ||
+          err.code === 'ECONNRESET' ||
+          err.code === 'ETIMEDOUT' ||
+          err.code === 'ENOTFOUND';
         if (!isRetryable || attempt === maxRetries) break;
         const delay = baseDelay * Math.pow(2, attempt - 1); // 600ms, 1.2s, 2.4s
-        logger.warn(`[Retry] GitLab.${label} — tentative ${attempt}/${maxRetries} (${err.message}), nouvel essai dans ${delay}ms`);
-        await new Promise(r => setTimeout(r, delay));
+        logger.warn(
+          `[Retry] GitLab.${label} — tentative ${attempt}/${maxRetries} (${err.message}), nouvel essai dans ${delay}ms`
+        );
+        await new Promise((r) => setTimeout(r, delay));
       }
     }
     throw lastError;
@@ -142,18 +152,16 @@ class GitLabService {
       // Utilise le début du nom pour la recherche API
       const searchPrefix = searchTerm.split(' ')[0]; // ex: "R06"
 
-      const iterations = await this._getPaginated(
-        `/projects/${this.projectId}/iterations`,
-        { search: searchPrefix, state: 'all' }
-      );
+      const iterations = await this._getPaginated(`/projects/${this.projectId}/iterations`, {
+        search: searchPrefix,
+        state: 'all',
+      });
 
       // Matching insensible casse/espaces
       const normalize = (str) => str.toLowerCase().replace(/[-\s]+/g, '');
       const normalizedSearch = normalize(iterationName);
 
-      const found = iterations.find(iter =>
-        normalize(iter.title || '') === normalizedSearch
-      );
+      const found = iterations.find((iter) => normalize(iter.title || '') === normalizedSearch);
 
       if (found) {
         logger.info(`GitLab: Itération trouvée - "${found.title}" (id=${found.id})`);
@@ -178,15 +186,12 @@ class GitLabService {
    */
   async getIssuesByLabelAndIteration(label, iterationId) {
     try {
-      const issues = await this._getPaginated(
-        `/projects/${this.projectId}/issues`,
-        {
-          labels: label,
-          iteration_id: iterationId,
-          state: 'all',
-          scope: 'all'
-        }
-      );
+      const issues = await this._getPaginated(`/projects/${this.projectId}/issues`, {
+        labels: label,
+        iteration_id: iterationId,
+        state: 'all',
+        scope: 'all',
+      });
 
       logger.info(`GitLab: ${issues.length} ticket(s) trouvé(s) [label="${label}", iteration_id=${iterationId}]`);
       return issues;
@@ -206,17 +211,14 @@ class GitLabService {
   async findIterationForProject(projectId, iterationName) {
     try {
       // Récupère toutes les itérations (sans passer search : les cadences auto ont title=null)
-      const iterations = await this._getPaginated(
-        `/projects/${projectId}/iterations`,
-        { state: 'all' }
-      );
+      const iterations = await this._getPaginated(`/projects/${projectId}/iterations`, { state: 'all' });
 
       // Cas 1 : titre généré "Itération #N (date → date)" → match par iid
       // Regex large pour gérer tous encodages de é et variantes
       const generatedMatch = iterationName.match(/#(\d+)/);
       if (generatedMatch && /it.ration/i.test(iterationName)) {
         const targetIid = parseInt(generatedMatch[1]);
-        const found = iterations.find(it => it.iid === targetIid);
+        const found = iterations.find((it) => it.iid === targetIid);
         if (found) {
           logger.info(`GitLab: Itération trouvée par iid=${targetIid} (project ${projectId}, id=${found.id})`);
           return found;
@@ -226,7 +228,7 @@ class GitLabService {
       // Cas 2 : match par titre normalisé (ex: "R06 - run 1")
       const normalize = (str) => str.toLowerCase().replace(/[-\s]+/g, '');
       const normalizedSearch = normalize(iterationName);
-      const found = iterations.find(iter => normalize(iter.title || '') === normalizedSearch);
+      const found = iterations.find((iter) => normalize(iter.title || '') === normalizedSearch);
 
       if (found) {
         logger.info(`GitLab: Itération trouvée (project ${projectId}) - "${found.title}" (id=${found.id})`);
@@ -251,11 +253,15 @@ class GitLabService {
    */
   async getIssuesByLabelAndIterationForProject(projectId, label, iterationId) {
     try {
-      const issues = await this._getPaginated(
-        `/projects/${projectId}/issues`,
-        { labels: label, iteration_id: iterationId, state: 'all', scope: 'all' }
+      const issues = await this._getPaginated(`/projects/${projectId}/issues`, {
+        labels: label,
+        iteration_id: iterationId,
+        state: 'all',
+        scope: 'all',
+      });
+      logger.info(
+        `GitLab: ${issues.length} ticket(s) (project=${projectId}, label="${label}", iteration_id=${iterationId})`
       );
-      logger.info(`GitLab: ${issues.length} ticket(s) (project=${projectId}, label="${label}", iteration_id=${iterationId})`);
       return issues;
     } catch (error) {
       logger.error(`GitLab: Erreur récupération issues projet ${projectId}:`, error.message);
@@ -276,14 +282,12 @@ class GitLabService {
       // (les cadences auto ont title=null, GitLab ne peut pas chercher dessus)
       const params = { state: 'all', per_page: 50 };
 
-      const iterations = await this._getPaginated(
-        `/projects/${projectId}/iterations`,
-        params
-      );
+      const iterations = await this._getPaginated(`/projects/${projectId}/iterations`, params);
 
       // Générer un titre de fallback si title est null (cadences automatiques GitLab)
-      const formatDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '?';
-      iterations.forEach(it => {
+      const formatDate = (d) =>
+        d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '?';
+      iterations.forEach((it) => {
         if (!it.title) {
           it.title = `Itération #${it.iid || it.sequence || it.id} (${formatDate(it.start_date)} → ${formatDate(it.due_date)})`;
         }
@@ -298,7 +302,7 @@ class GitLabService {
       // Filtrer localement par search si fourni
       if (search) {
         const q = search.toLowerCase();
-        return iterations.filter(it => (it.title || '').toLowerCase().includes(q));
+        return iterations.filter((it) => (it.title || '').toLowerCase().includes(q));
       }
 
       return iterations;
@@ -316,14 +320,11 @@ class GitLabService {
    */
   async getIssuesByLabel(label) {
     try {
-      const issues = await this._getPaginated(
-        `/projects/${this.projectId}/issues`,
-        {
-          labels: label,
-          state: 'opened',
-          scope: 'all'
-        }
-      );
+      const issues = await this._getPaginated(`/projects/${this.projectId}/issues`, {
+        labels: label,
+        state: 'opened',
+        scope: 'all',
+      });
 
       logger.info(`GitLab: ${issues.length} ticket(s) trouvé(s) [label="${label}"]`);
       return issues;
@@ -343,11 +344,11 @@ class GitLabService {
    */
   async getIssueNotes(projectId, issueIid) {
     try {
-      const notes = await this._getPaginated(
-        `/projects/${projectId}/issues/${issueIid}/notes`,
-        { sort: 'asc', order_by: 'created_at' }
-      );
-      const filtered = notes.filter(n => !n.system);
+      const notes = await this._getPaginated(`/projects/${projectId}/issues/${issueIid}/notes`, {
+        sort: 'asc',
+        order_by: 'created_at',
+      });
+      const filtered = notes.filter((n) => !n.system);
       logger.info(`GitLab: ${filtered.length} commentaire(s) récupéré(s) pour #${issueIid}`);
       return filtered;
     } catch (error) {
@@ -366,10 +367,11 @@ class GitLabService {
    */
   async getIssuesForIteration(projectId, iterationId) {
     try {
-      const issues = await this._getPaginated(
-        `/projects/${projectId}/issues`,
-        { iteration_id: iterationId, state: 'all', scope: 'all' }
-      );
+      const issues = await this._getPaginated(`/projects/${projectId}/issues`, {
+        iteration_id: iterationId,
+        state: 'all',
+        scope: 'all',
+      });
       logger.info(`GitLab: ${issues.length} issue(s) pour iteration_id=${iterationId} (project=${projectId})`);
       return issues;
     } catch (error) {
@@ -395,8 +397,8 @@ class GitLabService {
   async updateIssueLabel(projectId, issueIid, addLabel, removeLabels = []) {
     try {
       const body = {};
-      if (addLabel)              body.add_labels    = addLabel;
-      if (removeLabels.length)   body.remove_labels = removeLabels.join(',');
+      if (addLabel) body.add_labels = addLabel;
+      if (removeLabels.length) body.remove_labels = removeLabels.join(',');
 
       if (!body.add_labels && !body.remove_labels) {
         logger.debug(`GitLab: updateIssueLabel #${issueIid} — rien à faire`);
@@ -422,19 +424,22 @@ class GitLabService {
    */
   async executeGraphQL(query, variables = {}, useWriteToken = false) {
     const token = useWriteToken ? this.writeToken : this.token;
-    const httpsAgent = this.verifySsl === false
-      ? new (require('https').Agent)({ rejectUnauthorized: false })
-      : undefined;
+    const httpsAgent =
+      this.verifySsl === false ? new (require('https').Agent)({ rejectUnauthorized: false }) : undefined;
 
-    const resp = await this._withRetry(() => axios.post(
-      `${this.baseURL}/api/graphql`,
-      { query, variables },
-      {
-        timeout: this.timeout,
-        headers: { 'PRIVATE-TOKEN': token, 'Content-Type': 'application/json' },
-        ...(httpsAgent && { httpsAgent })
-      }
-    ), 'executeGraphQL');
+    const resp = await this._withRetry(
+      () =>
+        axios.post(
+          `${this.baseURL}/api/graphql`,
+          { query, variables },
+          {
+            timeout: this.timeout,
+            headers: { 'PRIVATE-TOKEN': token, 'Content-Type': 'application/json' },
+            ...(httpsAgent && { httpsAgent }),
+          }
+        ),
+      'executeGraphQL'
+    );
 
     if (resp.data.errors?.length) {
       throw new Error(`GraphQL: ${resp.data.errors[0].message}`);
@@ -466,7 +471,7 @@ class GitLabService {
       const data = await this.executeGraphQL(mutation, { id: workItemGlobalId, statusId: statusGlobalId }, true);
       const { workItem, errors } = data.workItemUpdate;
       if (errors?.length) throw new Error(errors[0]);
-      const statusName = workItem.widgets.find(w => w.type === 'STATUS')?.status?.name;
+      const statusName = workItem.widgets.find((w) => w.type === 'STATUS')?.status?.name;
       logger.info(`GitLab: Work item ${workItemGlobalId} → status "${statusName}"`);
       return workItem;
     } catch (error) {
@@ -490,7 +495,7 @@ class GitLabService {
       if (!allIssues.length) return [];
 
       // Requête GraphQL pour récupérer Version Prod de tous ces work items
-      const ids = allIssues.map(i => `gid://gitlab/WorkItem/${i.id}`);
+      const ids = allIssues.map((i) => `gid://gitlab/WorkItem/${i.id}`);
       const query = `
         query GetVersions($ids: [ID!]!) {
           nodes(ids: $ids) {
@@ -510,21 +515,21 @@ class GitLabService {
 
       const data = await this.executeGraphQL(query, { ids });
       const versionByGid = new Map();
-      for (const node of (data.nodes || [])) {
-        const cfWidget = node?.widgets?.find(w => Array.isArray(w.customFieldValues));
-        const versionProd = cfWidget?.customFieldValues?.find(cf =>
-          cf.customField?.name === 'Version Prod'
-        );
+      for (const node of data.nodes || []) {
+        const cfWidget = node?.widgets?.find((w) => Array.isArray(w.customFieldValues));
+        const versionProd = cfWidget?.customFieldValues?.find((cf) => cf.customField?.name === 'Version Prod');
         const val = versionProd?.selectedOptions?.[0]?.value || null;
         versionByGid.set(node.id, val);
       }
 
-      const filtered = allIssues.filter(issue => {
+      const filtered = allIssues.filter((issue) => {
         const gid = `gid://gitlab/WorkItem/${issue.id}`;
         return versionByGid.get(gid) === version;
       });
 
-      logger.info(`GitLab: ${filtered.length}/${allIssues.length} issue(s) avec Version Prod="${version}" (project=${projectId})`);
+      logger.info(
+        `GitLab: ${filtered.length}/${allIssues.length} issue(s) avec Version Prod="${version}" (project=${projectId})`
+      );
       return filtered;
     } catch (error) {
       logger.error(`GitLab: Erreur getIssuesByVersionAndIteration:`, error.message);
@@ -542,10 +547,7 @@ class GitLabService {
    */
   async addIssueComment(projectId, issueIid, body) {
     try {
-      const resp = await this.writeClient.post(
-        `/projects/${projectId}/issues/${issueIid}/notes`,
-        { body }
-      );
+      const resp = await this.writeClient.post(`/projects/${projectId}/issues/${issueIid}/notes`, { body });
       logger.info(`GitLab: Commentaire ajouté sur #${issueIid} (project=${projectId})`);
       return resp.data;
     } catch (error) {
@@ -566,13 +568,10 @@ class GitLabService {
     const todoStatusGid = process.env.GITLAB_STATUS_TODO || 'gid://gitlab/WorkItems::Statuses::Custom::Status/15';
 
     try {
-      const allIssues = await this._getPaginated(
-        `/projects/${projectId}/issues`,
-        { state: 'opened', scope: 'all' }
-      );
+      const allIssues = await this._getPaginated(`/projects/${projectId}/issues`, { state: 'opened', scope: 'all' });
       if (!allIssues.length) return [];
 
-      const ids = allIssues.map(i => `gid://gitlab/WorkItem/${i.id}`);
+      const ids = allIssues.map((i) => `gid://gitlab/WorkItem/${i.id}`);
       const query = `
         query GetVersionsAndStatus($ids: [ID!]!) {
           nodes(ids: $ids) {
@@ -596,22 +595,24 @@ class GitLabService {
 
       const data = await this.executeGraphQL(query, { ids });
       const infoByGid = new Map();
-      for (const node of (data.nodes || [])) {
-        const cfWidget     = node?.widgets?.find(w => Array.isArray(w.customFieldValues));
-        const statusWidget = node?.widgets?.find(w => w.type === 'STATUS');
-        const versionProd  = cfWidget?.customFieldValues?.find(cf => cf.customField?.name === 'Version Prod');
-        const versionVal   = versionProd?.selectedOptions?.[0]?.value || null;
-        const statusGid    = statusWidget?.status?.id || null;
+      for (const node of data.nodes || []) {
+        const cfWidget = node?.widgets?.find((w) => Array.isArray(w.customFieldValues));
+        const statusWidget = node?.widgets?.find((w) => w.type === 'STATUS');
+        const versionProd = cfWidget?.customFieldValues?.find((cf) => cf.customField?.name === 'Version Prod');
+        const versionVal = versionProd?.selectedOptions?.[0]?.value || null;
+        const statusGid = statusWidget?.status?.id || null;
         infoByGid.set(node.id, { version: versionVal, statusGid });
       }
 
-      const filtered = allIssues.filter(issue => {
-        const gid  = `gid://gitlab/WorkItem/${issue.id}`;
+      const filtered = allIssues.filter((issue) => {
+        const gid = `gid://gitlab/WorkItem/${issue.id}`;
         const info = infoByGid.get(gid);
         return info?.version === version && info?.statusGid === todoStatusGid;
       });
 
-      logger.info(`GitLab: ${filtered.length}/${allIssues.length} issue(s) avec Version Prod="${version}" + status TODO (project=${projectId})`);
+      logger.info(
+        `GitLab: ${filtered.length}/${allIssues.length} issue(s) avec Version Prod="${version}" + status TODO (project=${projectId})`
+      );
       return filtered;
     } catch (error) {
       logger.error(`GitLab: Erreur getIssuesByVersionOnly:`, error.message);
@@ -626,6 +627,22 @@ class GitLabService {
    * @param {number} seconds - Durée en secondes depuis GitLab
    * @returns {string} Format Testmo (ex: "30m", "1h 30m")
    */
+  /**
+   * Smoke test rapide de l'API GitLab
+   * @returns {Promise<{ok: boolean, responseTimeMs: number, error?: string}>}
+   */
+  async healthCheck() {
+    const start = Date.now();
+    try {
+      const url = this.projectId ? `/projects/${this.projectId}` : '/projects';
+      const params = this.projectId ? {} : { per_page: 1 };
+      await this.client.get(url, { params, timeout: 5000 });
+      return { ok: true, responseTimeMs: Date.now() - start };
+    } catch (error) {
+      return { ok: false, responseTimeMs: Date.now() - start, error: error.message };
+    }
+  }
+
   static formatEstimate(seconds) {
     if (!seconds || seconds <= 0) return '';
     const hours = Math.floor(seconds / 3600);

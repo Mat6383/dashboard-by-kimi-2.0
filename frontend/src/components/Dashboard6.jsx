@@ -19,173 +19,17 @@ import {
   Search,
   Play,
   CheckCircle2,
-  XCircle,
   SkipForward,
   AlertCircle,
-  Clock,
   FolderOpen,
   GitBranch,
   Zap,
-  History,
-  ChevronRight,
   ArrowRight,
 } from 'lucide-react';
 import apiService from '../services/api.service';
 import '../styles/Dashboard6.css';
-
-// ============================================================
-// Helpers
-// ============================================================
-
-/**
- * Formate une date ISO en dd/MM HH:mm
- */
-function formatDate(iso) {
-  if (!iso) return '—';
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch (_) {
-    return iso;
-  }
-}
-
-// ============================================================
-// Sous-composants
-// ============================================================
-
-/** Icône selon le statut d'un log line */
-function LogIcon({ type }) {
-  switch (type) {
-    case 'case_created':
-      return <CheckCircle2 size={13} className="d6-log-created" />;
-    case 'case_updated':
-      return <RefreshCw size={13} className="d6-log-updated" />;
-    case 'case_skipped':
-      return <SkipForward size={13} className="d6-log-skipped" />;
-    case 'case_error':
-      return <XCircle size={13} className="d6-log-error" />;
-    case 'folder':
-      return <FolderOpen size={13} className="d6-log-info" />;
-    case 'start':
-      return <Zap size={13} className="d6-log-info" />;
-    case 'done':
-      return <CheckCircle2 size={13} className="d6-log-done" />;
-    case 'error':
-      return <AlertCircle size={13} className="d6-log-error" />;
-    default:
-      return <span style={{ width: 13 }} />;
-  }
-}
-
-/** Classe CSS selon le statut d'un log line */
-function logLineClass(type) {
-  switch (type) {
-    case 'case_created':
-      return 'd6-log-created';
-    case 'case_updated':
-      return 'd6-log-updated';
-    case 'case_skipped':
-      return 'd6-log-skipped';
-    case 'case_error':
-      return 'd6-log-error';
-    case 'done':
-      return 'd6-log-done';
-    case 'error':
-      return 'd6-log-error';
-    default:
-      return 'd6-log-info';
-  }
-}
-
-/** Texte d'une log line */
-function LogLineText({ event }) {
-  const {
-    type,
-    name,
-    gitlabIid,
-    gitlabUrl,
-    testmoUrl,
-    message,
-    parent,
-    child,
-    created,
-    updated,
-    skipped,
-    enriched,
-    errors,
-    total,
-  } = event;
-
-  switch (type) {
-    case 'start':
-      return <span>Démarrage de la synchronisation...</span>;
-    case 'folder':
-      return (
-        <span>
-          Dossier prêt : <strong>{parent}</strong> <ChevronRight size={11} /> <strong>{child}</strong>
-        </span>
-      );
-    case 'case_created':
-      return (
-        <span>
-          Créé : <strong>#{gitlabIid}</strong> {name}
-          {gitlabUrl && (
-            <a className="d6-log-link" href={gitlabUrl} target="_blank" rel="noreferrer">
-              {' '}
-              [GitLab]
-            </a>
-          )}
-          {testmoUrl && (
-            <a className="d6-log-link" href={testmoUrl} target="_blank" rel="noreferrer">
-              {' '}
-              [Testmo]
-            </a>
-          )}
-        </span>
-      );
-    case 'case_updated':
-      return (
-        <span>
-          Mis à jour : <strong>#{gitlabIid}</strong> {name}
-          {testmoUrl && (
-            <a className="d6-log-link" href={testmoUrl} target="_blank" rel="noreferrer">
-              {' '}
-              [Testmo]
-            </a>
-          )}
-        </span>
-      );
-    case 'case_skipped':
-      return (
-        <span>
-          Ignoré (enrichi manuellement) : <strong>#{gitlabIid}</strong> {name}
-        </span>
-      );
-    case 'case_error':
-      return (
-        <span>
-          Erreur sur <strong>#{gitlabIid}</strong> {name} : {message}
-        </span>
-      );
-    case 'error':
-      return <span>Erreur fatale : {message}</span>;
-    case 'done':
-      return (
-        <span>
-          Terminé — Créés: <strong>{created}</strong> | MàJ: <strong>{updated}</strong> | Ignorés:{' '}
-          <strong>{skipped}</strong> | Erreurs: <strong>{errors}</strong> | Total: <strong>{total}</strong>
-        </span>
-      );
-    default:
-      return <span>{JSON.stringify(event)}</span>;
-  }
-}
+import { LogIcon, logLineClass, LogLineText } from './SyncLogParts';
+import SyncHistoryPanel from './SyncHistoryPanel';
 
 // ============================================================
 // Composant principal Dashboard6
@@ -412,15 +256,6 @@ export default function Dashboard6({ isDark }) {
   const isConfigured = currentProject?.configured === true;
   const canAnalyze = isConfigured && selectedIter && state === 'idle';
   const canExecute = isConfigured && selectedIter && state === 'preview';
-  const progressPct =
-    finalStats && finalStats.total > 0
-      ? Math.round(
-          ((finalStats.created + finalStats.updated + finalStats.skipped + finalStats.errors) / finalStats.total) * 100
-        )
-      : state === 'syncing'
-        ? null
-        : 0;
-
   // Calcul du % de progression pendant le sync
   const processedCount = logLines.filter((e) =>
     ['case_created', 'case_updated', 'case_skipped', 'case_error'].includes(e.type)
@@ -755,69 +590,7 @@ export default function Dashboard6({ isDark }) {
       )}
 
       {/* ---- Section Historique ---- */}
-      <div className="d6-section">
-        <div className="d6-section-header">
-          <History size={14} />
-          Historique (50 derniers runs)
-          <button
-            className="d6-btn d6-btn-ghost"
-            style={{ marginLeft: 'auto', padding: '2px 8px', fontSize: '0.7rem', color: '#CBD5E1' }}
-            onClick={loadHistory}
-          >
-            <RefreshCw size={11} />
-          </button>
-        </div>
-
-        {history.length === 0 ? (
-          <div className="d6-section-body">
-            <div className="d6-alert d6-alert-info">
-              <Clock size={14} />
-              Aucun historique disponible — lancez votre première synchronisation.
-            </div>
-          </div>
-        ) : (
-          <table className="d6-history-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Projet</th>
-                <th>Itération</th>
-                <th>Mode</th>
-                <th style={{ textAlign: 'center' }}>Créés</th>
-                <th style={{ textAlign: 'center' }}>MàJ</th>
-                <th style={{ textAlign: 'center' }}>Ignorés</th>
-                <th style={{ textAlign: 'center' }}>Erreurs</th>
-                <th style={{ textAlign: 'center' }}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((row) => (
-                <tr key={row.id}>
-                  <td style={{ whiteSpace: 'nowrap', color: 'var(--text-muted)', fontSize: '0.78rem' }}>
-                    {formatDate(row.executed_at)}
-                  </td>
-                  <td>
-                    <strong>{row.project_name}</strong>
-                  </td>
-                  <td>{row.iteration_name}</td>
-                  <td>
-                    <span className={row.mode === 'execute' ? 'd6-mode-execute' : 'd6-mode-preview'}>
-                      {row.mode === 'execute' ? 'Exécution' : 'Aperçu'}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'center', color: 'var(--color-success)', fontWeight: 700 }}>{row.created}</td>
-                  <td style={{ textAlign: 'center', color: 'var(--color-primary)', fontWeight: 700 }}>{row.updated}</td>
-                  <td style={{ textAlign: 'center', color: 'var(--color-gray-500)' }}>{row.skipped}</td>
-                  <td style={{ textAlign: 'center', color: row.errors > 0 ? 'var(--color-danger)' : 'inherit' }}>
-                    {row.errors}
-                  </td>
-                  <td style={{ textAlign: 'center' }}>{row.total_issues}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <SyncHistoryPanel history={history} onRefresh={loadHistory} />
     </div>
   );
 }

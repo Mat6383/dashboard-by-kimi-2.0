@@ -44,8 +44,20 @@ jest.mock('../../services/testmo.service', () => {
     getRunResults: jest.fn(() => Promise.resolve([])),
     getAutomationRuns: jest.fn(() => Promise.resolve([])),
     apiGet: jest.fn(() => Promise.resolve({ result: [] })),
+    healthCheck: jest.fn(() => Promise.resolve({ ok: true, responseTimeMs: 120 })),
   };
 });
+
+jest.mock('../../services/gitlab.service', () => ({
+  healthCheck: jest.fn(() => Promise.resolve({ ok: true, responseTimeMs: 80 })),
+}));
+
+jest.mock('../../services/apiTimer.service', () => ({
+  instrumentAxios: jest.fn(),
+  getStats: jest.fn(() => ({
+    testmo: { totalCalls: 5, errors: 0, avgResponseTimeMs: 120, p95ResponseTimeMs: 250, lastCallsCount: 5 },
+  })),
+}));
 
 describe('API Integration Tests', () => {
   describe('GET /api/health', () => {
@@ -55,6 +67,22 @@ describe('API Integration Tests', () => {
       expect(res.body.status).toBe('OK');
       expect(res.body).toHaveProperty('timestamp');
       expect(res.body).toHaveProperty('uptime');
+    });
+  });
+
+  describe('GET /api/health/detailed', () => {
+    it('returns detailed health with all checks OK', async () => {
+      const res = await request(app).get('/api/health/detailed');
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('OK');
+      expect(res.body).toHaveProperty('checks');
+      expect(res.body.checks).toHaveProperty('syncHistory');
+      expect(res.body.checks).toHaveProperty('comments');
+      expect(res.body.checks).toHaveProperty('testmoAPI');
+      expect(res.body.checks).toHaveProperty('gitlabAPI');
+      expect(res.body.checks.testmoAPI.status).toBe('OK');
+      expect(res.body.checks.gitlabAPI.status).toBe('OK');
+      expect(res.body).toHaveProperty('apiStats');
     });
   });
 

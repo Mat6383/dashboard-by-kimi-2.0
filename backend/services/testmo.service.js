@@ -15,6 +15,7 @@
 
 const axios = require('axios');
 const logger = require('./logger.service');
+const { instrumentAxios } = require('./apiTimer.service');
 
 // ─── Standalone helpers (exportés pour tests) ───────────────────────────────
 
@@ -85,6 +86,8 @@ class TestmoService {
         'Content-Type': 'application/json',
       },
     });
+
+    instrumentAxios(this.client, 'testmo');
 
     // Intercepteur pour logging ITIL
     this.client.interceptors.response.use(
@@ -1455,6 +1458,20 @@ class TestmoService {
    * Gestion d'erreurs ITIL Incident Management
    * @private
    */
+  /**
+   * Smoke test rapide de l'API Testmo
+   * @returns {Promise<{ok: boolean, responseTimeMs: number, error?: string}>}
+   */
+  async healthCheck() {
+    const start = Date.now();
+    try {
+      await this.client.get('/projects', { params: { limit: 1 }, timeout: 5000 });
+      return { ok: true, responseTimeMs: Date.now() - start };
+    } catch (error) {
+      return { ok: false, responseTimeMs: Date.now() - start, error: error.message };
+    }
+  }
+
   _handleError(method, error) {
     const incident = {
       method: method,

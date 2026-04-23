@@ -56,18 +56,18 @@ describe('parseGraphQLResponse — gestion erreurs GraphQL', () => {
   test('réponse avec errors[] → lève une erreur', () => {
     const resp = {
       errors: [{ message: 'Type mismatch on variable $statusId' }],
-      data: null
+      data: null,
     };
     expect(() => parseGraphQLResponse(resp)).toThrow('GraphQL: Type mismatch on variable $statusId');
   });
 
-  test('errors vide [] → ne lève pas d\'erreur', () => {
+  test("errors vide [] → ne lève pas d'erreur", () => {
     const resp = { errors: [], data: { ok: true } };
     expect(() => parseGraphQLResponse(resp)).not.toThrow();
     expect(parseGraphQLResponse(resp)).toEqual({ ok: true });
   });
 
-  test('errors absent → ne lève pas d\'erreur', () => {
+  test("errors absent → ne lève pas d'erreur", () => {
     const resp = { data: { nodes: [] } };
     expect(() => parseGraphQLResponse(resp)).not.toThrow();
   });
@@ -77,7 +77,7 @@ describe('parseGraphQLResponse — gestion erreurs GraphQL', () => {
 // updateWorkItemStatus extrait le nom du status depuis workItem.widgets[].
 
 function extractStatusFromWidgets(widgets) {
-  return widgets?.find(w => w.type === 'STATUS')?.status || null;
+  return widgets?.find((w) => w.type === 'STATUS')?.status || null;
 }
 
 describe('extractStatusFromWidgets — lecture status dans la réponse workItemUpdate', () => {
@@ -86,15 +86,15 @@ describe('extractStatusFromWidgets — lecture status dans la réponse workItemU
     { type: 'LABELS' },
     {
       type: 'STATUS',
-      status: { id: 'gid://gitlab/WorkItems::Statuses::Custom::Status/18', name: 'Test OK' }
-    }
+      status: { id: 'gid://gitlab/WorkItems::Statuses::Custom::Status/18', name: 'Test OK' },
+    },
   ];
 
   test('retourne le status quand le widget STATUS est présent', () => {
     const result = extractStatusFromWidgets(mockWidgets);
     expect(result).toEqual({
       id: 'gid://gitlab/WorkItems::Statuses::Custom::Status/18',
-      name: 'Test OK'
+      name: 'Test OK',
     });
   });
 
@@ -123,11 +123,9 @@ describe('extractStatusFromWidgets — lecture status dans la réponse workItemU
 
 function buildVersionProdMap(graphqlNodes) {
   const versionByGid = new Map();
-  for (const node of (graphqlNodes || [])) {
-    const cfWidget = node?.widgets?.find(w => Array.isArray(w.customFieldValues));
-    const versionProd = cfWidget?.customFieldValues?.find(
-      cf => cf.customField?.name === 'Version Prod'
-    );
+  for (const node of graphqlNodes || []) {
+    const cfWidget = node?.widgets?.find((w) => Array.isArray(w.customFieldValues));
+    const versionProd = cfWidget?.customFieldValues?.find((cf) => cf.customField?.name === 'Version Prod');
     const val = versionProd?.selectedOptions?.[0]?.value || null;
     versionByGid.set(node.id, val);
   }
@@ -136,7 +134,7 @@ function buildVersionProdMap(graphqlNodes) {
 
 function filterIssuesByVersionProd(allIssues, graphqlNodes, targetVersion) {
   const versionByGid = buildVersionProdMap(graphqlNodes);
-  return allIssues.filter(issue => {
+  return allIssues.filter((issue) => {
     const gid = `gid://gitlab/WorkItem/${issue.id}`;
     return versionByGid.get(gid) === targetVersion;
   });
@@ -145,48 +143,54 @@ function filterIssuesByVersionProd(allIssues, graphqlNodes, targetVersion) {
 const MOCK_GRAPHQL_NODES = [
   {
     id: 'gid://gitlab/WorkItem/100',
-    widgets: [{
-      customFieldValues: [
-        {
-          customField: { name: 'Version Prod' },
-          selectedOptions: [{ value: 'R06 - Pilot' }]
-        }
-      ]
-    }]
+    widgets: [
+      {
+        customFieldValues: [
+          {
+            customField: { name: 'Version Prod' },
+            selectedOptions: [{ value: 'R06 - Pilot' }],
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'gid://gitlab/WorkItem/101',
-    widgets: [{
-      customFieldValues: [
-        {
-          customField: { name: 'Version Prod' },
-          selectedOptions: [{ value: 'R14 - Pilot' }]
-        }
-      ]
-    }]
+    widgets: [
+      {
+        customFieldValues: [
+          {
+            customField: { name: 'Version Prod' },
+            selectedOptions: [{ value: 'R14 - Pilot' }],
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'gid://gitlab/WorkItem/102',
-    widgets: [{
-      customFieldValues: [
-        {
-          customField: { name: 'Version Prod' },
-          selectedOptions: null
-        }
-      ]
-    }]
+    widgets: [
+      {
+        customFieldValues: [
+          {
+            customField: { name: 'Version Prod' },
+            selectedOptions: null,
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'gid://gitlab/WorkItem/103',
-    widgets: [{ customFieldValues: [] }]
-  }
+    widgets: [{ customFieldValues: [] }],
+  },
 ];
 
 const MOCK_REST_ISSUES = [
   { id: 100, iid: 200, title: 'Issue A' },
   { id: 101, iid: 201, title: 'Issue B' },
   { id: 102, iid: 202, title: 'Issue C — version Prod null' },
-  { id: 103, iid: 203, title: 'Issue D — pas de Version Prod' }
+  { id: 103, iid: 203, title: 'Issue D — pas de Version Prod' },
 ];
 
 describe('filterIssuesByVersionProd — filtre GraphQL par champ custom Version Prod', () => {
@@ -209,12 +213,12 @@ describe('filterIssuesByVersionProd — filtre GraphQL par champ custom Version 
 
   test('issue avec selectedOptions=null → exclue du filtre', () => {
     const result = filterIssuesByVersionProd(MOCK_REST_ISSUES, MOCK_GRAPHQL_NODES, 'R06 - Pilot');
-    expect(result.map(i => i.id)).not.toContain(102);
+    expect(result.map((i) => i.id)).not.toContain(102);
   });
 
   test('issue sans champ Version Prod → exclue du filtre', () => {
     const result = filterIssuesByVersionProd(MOCK_REST_ISSUES, MOCK_GRAPHQL_NODES, 'R06 - Pilot');
-    expect(result.map(i => i.id)).not.toContain(103);
+    expect(result.map((i) => i.id)).not.toContain(103);
   });
 
   test('nodes vide → 0 résultats (aucune info version)', () => {
@@ -255,9 +259,12 @@ describe('buildVersionProdMap — construction du Map GID → valeur version', (
 // Les constantes doivent être des GIDs GitLab valides, pas des strings arbitraires.
 
 const {
-  GITLAB_STATUS_OK, GITLAB_STATUS_KO,
-  GITLAB_STATUS_WIP, GITLAB_STATUS_RETEST, GITLAB_STATUS_TODO,
-  STATUS_TO_GITLAB_STATUS
+  GITLAB_STATUS_OK,
+  GITLAB_STATUS_KO,
+  GITLAB_STATUS_WIP,
+  GITLAB_STATUS_RETEST,
+  GITLAB_STATUS_TODO,
+  STATUS_TO_GITLAB_STATUS,
 } = require('../services/status-sync.service');
 
 const GITLAB_STATUS_GID_PATTERN = /^gid:\/\/gitlab\/WorkItems::Statuses::Custom::Status\/\d+$/;
@@ -304,7 +311,7 @@ describe('GITLAB_STATUS_* — format GID Work Item valide', () => {
   });
 
   test('tous les statuts mappés (2,3,4,8) sont des GIDs valides', () => {
-    [2, 3, 4, 8].forEach(id => {
+    [2, 3, 4, 8].forEach((id) => {
       expect(STATUS_TO_GITLAB_STATUS[id]).toMatch(GITLAB_STATUS_GID_PATTERN);
     });
   });
@@ -340,9 +347,9 @@ jest.mock('axios', () => ({
     get: jest.fn(),
     put: jest.fn(),
     post: jest.fn(),
-    interceptors: { response: { use: jest.fn() } }
+    interceptors: { request: { use: jest.fn() }, response: { use: jest.fn() } },
   })),
-  post: jest.fn()
+  post: jest.fn(),
 }));
 
 // Env vars avant le require du service (singleton construit à l'import)
@@ -360,21 +367,17 @@ const MOCK_GRAPHQL_RETURN = {
   workItemUpdate: {
     workItem: {
       id: WORK_ITEM_GID,
-      widgets: [
-        { type: 'LABELS' },
-        { type: 'STATUS', status: { id: STATUS_GID, name: 'Test OK' } }
-      ]
+      widgets: [{ type: 'LABELS' }, { type: 'STATUS', status: { id: STATUS_GID, name: 'Test OK' } }],
     },
-    errors: []
-  }
+    errors: [],
+  },
 };
 
 describe('updateWorkItemStatus — appel GraphQL mutation', () => {
   let spyGraphQL;
 
   beforeEach(() => {
-    spyGraphQL = jest.spyOn(gitlabService, 'executeGraphQL')
-      .mockResolvedValue(MOCK_GRAPHQL_RETURN);
+    spyGraphQL = jest.spyOn(gitlabService, 'executeGraphQL').mockResolvedValue(MOCK_GRAPHQL_RETURN);
   });
 
   afterEach(() => {
@@ -386,7 +389,7 @@ describe('updateWorkItemStatus — appel GraphQL mutation', () => {
     expect(spyGraphQL).toHaveBeenCalledWith(
       expect.stringContaining('workItemUpdate'),
       { id: WORK_ITEM_GID, statusId: STATUS_GID },
-      true  // useWriteToken doit être true pour modifier un Work Item
+      true // useWriteToken doit être true pour modifier un Work Item
     );
   });
 
@@ -403,18 +406,16 @@ describe('updateWorkItemStatus — appel GraphQL mutation', () => {
 
   test('lève une erreur GraphQL si executeGraphQL rejette', async () => {
     spyGraphQL.mockRejectedValue(new Error('GraphQL: Variable $statusId was provided invalid value'));
-    await expect(gitlabService.updateWorkItemStatus(WORK_ITEM_GID, 'bad-gid'))
-      .rejects.toThrow('GraphQL');
+    await expect(gitlabService.updateWorkItemStatus(WORK_ITEM_GID, 'bad-gid')).rejects.toThrow('GraphQL');
   });
 
   test('lève une erreur si workItemUpdate.errors contient un message', async () => {
     spyGraphQL.mockResolvedValue({
       workItemUpdate: {
         workItem: null,
-        errors: ['Status not allowed for this work item type']
-      }
+        errors: ['Status not allowed for this work item type'],
+      },
     });
-    await expect(gitlabService.updateWorkItemStatus(WORK_ITEM_GID, STATUS_GID))
-      .rejects.toThrow('Status not allowed');
+    await expect(gitlabService.updateWorkItemStatus(WORK_ITEM_GID, STATUS_GID)).rejects.toThrow('Status not allowed');
   });
 });
