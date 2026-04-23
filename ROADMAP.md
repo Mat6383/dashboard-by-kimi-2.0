@@ -69,10 +69,9 @@
 
 #### 5. Audit bundle frontend
 
-- [ ] Vérifier si `recharts` est importé quelque part (`grep -r "recharts" frontend/src/`)
-- [ ] Si mort : `npm uninstall recharts` + commit
-- [ ] Si utilisé : migrer vers `chart.js` (déjà en place) pour unifier
-- [ ] Activer `build.chunkSizeWarningLimit` ou splitter `vendor-export` (> 500 kB)
+- [x] Vérifier si `recharts` est importé quelque part (`grep -r "recharts" frontend/src/`)
+- [x] `recharts` n'est pas installé — rien à faire
+- [x] Activer `build.chunkSizeWarningLimit: 1000` pour éviter le warning sur `vendor-export` (html2canvas + jspdf + docx)
 
 ---
 

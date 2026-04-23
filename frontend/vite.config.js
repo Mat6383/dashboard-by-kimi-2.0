@@ -26,6 +26,7 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist',
       sourcemap: true,
       // Optimisation LEAN
+      chunkSizeWarningLimit: 1000,
       minify: 'terser',
       terserOptions: {
         compress: {
