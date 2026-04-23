@@ -1,14 +1,9 @@
 import React, { useRef, useMemo, useCallback } from 'react';
-import { useToast } from '../hooks/useToast';
 import {
   ShieldAlert,
   ShieldCheck,
   Activity,
   Database,
-  CheckCircle,
-  Bug,
-  Download,
-  Layers,
   CheckSquare,
   XCircle,
   BarChart3,
@@ -16,9 +11,8 @@ import {
   AlertTriangle,
   Search,
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import TestClosureModal from './TestClosureModal';
+import { useExportPDF } from '../hooks/useExportPDF';
 import QuickClosureModal from './QuickClosureModal';
 import ReportGeneratorModal from './ReportGeneratorModal';
 
@@ -80,12 +74,15 @@ const Dashboard4 = ({
   showProductionSection = true,
   onToggleProductionSection,
 }) => {
-  const { showToast } = useToast();
   const dashboardRef = useRef(null);
   const [showAllRuns, setShowAllRuns] = React.useState(false);
   const [showClosureModal, setShowClosureModal] = React.useState(false);
   const [showQuickClosureModal, setShowQuickClosureModal] = React.useState(false);
   const [showReportGenerator, setShowReportGenerator] = React.useState(false);
+  const { exportPDF } = useExportPDF({
+    orientation: 'landscape',
+    backgroundColor: isDark ? '#111827' : '#F9FAFB',
+  });
 
   // --- Données Dashboard 1 (Métriques globales) ---
   const runs = metrics?.runs || [];
@@ -110,6 +107,11 @@ const Dashboard4 = ({
     [metrics?.slaStatus]
   );
 
+  const handleExportPDF = useCallback(async () => {
+    if (!dashboardRef.current || !project) return;
+    await exportPDF(dashboardRef.current, `QA_Dashboard_${project.name}_${new Date().toLocaleDateString('fr-FR')}.pdf`);
+  }, [exportPDF, project]);
+
   // Provide the export function to the parent component on mount
   React.useEffect(() => {
     if (setExportHandler) {
@@ -118,7 +120,7 @@ const Dashboard4 = ({
     return () => {
       if (setExportHandler) setExportHandler(null);
     };
-  }, [setExportHandler]);
+  }, [setExportHandler, handleExportPDF]);
 
   if (!metrics || !project) {
     return (
@@ -131,38 +133,6 @@ const Dashboard4 = ({
 
   const d1 = metrics;
   const raw = d1.raw || { completed: 0, total: 0, passed: 0, failed: 0, wip: 0, blocked: 0, untested: 0 };
-
-  const handleExportPDF = async () => {
-    const element = dashboardRef.current;
-    if (!element) return;
-
-    try {
-      // Configuration de html2canvas (pour capturer avec le bon rendu)
-      const canvas = await html2canvas(element, {
-        scale: 2, // Meilleure qualité
-        useCORS: true,
-        backgroundColor: isDark ? '#111827' : '#F9FAFB',
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-
-      // Configuration PDF
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`QA_Dashboard_${project.name}_${new Date().toLocaleDateString('fr-FR')}.pdf`);
-    } catch (error) {
-      console.error("Erreur lors de l'export PDF:", error);
-      showToast('Erreur lors de la génération du PDF', 'error');
-    }
-  };
 
   return (
     <div style={{ padding: '0.5rem', width: '100%', margin: '0 auto' }}>

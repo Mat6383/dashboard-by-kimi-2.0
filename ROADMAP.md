@@ -96,6 +96,29 @@
 
 ---
 
+### 🟢 P3 — Refactoring approfondi (analyse codebase)
+
+#### 9. Extraction `useExportHandler.js`
+
+- [x] Extraire la logique d'export PDF (`html2canvas` + `jsPDF`) depuis `Dashboard4.jsx` et `TestClosureModal.jsx`
+- [x] Créer un hook réutilisable `useExportPDF(element, filename, options)` gérant le canvas scaling, le fond dark mode, preCapture, multiPage, et les erreurs
+- [x] Supprimer les imports `html2canvas` et `jsPDF` de `Dashboard4.jsx` et `TestClosureModal.jsx`
+- [x] Tests Vitest : 7/7 ✅
+
+#### 10. Split `report.service.js` (685 lignes)
+
+- [ ] Extraire `services/report/collectData.js` — `collectReportData()` (~212 lignes, fetch + pagination Testmo)
+- [ ] Extraire `services/report/generateHTML.js` — `generateHTML()` (~279 lignes, templating HTML)
+- [ ] Extraire `services/report/generatePPTX.js` — `generatePPTX()` (~170 lignes, slides pptxgenjs)
+- [ ] `report.service.js` devient un orchestrateur (~50 lignes) qui délègue aux 3 modules
+
+#### 11. Split `Dashboard4.jsx` (1229 lignes)
+
+- [ ] Extraire `components/MetricCard.jsx` — Card réutilisable (actuellement dupliquée 4x pour completionRate, passRate, failureRate, testEfficiency)
+- [ ] Extraire `components/PreprodSection.jsx` — Section préproduction (grille métriques + répartition + campagnes actives)
+- [ ] Extraire `components/ProductionSection.jsx` — Section production (escape rate + detection rate)
+- [ ] Cible : `Dashboard4.jsx` < 400 lignes (imports + composition + modals)
+
 ## 📊 Indicateurs de santé du projet
 
 | Métrique            | Actuel       | Cible |
