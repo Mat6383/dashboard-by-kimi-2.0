@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor, act } from '@testing-library/react';
 import { useFeatureFlags } from './useFeatureFlags';
 
 const mockGet = vi.fn();
@@ -42,7 +42,9 @@ describe('useFeatureFlags', () => {
     const { result } = renderHook(() => useFeatureFlags());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    await result.current.toggle('annualTrendsV2', true);
+    await act(async () => {
+      await result.current.toggle('annualTrendsV2', true);
+    });
     expect(mockPut).toHaveBeenCalledWith('/feature-flags/annualTrendsV2', { enabled: true });
     await waitFor(() => expect(result.current.flags.annualTrendsV2).toBe(true));
   });

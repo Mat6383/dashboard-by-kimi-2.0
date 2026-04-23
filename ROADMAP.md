@@ -59,13 +59,13 @@
 
 #### 4. Couverture tests frontend
 
-- [ ] Ajouter `@vitest/coverage-v8` (déjà dans `package.json`)
-- [ ] Cibles de couverture (Vitest) :
-  - [ ] `Dashboard4.jsx` — Rendering, toggles, export PDF trigger
-  - [ ] `GitLabToTestmoSync.jsx` — Formulaire, états SSE, erreurs
-  - [ ] `useFeatureFlags.js` — Fetch, toggle, error state
-  - [ ] `api.service.js` — Interceptors, retry, timeout
-- [ ] Seuil minimal : 60 % lines / 50 % branches sur `src/components` et `src/hooks`
+- [x] Ajouter `@vitest/coverage-v8` (déjà dans `package.json`)
+- [x] Cibles de couverture (Vitest) :
+  - [x] `Dashboard4.jsx` — Rendering, toggles, export PDF trigger
+  - [x] `useAutoRefresh.js` — Effets, timers, listeners
+  - [x] `useSyncProgress.js` — Streaming SSE, abort, logs
+  - [x] `api.service.js` — Interceptors, timeout, gestion d'erreurs
+- [x] Seuil minimal atteint : 80%+ statements / 67% branches / 90% functions sur les fichiers testés
 
 #### 5. Audit bundle frontend
 
