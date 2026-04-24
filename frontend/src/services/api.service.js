@@ -28,6 +28,10 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     config.headers['x-request-id'] = config.headers['x-request-id'] || generateRequestId();
+    const token = localStorage.getItem('qa_dashboard_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
     // eslint-disable-next-line no-console
     console.log(`[API] ${config.method.toUpperCase()} ${config.url}`);
     return config;
@@ -57,6 +61,8 @@ apiClient.interceptors.response.use(
 /**
  * API Service
  */
+export { apiClient };
+
 const apiService = {
   /**
    * Health check du backend
@@ -429,6 +435,51 @@ const apiService = {
       return response.data.data;
     } catch (error) {
       throw this._handleError('Update Auto-Sync Config', error);
+    }
+  },
+
+  // ---- Notifications -----------------------------------------------------
+
+  async getNotificationSettings(projectId = null) {
+    try {
+      const url = projectId ? `/notifications/settings/${projectId}` : '/notifications/settings';
+      const response = await apiClient.get(url);
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Get Notification Settings', error);
+    }
+  },
+
+  async saveNotificationSettings(settings) {
+    try {
+      const response = await apiClient.put('/notifications/settings', settings);
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Save Notification Settings', error);
+    }
+  },
+
+  async testNotificationWebhook(channel, url) {
+    try {
+      const response = await apiClient.post('/notifications/test', { channel, url });
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Test Notification Webhook', error);
+    }
+  },
+
+  // ---- PDF Backend --------------------------------------------------------
+
+  async generateBackendPDF(projectId, milestones, format = 'A4', darkMode = false) {
+    try {
+      const response = await apiClient.post(
+        '/pdf/generate',
+        { projectId, milestones, format, darkMode },
+        { responseType: 'blob', timeout: 120000 }
+      );
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Generate Backend PDF', error);
     }
   },
 

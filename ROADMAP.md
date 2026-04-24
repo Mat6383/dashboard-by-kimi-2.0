@@ -158,6 +158,15 @@
 - [ ] **P5#7 Tests unitaires services SQLite** — syncHistory, comments, featureFlags services
 - [ ] **P5#8 Coverage routes SSE backend** — sync/execute, sync/status-to-gitlab, sync/preview, sync/iteration
 
+## 🚀 P6 — Évolutions Futures (Session actuelle)
+
+- [x] **P6#1 Export des métriques en PDF (backend)** — `puppeteer` + endpoint `POST /api/pdf/generate` + header/footer + multi-page
+- [x] **P6#2 Notifications email sur alertes SLA** — `nodemailer` + templates HTML responsive + configuration UI `/notifications`
+- [x] **P6#3 Intégration Slack/Teams enrichie** — Configuration par projet (DB) + test de connexion + rate-limiting 15 min
+- [x] **P6#4 Graphiques de tendance historique** — Table `metric_snapshots` + cron quotidien + endpoint `/trends` + composant `HistoricalTrends`
+- [x] **P6#5 Authentification multi-utilisateurs** — OAuth GitLab (`passport-gitlab2`) + JWT + rôles admin/viewer + route `/auth/callback`
+- [x] **P6#6 Support multi-projets simultané** — Comparateur radar (`/compare`) + sélection persistante + table comparative
+
 ## 📝 Notes
 
 > **Règle d'or :** Une PR = un item de cette checklist. Pas de mega-PR.

@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const testmoService = require('../services/testmo.service');
-const alertService = require('../services/alert.service');
+const notificationService = require('../services/notification.service');
+const metricSnapshotsService = require('../services/metricSnapshots.service');
 const logger = require('../services/logger.service');
 const { safeErrorResponse } = require('../utils/errorResponse');
 const { validateParams, validateQuery, projectIdParam, milestonesQuery } = require('../validators');
@@ -70,13 +71,13 @@ router.get('/:projectId', validateParams(projectIdParam), validateQuery(mileston
     logger.info(`Récupération métriques pour projet ${projectId}`);
     const metrics = await testmoService.getProjectMetrics(projectId, preprodMilestones, prodMilestones);
 
-    // Log + alerte webhook des alertes SLA (ITIL)
+    // Log + alerte des alertes SLA (ITIL)
     if (!metrics.slaStatus.ok) {
       logger.warn('Alertes SLA détectées:', {
         projectId,
         alerts: metrics.slaStatus.alerts,
       });
-      alertService.sendSLAAlert(projectId, metrics.slaStatus.alerts).catch(() => {
+      notificationService.dispatch(projectId, metrics.slaStatus.alerts).catch(() => {
         /* silencieux — ne pas impacter le client */
       });
     }
@@ -137,6 +138,72 @@ router.get('/:projectId/annual-trends', validateParams(projectIdParam), async (r
     });
   } catch (error) {
     res.status(500).json(safeErrorResponse(error, `GET /api/dashboard/${req.params.projectId}/annual-trends`));
+  }
+});
+
+/**
+ * Tendances historiques (snapshots)
+ * Granularity: day | week | month
+ */
+router.get('/:projectId/trends', validateParams(projectIdParam), async (req, res) => {
+  try {
+    const projectId = parseInt(req.params.projectId);
+    const { granularity = 'day', from, to } = req.query;
+    const trends = metricSnapshotsService.getTrends(projectId, granularity, from, to);
+    res.json({ success: true, data: trends, timestamp: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json(safeErrorResponse(error, `GET /api/dashboard/${req.params.projectId}/trends`));
+  }
+});
+
+/**
+ * Comparaison multi-projets (radar chart data)
+ */
+router.get('/compare', async (req, res) => {
+  try {
+    const projectIds = (req.query.projectIds || '')
+      .split(',')
+      .map(Number)
+      .filter((id) => !isNaN(id) && id > 0);
+
+    if (projectIds.length < 2) {
+      return res.status(400).json({ success: false, error: 'Au moins 2 projectIds requis' });
+    }
+    if (projectIds.length > 4) {
+      return res.status(400).json({ success: false, error: 'Maximum 4 projets comparables' });
+    }
+
+    const comparisons = await Promise.all(
+      projectIds.map(async (id) => {
+        try {
+          const metrics = await testmoService.getProjectMetrics(id);
+          return {
+            projectId: id,
+            projectName: metrics.projectName || `Projet ${id}`,
+            passRate: metrics.passRate ?? 0,
+            completionRate: metrics.completionRate ?? 0,
+            escapeRate: metrics.escapeRate ?? 0,
+            detectionRate: metrics.detectionRate ?? 0,
+            blockedRate: metrics.blockedRate ?? 0,
+          };
+        } catch (err) {
+          logger.warn(`[Compare] Échec metrics projet ${id}:`, err.message);
+          return {
+            projectId: id,
+            projectName: `Projet ${id}`,
+            passRate: 0,
+            completionRate: 0,
+            escapeRate: 0,
+            detectionRate: 0,
+            blockedRate: 0,
+          };
+        }
+      })
+    );
+
+    res.json({ success: true, data: comparisons, timestamp: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json(safeErrorResponse(error, 'GET /api/dashboard/compare'));
   }
 });
 

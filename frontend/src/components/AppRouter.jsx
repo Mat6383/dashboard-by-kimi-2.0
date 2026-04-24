@@ -4,6 +4,10 @@ import MetricsCards from './MetricsCards';
 import StatusChart from './StatusChart';
 import RunsList from './RunsList';
 import ConfigurationScreen from './ConfigurationScreen';
+import AuthCallback from './AuthCallback';
+import NotificationSettings from './NotificationSettings';
+import HistoricalTrends from './HistoricalTrends';
+import CompareDashboard from './CompareDashboard';
 
 // Lazy loading des dashboards administratifs et secondaires
 const TvModeDashboard = lazy(() => import('./TvModeDashboard'));
@@ -89,6 +93,10 @@ export default function AppRouter({
         <Route path="/crosstest" element={<CrossTestDashboard isDark={darkMode} />} />
         <Route path="/auto-sync" element={<AutoSyncDashboard isDark={darkMode} />} />
         <Route path="/multi-project" element={<MultiProjectDashboard isDark={darkMode} />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/notifications" element={<NotificationSettings isDark={darkMode} />} />
+        <Route path="/historical-trends" element={<HistoricalTrends projectId={projectId} isDark={darkMode} />} />
+        <Route path="/compare" element={<CompareDashboard isDark={darkMode} />} />
         <Route
           path="/configuration"
           element={

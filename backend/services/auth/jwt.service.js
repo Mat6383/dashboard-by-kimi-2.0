@@ -1,0 +1,41 @@
+/**
+ * ================================================
+ * JWT SERVICE — Sign / Verify / Refresh
+ * ================================================
+ */
+
+const jwt = require('jsonwebtoken');
+const logger = require('../logger.service');
+
+const SECRET = process.env.JWT_SECRET || process.env.ADMIN_API_TOKEN || 'change-me-in-production';
+const ACCESS_TTL = '15m';
+const REFRESH_TTL = '7d';
+
+class JwtService {
+  signPayload(payload) {
+    return jwt.sign(payload, SECRET, { expiresIn: ACCESS_TTL });
+  }
+
+  signRefresh(payload) {
+    return jwt.sign({ sub: payload.sub, type: 'refresh' }, SECRET, { expiresIn: REFRESH_TTL });
+  }
+
+  verify(token) {
+    try {
+      return jwt.verify(token, SECRET);
+    } catch (err) {
+      logger.warn('[JwtService] Token invalide:', err.message);
+      return null;
+    }
+  }
+
+  decode(token) {
+    try {
+      return jwt.decode(token);
+    } catch {
+      return null;
+    }
+  }
+}
+
+module.exports = new JwtService();

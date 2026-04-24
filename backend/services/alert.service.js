@@ -48,20 +48,22 @@ class AlertService {
     };
   }
 
-  async _sendSlack(text) {
-    if (!this.slackWebhookUrl) return;
+  async _sendSlack(text, customUrl) {
+    const url = customUrl || this.slackWebhookUrl;
+    if (!url) return;
     try {
-      await axios.post(this.slackWebhookUrl, { text }, { timeout: 5000 });
+      await axios.post(url, { text }, { timeout: 5000 });
       logger.info('[AlertService] Slack alert sent');
     } catch (err) {
       logger.warn('[AlertService] Slack webhook failed:', err.message);
     }
   }
 
-  async _sendTeams(card) {
-    if (!this.teamsWebhookUrl) return;
+  async _sendTeams(card, customUrl) {
+    const url = customUrl || this.teamsWebhookUrl;
+    if (!url) return;
     try {
-      await axios.post(this.teamsWebhookUrl, card, { timeout: 5000 });
+      await axios.post(url, card, { timeout: 5000 });
       logger.info('[AlertService] Teams alert sent');
     } catch (err) {
       logger.warn('[AlertService] Teams webhook failed:', err.message);

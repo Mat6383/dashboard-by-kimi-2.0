@@ -11,6 +11,8 @@
 
 require('dotenv').config();
 const express = require('express');
+const passport = require('passport');
+const cookieParser = require('cookie-parser');
 const logger = require('./services/logger.service');
 const sentryService = require('./services/sentry.service');
 const requestIdMiddleware = require('./middleware/requestId');
@@ -41,15 +43,24 @@ app.use(requestLogger);
 // ─── Services persistants ───────────────────────────────────────────────────
 require('./services/syncHistory.service').initDb();
 require('./services/comments.service').init();
+require('./services/metricSnapshots.service').init();
+require('./services/users.service').init();
+
+// ─── Passport & Cookies ─────────────────────────────────────────────────────
+app.use(cookieParser());
+app.use(passport.initialize());
 
 // ─── Routes ─────────────────────────────────────────────────────────────────
 app.use('/api/health', require('./routes/health.routes'));
+app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/projects', require('./routes/projects.routes'));
 app.use('/api/dashboard', require('./routes/dashboard.routes'));
 app.use('/api/runs', require('./routes/runs.routes'));
 app.use('/api/reports', require('./routes/reports.routes'));
 app.use('/api/sync', require('./routes/sync.routes'));
 app.use('/api/crosstest', require('./routes/crosstest.routes'));
+app.use('/api/notifications', require('./routes/notifications.routes'));
+app.use('/api/pdf', require('./routes/pdf.routes'));
 app.use('/api/cache', requireAdminAuth, require('./routes/cache.routes'));
 app.use('/api/feature-flags', requireAdminAuth, require('./routes/featureFlags.routes'));
 
@@ -84,6 +95,7 @@ app.use((err, req, res, _next) => {
 // ─── Démarrage (hors mode test) ─────────────────────────────────────────────
 if (process.env.NODE_ENV !== 'test') {
   autoSyncJob.start();
+  require('./jobs/metricsSnapshotJob').start();
 
   const server = app.listen(PORT, (error) => {
     if (error) {

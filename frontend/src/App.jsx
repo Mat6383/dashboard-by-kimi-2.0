@@ -15,6 +15,9 @@ import { useTheme } from './hooks/useTheme';
 import { usePreferences } from './hooks/usePreferences';
 import { useDashboard } from './hooks/useDashboard';
 import { useAutoRefresh } from './hooks/useAutoRefresh';
+import { useAuth } from './hooks/useAuth';
+import { useToast } from './hooks/useToast';
+import apiService from './services/api.service';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import AppLayout from './components/AppLayout';
 import AppRouter from './components/AppRouter';
@@ -22,6 +25,8 @@ import './styles/App.css';
 
 function App() {
   const { isDark, tvMode, toggleDark, toggleTv } = useTheme();
+  const { user, isAuthenticated, isAdmin, loginWithGitLab, logout } = useAuth();
+  const { showToast } = useToast();
   const { useBusinessTerms, setUseBusinessTerms, autoRefresh, setAutoRefresh } = usePreferences();
   const {
     projectId,
@@ -77,6 +82,28 @@ function App() {
   const handleProjectChange = (event) => setProjectId(parseInt(event.target.value));
   const handleDashboardChange = (event) => navigate(event.target.value);
 
+  const handleExportPdfBackend = async () => {
+    if (!projectId) return;
+    try {
+      const blob = await apiService.generateBackendPDF(
+        projectId,
+        { preprod: selectedPreprodMilestones, prod: selectedProdMilestones },
+        'A4',
+        isDark
+      );
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `qa-dashboard-${projectId}-${Date.now()}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showToast('PDF généré avec succès', 'success');
+    } catch (err) {
+      showToast('Erreur génération PDF', 'error');
+    }
+  };
+
   if (error && !metrics) {
     return (
       <div className="app-error">
@@ -112,6 +139,12 @@ function App() {
       lastUpdate={lastUpdate}
       currentPath={location.pathname}
       exportHandler={exportHandler}
+      user={user}
+      isAuthenticated={isAuthenticated}
+      isAdmin={isAdmin}
+      onLogin={loginWithGitLab}
+      onLogout={logout}
+      onExportPdfBackend={handleExportPdfBackend}
     >
       {loading && !metrics ? (
         <div className="loading-container">

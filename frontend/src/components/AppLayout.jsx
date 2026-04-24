@@ -1,18 +1,38 @@
 import React from 'react';
-import { RefreshCw, AlertCircle, Activity, CheckCircle2, Database, Settings, Monitor, Download } from 'lucide-react';
+import {
+  RefreshCw,
+  AlertCircle,
+  Activity,
+  CheckCircle2,
+  Database,
+  Settings,
+  Monitor,
+  Download,
+  LogIn,
+  LogOut,
+  User,
+} from 'lucide-react';
 
-const dashboardRoutes = [
-  { path: '/', label: 'Dashboard 1 (Standard)' },
-  { path: '/tv', label: 'Dashboard 2 (TV)' },
-  { path: '/quality-rates', label: 'Dashboard 3 (Quality Rates)' },
-  { path: '/global-view', label: 'Dashboard 4 (Vue Globale & PDF)' },
-  { path: '/annual-trends', label: 'Dashboard 5 (Tendances Annuelles)' },
-  { path: '/multi-project', label: 'Dashboard 6 (Multi-Projets)' },
-  { path: '/sync-gitlab-to-testmo', label: '⚙ Sync GitLab → Testmo' },
-  { path: '/configuration', label: '⚙️ Configuration des Cycles' },
-  { path: '/crosstest', label: '🔗 CrossTest OK' },
-  { path: '/auto-sync', label: '🤖 Auto-Sync Testmo → GitLab' },
-];
+function getDashboardRoutes(isAdmin) {
+  const routes = [
+    { path: '/', label: 'Dashboard 1 (Standard)' },
+    { path: '/tv', label: 'Dashboard 2 (TV)' },
+    { path: '/quality-rates', label: 'Dashboard 3 (Quality Rates)' },
+    { path: '/global-view', label: 'Dashboard 4 (Vue Globale & PDF)' },
+    { path: '/annual-trends', label: 'Dashboard 5 (Tendances Annuelles)' },
+    { path: '/multi-project', label: 'Dashboard 6 (Multi-Projets)' },
+    { path: '/historical-trends', label: '📈 Tendances Historiques' },
+    { path: '/compare', label: '🔀 Comparateur' },
+    { path: '/sync-gitlab-to-testmo', label: '⚙ Sync GitLab → Testmo' },
+    { path: '/configuration', label: '⚙️ Configuration des Cycles' },
+    { path: '/crosstest', label: '🔗 CrossTest OK' },
+    { path: '/auto-sync', label: '🤖 Auto-Sync Testmo → GitLab' },
+  ];
+  if (isAdmin) {
+    routes.push({ path: '/notifications', label: '🔔 Notifications' });
+  }
+  return routes;
+}
 
 function BackendStatus({ status }) {
   const config = {
@@ -55,7 +75,15 @@ export default function AppLayout({
   currentPath,
   // Export
   exportHandler,
+  // Auth
+  user,
+  isAuthenticated,
+  isAdmin,
+  onLogin,
+  onLogout,
+  onExportPdfBackend,
 }) {
+  const dashboardRoutes = getDashboardRoutes(isAdmin);
   return (
     <div className={`app ${tvMode ? 'tv-mode' : ''} ${darkMode ? 'dark-theme' : ''}`}>
       {/* Header */}
@@ -142,6 +170,19 @@ export default function AppLayout({
             </button>
           )}
 
+          {/* Export PDF Backend */}
+          {currentPath === '/global-view' && onExportPdfBackend && (
+            <button
+              className="btn-icon"
+              style={{ backgroundColor: '#8B5CF6', color: 'white', marginRight: '8px', border: 'none' }}
+              onClick={onExportPdfBackend}
+              title="Exporter PDF (backend)"
+              type="button"
+            >
+              <Download size={16} />
+            </button>
+          )}
+
           {/* Toggle Vocabulaire Métier */}
           <div
             className="switch-container"
@@ -181,6 +222,34 @@ export default function AppLayout({
           <button className="btn-icon" onClick={onClearCache} title="Nettoyer le cache" type="button">
             <Settings size={16} />
           </button>
+
+          {/* Auth */}
+          {isAuthenticated && user ? (
+            <div
+              className="user-badge"
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px' }}
+            >
+              <User size={16} />
+              <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>
+                {user.name}
+                {isAdmin && <span style={{ fontSize: '0.75rem', marginLeft: '4px', opacity: 0.7 }}>(Admin)</span>}
+              </span>
+              <button className="btn-icon" onClick={onLogout} title="Déconnexion" type="button">
+                <LogOut size={16} />
+              </button>
+            </div>
+          ) : (
+            <button
+              className="btn-toggle"
+              onClick={onLogin}
+              title="Se connecter avec GitLab"
+              type="button"
+              style={{ marginLeft: '8px', backgroundColor: '#FC6D26', color: '#fff', border: 'none' }}
+            >
+              <LogIn size={16} />
+              GitLab
+            </button>
+          )}
 
           {/* Statut backend */}
           <BackendStatus status={backendStatus} />
