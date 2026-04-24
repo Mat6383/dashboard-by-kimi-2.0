@@ -21,7 +21,7 @@ import AppRouter from './components/AppRouter';
 import './styles/App.css';
 
 function App() {
-  const { darkMode, tvMode, toggleDarkMode, toggleTvMode } = useTheme();
+  const { isDark, tvMode, toggleDark, toggleTv } = useTheme();
   const { useBusinessTerms, setUseBusinessTerms, autoRefresh, setAutoRefresh } = usePreferences();
   const {
     projectId,
@@ -93,10 +93,10 @@ function App() {
 
   return (
     <AppLayout
-      darkMode={darkMode}
+      darkMode={isDark}
       tvMode={tvMode}
-      toggleDarkMode={toggleDarkMode}
-      toggleTvMode={toggleTvMode}
+      toggleDarkMode={toggleDark}
+      toggleTvMode={toggleTv}
       useBusinessTerms={useBusinessTerms}
       setUseBusinessTerms={setUseBusinessTerms}
       autoRefresh={autoRefresh}
@@ -125,7 +125,7 @@ function App() {
           projects={projects}
           projectId={projectId}
           onProjectChange={setProjectId}
-          darkMode={darkMode}
+          darkMode={isDark}
           useBusinessTerms={useBusinessTerms}
           setExportHandler={setExportHandler}
           showProductionSection={showProductionSection}
