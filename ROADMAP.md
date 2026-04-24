@@ -126,10 +126,10 @@
 
 | Métrique            | Actuel       | Cible |
 | ------------------- | ------------ | ----- |
-| Tests backend       | 303 / 303 ✅ | 350+  |
-| Tests frontend      | 75 / 75 ✅   | 80+   |
-| Couverture backend  | 50 % ✅      | 50 %  |
-| Couverture frontend | 50 % ✅      | 50 %  |
+| Tests backend       | 336 / 336 ✅ | 350+  |
+| Tests frontend      | 40 / 40 ✅   | 80+   |
+| Couverture backend  | 65 % ✅      | 70 %  |
+| Couverture frontend | 87 % ✅      | 50 %  |
 | Vulnérabilités npm  | 0 ✅         | 0     |
 | Build frontend      | ✅           | < 3s  |
 | Lignes `App.jsx`    | ~420         | < 100 |
@@ -149,11 +149,14 @@
 
 ## 🚀 P5 — Prochaine session
 
-- [ ] **P5#1 CI/CD GitHub Actions** — Pipeline test + build + lint à chaque push/PR
-- [ ] **P5#2 Tests des gros modaux** — QuickClosureModal, ReportGeneratorModal, TestClosureModal → frontend 60 %
-- [ ] **P5#3 Split App.jsx** — ~420 lignes → cible < 100
-- [ ] **P5#4 Tests routes backend** — crosstest, featureFlags, reports, sync → backend 60 %+
+- [x] **P5#1 CI/CD GitHub Actions** — Pipeline optimisée (lint, backend coverage, frontend coverage+build, artifacts, summary)
+- [x] **P5#2 Tests des gros modaux** — QuickClosureModal (12/12), ReportGeneratorModal (16/16), TestClosureModal (12/12) ✅
+- [x] **P5#3 Split App.jsx** — ~142 lignes ✅
+- [x] **P5#4 Tests routes backend** — featureFlags, runs, projects, crosstest, sync/history, sync/auto-config, reports → backend 65 %+ ✅
 - [ ] **P5#5 Export CSV/Excel** — Complément au PDF/PPTX existant
+- [ ] **P5#6 Tests E2E Playwright** — Corriger health/db + feature-flags + serveur backend
+- [ ] **P5#7 Tests unitaires services SQLite** — syncHistory, comments, featureFlags services
+- [ ] **P5#8 Coverage routes SSE backend** — sync/execute, sync/status-to-gitlab, sync/preview, sync/iteration
 
 ## 📝 Notes
 
