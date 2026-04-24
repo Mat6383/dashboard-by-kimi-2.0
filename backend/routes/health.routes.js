@@ -29,7 +29,8 @@ router.get('/db', (req, res) => {
   let allOk = true;
 
   try {
-    const db1 = syncHistoryService.db || syncHistoryService.initDb();
+    if (!syncHistoryService.db) syncHistoryService.initDb();
+    const db1 = syncHistoryService.db;
     const row1 = db1?.prepare('SELECT 1 AS ok').get();
     checks.syncHistory = { status: row1?.ok === 1 ? 'OK' : 'FAIL', responseTimeMs: 0 };
   } catch (err) {
@@ -38,7 +39,8 @@ router.get('/db', (req, res) => {
   }
 
   try {
-    const db2 = commentsService.db || commentsService.init();
+    if (!commentsService.db) commentsService.init();
+    const db2 = commentsService.db;
     const row2 = db2?.prepare('SELECT 1 AS ok').get();
     checks.comments = { status: row2?.ok === 1 ? 'OK' : 'FAIL', responseTimeMs: 0 };
   } catch (err) {

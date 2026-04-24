@@ -36,6 +36,7 @@ module.exports = defineConfig({
         TESTMO_TOKEN: 'test',
         GITLAB_URL: 'http://localhost',
         GITLAB_TOKEN: 'test',
+        ADMIN_API_TOKEN: 'test-e2e-admin-token',
       },
     },
     {
