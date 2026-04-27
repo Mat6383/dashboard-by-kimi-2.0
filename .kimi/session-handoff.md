@@ -132,8 +132,8 @@ npx playwright test
 ## 🚀 Prochaines Étapes Suggérées
 
 1. **Performance Puppeteer** — Vérifier la consommation mémoire Chromium en production (pool de pages, fermeture périodique du browser)
-2. **P5#7 Tests unitaires services SQLite** — syncHistory, comments, featureFlags services
-3. **P5#8 Coverage routes SSE backend** — sync/execute, sync/status-to-gitlab, sync/preview, sync/iteration
+2. ~~P5#7 Tests unitaires services SQLite~~ ✅ — 19 tests ajoutés, couverture 92-100%
+3. ~~P5#8 Coverage routes SSE backend~~ ✅ — 48 tests routes, couverture sync.routes.js 96%+
 
 ---
 

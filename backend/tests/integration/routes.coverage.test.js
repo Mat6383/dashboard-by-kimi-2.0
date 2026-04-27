@@ -314,6 +314,16 @@ describe('Routes Coverage Integration Tests', () => {
       expect(res.body.success).toBe(true);
       expect(Array.isArray(res.body.data)).toBe(true);
     });
+
+    it('returns 500 when getHistory throws', async () => {
+      const syncHistory = require('../../services/syncHistory.service');
+      syncHistory.getHistory.mockImplementationOnce(() => {
+        throw new Error('DB locked');
+      });
+      const res = await request(app).get('/api/sync/history');
+      expect(res.status).toBe(500);
+      expect(res.body.success).toBe(false);
+    });
   });
 
   describe('GET /api/sync/auto-config', () => {
@@ -338,6 +348,20 @@ describe('Routes Coverage Integration Tests', () => {
       expect(res.status).toBe(404);
       expect(res.body.success).toBe(false);
     });
+
+    it('returns 400 for non-configured project', async () => {
+      const res = await request(app).get('/api/sync/kiosk/iterations');
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 500 when searchIterations throws', async () => {
+      const gitlab = require('../../services/gitlab.service');
+      gitlab.searchIterations.mockRejectedValueOnce(new Error('GitLab down'));
+      const res = await request(app).get('/api/sync/neo-pilot/iterations');
+      expect(res.status).toBe(500);
+      expect(res.body.success).toBe(false);
+    });
   });
 
   describe('POST /api/sync/preview', () => {
@@ -353,6 +377,20 @@ describe('Routes Coverage Integration Tests', () => {
       expect(res.status).toBe(404);
       expect(res.body.success).toBe(false);
     });
+
+    it('returns 400 for non-configured project', async () => {
+      const res = await request(app).post('/api/sync/preview').send({ projectId: 'kiosk', iterationName: 'R01' });
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 500 when previewIteration throws', async () => {
+      const syncService = require('../../services/sync.service');
+      syncService.previewIteration.mockRejectedValueOnce(new Error('Sync failed'));
+      const res = await request(app).post('/api/sync/preview').send({ projectId: 'neo-pilot', iterationName: 'R01' });
+      expect(res.status).toBe(500);
+      expect(res.body.success).toBe(false);
+    });
   });
 
   describe('POST /api/sync/execute', () => {
@@ -361,6 +399,26 @@ describe('Routes Coverage Integration Tests', () => {
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/text\/event-stream/);
     });
+
+    it('returns 404 for unknown project', async () => {
+      const res = await request(app).post('/api/sync/execute').send({ projectId: 'unknown', iterationName: 'R01' });
+      expect(res.status).toBe(404);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 400 for non-configured project', async () => {
+      const res = await request(app).post('/api/sync/execute').send({ projectId: 'kiosk', iterationName: 'R01' });
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('streams SSE error when syncIteration throws', async () => {
+      const syncService = require('../../services/sync.service');
+      syncService.syncIteration.mockRejectedValueOnce(new Error('Sync crash'));
+      const res = await request(app).post('/api/sync/execute').send({ projectId: 'neo-pilot', iterationName: 'R01' });
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('"type":"error"');
+    });
   });
 
   describe('POST /api/sync/iteration', () => {
@@ -368,6 +426,14 @@ describe('Routes Coverage Integration Tests', () => {
       const res = await request(app).post('/api/sync/iteration').send({ iteration: 'R01 - run 1' });
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
+    });
+
+    it('returns 500 when syncIteration throws', async () => {
+      const syncService = require('../../services/sync.service');
+      syncService.syncIteration.mockRejectedValueOnce(new Error('Sync failed'));
+      const res = await request(app).post('/api/sync/iteration').send({ iteration: 'R01 - run 1' });
+      expect(res.status).toBe(500);
+      expect(res.body.success).toBe(false);
     });
   });
 
@@ -378,6 +444,16 @@ describe('Routes Coverage Integration Tests', () => {
         .send({ runId: 1, gitlabProjectId: 63, iterationName: 'R01' });
       expect(res.status).toBe(200);
       expect(res.headers['content-type']).toMatch(/text\/event-stream/);
+    });
+
+    it('streams SSE error when syncRunStatusToGitLab throws', async () => {
+      const statusSync = require('../../services/status-sync.service');
+      statusSync.syncRunStatusToGitLab.mockRejectedValueOnce(new Error('Status sync crash'));
+      const res = await request(app)
+        .post('/api/sync/status-to-gitlab')
+        .send({ runId: 1, gitlabProjectId: 63, iterationName: 'R01' });
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('"type":"error"');
     });
   });
 
@@ -392,6 +468,14 @@ describe('Routes Coverage Integration Tests', () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
     });
+
+    it('returns 500 when testTestmoApi throws', async () => {
+      const syncService = require('../../services/sync.service');
+      syncService.testTestmoApi.mockRejectedValueOnce(new Error('Testmo unreachable'));
+      const res = await request(app).post('/api/sync/test-api').set('X-Admin-Token', 'test-admin-token');
+      expect(res.status).toBe(500);
+      expect(res.body.success).toBe(false);
+    });
   });
 
   describe('DELETE /api/sync/test-cleanup', () => {
@@ -404,6 +488,14 @@ describe('Routes Coverage Integration Tests', () => {
       const res = await request(app).delete('/api/sync/test-cleanup').set('X-Admin-Token', 'test-admin-token');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
+    });
+
+    it('returns 500 when cleanupTestFolder throws', async () => {
+      const syncService = require('../../services/sync.service');
+      syncService.cleanupTestFolder.mockRejectedValueOnce(new Error('Cleanup failed'));
+      const res = await request(app).delete('/api/sync/test-cleanup').set('X-Admin-Token', 'test-admin-token');
+      expect(res.status).toBe(500);
+      expect(res.body.success).toBe(false);
     });
   });
 
@@ -419,6 +511,16 @@ describe('Routes Coverage Integration Tests', () => {
     it('returns 400 when no valid fields provided', async () => {
       const res = await request(app).put('/api/sync/auto-config').send({ foo: 'bar' });
       expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 500 when updateConfig throws', async () => {
+      const autoSync = require('../../services/auto-sync-config.service');
+      autoSync.updateConfig.mockImplementationOnce(() => {
+        throw new Error('Config write failed');
+      });
+      const res = await request(app).put('/api/sync/auto-config').send({ enabled: true });
+      expect(res.status).toBe(500);
       expect(res.body.success).toBe(false);
     });
   });

@@ -126,9 +126,9 @@
 
 | Métrique            | Actuel       | Cible |
 | ------------------- | ------------ | ----- |
-| Tests backend       | 385 / 385 ✅ | 400+  |
+| Tests backend       | 416 / 416 ✅ | 450+  |
 | Tests frontend      | 131 / 131 ✅ | 150+  |
-| Couverture backend  | 65 % ✅      | 70 %  |
+| Couverture backend  | 80 % ✅      | 70 %  |
 | Couverture frontend | 87 % ✅      | 50 %  |
 | Vulnérabilités npm  | 0 ✅         | 0     |
 | Build frontend      | ✅           | < 3s  |
@@ -155,8 +155,8 @@
 - [x] **P5#4 Tests routes backend** — featureFlags, runs, projects, crosstest, sync/history, sync/auto-config, reports → backend 65 %+ ✅
 - [x] **P5#5 Export CSV/Excel** — Complément au PDF/PPTX existant (`xlsx`, routes `/api/export/csv` & `/excel`)
 - [x] **P5#6 Tests E2E Playwright** — Parcours complet login → dashboard → export → notifications
-- [ ] **P5#7 Tests unitaires services SQLite** — syncHistory, comments, featureFlags services
-- [ ] **P5#8 Coverage routes SSE backend** — sync/execute, sync/status-to-gitlab, sync/preview, sync/iteration
+- [x] **P5#7 Tests unitaires services SQLite** — syncHistory, comments, featureFlags services
+- [x] **P5#8 Coverage routes SSE backend** — sync/execute, sync/status-to-gitlab, sync/preview, sync/iteration
 
 ## 🚀 P6 — Évolutions Futures (Session actuelle)
 

@@ -45,6 +45,44 @@ describe('SQLite Services', () => {
       syncHistoryService._initialized = true;
       expect(syncHistoryService.getHistory(10)).toEqual([]);
     });
+
+    it('returns null when DB prepare throws during addRun', () => {
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
+      syncHistoryService.db.prepare = jest.fn(() => {
+        throw new Error('DB locked');
+      });
+      const id = syncHistoryService.addRun('Alpha', 'R01', 'preview', {});
+      expect(id).toBeNull();
+      syncHistoryService.db.prepare = originalPrepare;
+    });
+
+    it('returns empty array when DB prepare throws during getHistory', () => {
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
+      syncHistoryService.db.prepare = jest.fn(() => {
+        throw new Error('DB locked');
+      });
+      expect(syncHistoryService.getHistory(10)).toEqual([]);
+      syncHistoryService.db.prepare = originalPrepare;
+    });
+
+    it('handles initDb failure gracefully', () => {
+      const BetterSqlite3 = require('better-sqlite3');
+      const originalImpl = BetterSqlite3.getMockImplementation();
+      BetterSqlite3.mockImplementationOnce(() => {
+        throw new Error('Cannot open DB');
+      });
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService._initialized = false;
+      syncHistoryService.db = null;
+      syncHistoryService.initDb();
+      expect(syncHistoryService._initialized).toBe(false);
+      expect(syncHistoryService.db).toBeNull();
+      BetterSqlite3.mockImplementation(originalImpl);
+    });
   });
 
   describe('CommentsService', () => {
@@ -64,6 +102,50 @@ describe('SQLite Services', () => {
       commentsService.upsert(1, 'To delete', null);
       expect(commentsService.delete(1)).toBe(true);
       expect(commentsService.delete(1)).toBe(false);
+    });
+
+    it('throws when DB prepare throws during getAll', () => {
+      const commentsService = require('../../services/comments.service');
+      commentsService.init();
+      const originalPrepare = commentsService.db.prepare.bind(commentsService.db);
+      commentsService.db.prepare = jest.fn(() => {
+        throw new Error('DB locked');
+      });
+      expect(() => commentsService.getAll()).toThrow('DB locked');
+      commentsService.db.prepare = originalPrepare;
+    });
+
+    it('throws when DB prepare throws during upsert', () => {
+      const commentsService = require('../../services/comments.service');
+      commentsService.init();
+      const originalPrepare = commentsService.db.prepare.bind(commentsService.db);
+      commentsService.db.prepare = jest.fn(() => {
+        throw new Error('DB locked');
+      });
+      expect(() => commentsService.upsert(1, 'Comment', 'R01')).toThrow('DB locked');
+      commentsService.db.prepare = originalPrepare;
+    });
+
+    it('throws when DB prepare throws during delete', () => {
+      const commentsService = require('../../services/comments.service');
+      commentsService.init();
+      const originalPrepare = commentsService.db.prepare.bind(commentsService.db);
+      commentsService.db.prepare = jest.fn(() => {
+        throw new Error('DB locked');
+      });
+      expect(() => commentsService.delete(1)).toThrow('DB locked');
+      commentsService.db.prepare = originalPrepare;
+    });
+
+    it('throws when init fails', () => {
+      const BetterSqlite3 = require('better-sqlite3');
+      const originalImpl = BetterSqlite3.getMockImplementation();
+      BetterSqlite3.mockImplementationOnce(() => {
+        throw new Error('Cannot open DB');
+      });
+      const commentsService = require('../../services/comments.service');
+      expect(() => commentsService.init()).toThrow('Cannot open DB');
+      BetterSqlite3.mockImplementation(originalImpl);
     });
   });
 
@@ -101,6 +183,43 @@ describe('SQLite Services', () => {
       syncHistoryService.db = null;
       syncHistoryService._initialized = true;
       expect(featureFlagsService.set('flagX', true)).toBe(false);
+    });
+
+    it('returns default when DB prepare throws during isEnabled', () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
+      syncHistoryService.db.prepare = jest.fn(() => {
+        throw new Error('DB locked');
+      });
+      expect(featureFlagsService.isEnabled('flagY', false)).toBe(false);
+      expect(featureFlagsService.isEnabled('flagY', true)).toBe(true);
+      syncHistoryService.db.prepare = originalPrepare;
+    });
+
+    it('returns empty object when DB prepare throws during getAll', () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
+      syncHistoryService.db.prepare = jest.fn(() => {
+        throw new Error('DB locked');
+      });
+      expect(featureFlagsService.getAll()).toEqual({});
+      syncHistoryService.db.prepare = originalPrepare;
+    });
+
+    it('returns false when DB prepare throws during set', () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
+      syncHistoryService.db.prepare = jest.fn(() => {
+        throw new Error('DB locked');
+      });
+      expect(featureFlagsService.set('flagZ', true)).toBe(false);
+      syncHistoryService.db.prepare = originalPrepare;
     });
   });
 });
