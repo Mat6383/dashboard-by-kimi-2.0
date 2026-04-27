@@ -4,8 +4,29 @@
  * ================================================
  */
 
-const xlsx = require('xlsx');
+const ExcelJS = require('exceljs');
 const logger = require('./logger.service');
+
+/**
+ * Convertit un Array-of-Arrays en string CSV (RFC 4180).
+ * @param {Array<Array>} aoa
+ * @returns {string}
+ */
+function aoaToCsv(aoa) {
+  return aoa
+    .map((row) =>
+      row
+        .map((cell) => {
+          const str = String(cell ?? '');
+          if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        })
+        .join(',')
+    )
+    .join('\n');
+}
 
 class ExportService {
   /**
@@ -129,8 +150,7 @@ class ExportService {
       }
     }
 
-    const ws = xlsx.utils.aoa_to_sheet(lines);
-    const csv = xlsx.utils.sheet_to_csv(ws);
+    const csv = aoaToCsv(lines);
     logger.info('[ExportService] CSV généré');
     return Buffer.from(csv, 'utf-8');
   }
@@ -141,17 +161,18 @@ class ExportService {
    * @param {string} projectName — Nom du projet
    * @returns {Buffer}
    */
-  generateExcel(metrics, projectName) {
+  async generateExcel(metrics, projectName) {
     const m = metrics || {};
     const raw = m.raw || {};
     const itil = m.itil || {};
     const lean = m.lean || {};
     const istqb = m.istqb || {};
 
-    const wb = xlsx.utils.book_new();
+    const workbook = new ExcelJS.Workbook();
 
     // ── Sheet Métriques ──
-    const metricsData = [
+    const wsMetrics = workbook.addWorksheet('Métriques');
+    wsMetrics.addRows([
       ['Propriété', 'Valeur'],
       ['Projet', projectName || m.projectName || 'Projet'],
       ['ID Projet', m.projectId ?? ''],
@@ -178,22 +199,20 @@ class ExportService {
       ['Jalons complétés', istqb.milestonesCompleted ?? ''],
       ['Jalons total', istqb.milestonesTotal ?? ''],
       ['Date génération', new Date().toISOString()],
-    ];
+    ]);
 
     if (m.slaStatus?.alerts?.length) {
-      metricsData.push([]);
-      metricsData.push(['Alertes SLA']);
-      metricsData.push(['Métrique', 'Valeur (%)', 'Seuil (%)', 'Sévérité']);
+      wsMetrics.addRow([]);
+      wsMetrics.addRow(['Alertes SLA']);
+      wsMetrics.addRow(['Métrique', 'Valeur (%)', 'Seuil (%)', 'Sévérité']);
       for (const a of m.slaStatus.alerts) {
-        metricsData.push([a.metric ?? '', a.value ?? '', a.threshold ?? '', a.severity ?? '']);
+        wsMetrics.addRow([a.metric ?? '', a.value ?? '', a.threshold ?? '', a.severity ?? '']);
       }
     }
 
-    const wsMetrics = xlsx.utils.aoa_to_sheet(metricsData);
-    xlsx.utils.book_append_sheet(wb, wsMetrics, 'Métriques');
-
     // ── Sheet Runs ──
-    const runsHeaders = [
+    const wsRuns = workbook.addWorksheet('Runs');
+    wsRuns.addRow([
       'ID',
       'Nom',
       'Total',
@@ -208,11 +227,10 @@ class ExportService {
       'Exploratoire',
       'Fermé',
       'Date création',
-    ];
+    ]);
     const runs = Array.isArray(m.runs) ? m.runs : [];
-    const runsData = [
-      runsHeaders,
-      ...runs.map((r) => [
+    for (const r of runs) {
+      wsRuns.addRow([
         r.id ?? '',
         r.name ?? '',
         r.total ?? '',
@@ -227,13 +245,10 @@ class ExportService {
         r.isExploratory ? 'Oui' : 'Non',
         r.isClosed ? 'Oui' : 'Non',
         r.created_at ?? '',
-      ]),
-    ];
+      ]);
+    }
 
-    const wsRuns = xlsx.utils.aoa_to_sheet(runsData);
-    xlsx.utils.book_append_sheet(wb, wsRuns, 'Runs');
-
-    const buf = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const buf = await workbook.xlsx.writeBuffer();
     logger.info('[ExportService] Excel généré');
     return buf;
   }

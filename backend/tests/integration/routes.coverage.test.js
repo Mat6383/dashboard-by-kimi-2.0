@@ -554,4 +554,23 @@ describe('Routes Coverage Integration Tests', () => {
       expect(res.body.success).toBe(true);
     });
   });
+
+  // ─── Docs ────────────────────────────────────────────────────────────────────
+  describe('GET /api/docs', () => {
+    it('serves Swagger UI HTML', async () => {
+      const res = await request(app).get('/api/docs/');
+      expect(res.status).toBe(200);
+      expect(res.text).toContain('swagger-ui');
+    });
+  });
+
+  // ─── Metrics ─────────────────────────────────────────────────────────────────
+  describe('GET /metrics', () => {
+    it('returns Prometheus metrics', async () => {
+      const res = await request(app).get('/metrics');
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toContain('text/plain');
+      expect(res.text).toContain('qa_dashboard_');
+    });
+  });
 });

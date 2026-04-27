@@ -58,7 +58,7 @@ router.post('/excel', requireAuth, async (req, res) => {
     }
 
     const { metrics, projectName } = await _getMetricsAndName(projectId, milestones);
-    const xlsxBuffer = exportService.generateExcel(metrics, projectName);
+    const xlsxBuffer = await exportService.generateExcel(metrics, projectName);
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="qa-dashboard-${projectId}-${Date.now()}.xlsx"`);

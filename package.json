@@ -27,6 +27,9 @@
     ],
     "*.{json,md,css}": "prettier --write"
   },
+  "overrides": {
+    "uuid": "^11.1.0"
+  },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
     "concurrently": "^8.2.2",
@@ -37,5 +40,8 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "uuid": "^11.1.0"
   }
 }

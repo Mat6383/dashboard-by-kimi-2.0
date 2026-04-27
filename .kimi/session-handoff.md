@@ -134,6 +134,9 @@ npx playwright test
 1. **Performance Puppeteer** — Vérifier la consommation mémoire Chromium en production (pool de pages, fermeture périodique du browser)
 2. ~~P5#7 Tests unitaires services SQLite~~ ✅ — 19 tests ajoutés, couverture 92-100%
 3. ~~P5#8 Coverage routes SSE backend~~ ✅ — 48 tests routes, couverture sync.routes.js 96%+
+4. ~~P7#1 Audit sécurité complète~~ ✅ — Headers hardening, xlsx→exceljs, logger redact, cookies strict
+5. ~~P7#2 Documentation API OpenAPI/Swagger~~ ✅ — Spec YAML + swagger-ui-express sur `/api/docs`
+6. ~~P7#3 Monitoring Prometheus~~ ✅ — prom-client + middleware HTTP metrics + endpoint `/metrics`
 
 ---
 

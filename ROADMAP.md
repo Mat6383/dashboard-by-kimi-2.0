@@ -169,6 +169,12 @@
 - [x] **P6#7 Export CSV/Excel** — `xlsx` + endpoints `/api/export/csv` & `/excel` + boutons UI + tests
 - [x] **P6#8 Tests E2E Playwright** — Parcours utilisateur complet (login → dashboard → exports → notifications)
 
+## 🚀 P7 — Maintenance & Infrastructure (Session en cours)
+
+- [x] **P7#1 Audit sécurité complète** — Headers hardening (COOP, CORP, Referrer-Policy, HSTS), remplacement `xlsx` → `exceljs`, masquage secrets logger, cookies JWT `sameSite=strict` + `path=/`
+- [x] **P7#2 Documentation API OpenAPI/Swagger** — Spec OpenAPI 3.0 + `swagger-ui-express` sur `/api/docs`
+- [x] **P7#3 Monitoring avancé Prometheus** — `prom-client` + middleware métriques HTTP + endpoint `/metrics`
+
 ## 📝 Notes
 
 > **Règle d'or :** Une PR = un item de cette checklist. Pas de mega-PR.

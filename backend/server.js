@@ -20,6 +20,7 @@ const requireAdminAuth = require('./middleware/adminAuth');
 
 const { validate: validateEnv } = require('./bootstrap/envCheck');
 const { setupSecurity } = require('./middleware/security');
+const { metricsMiddleware } = require('./middleware/metrics');
 const requestLogger = require('./middleware/requestLogger');
 const autoSyncJob = require('./jobs/autoSyncJob');
 const gracefulShutdown = require('./bootstrap/gracefulShutdown');
@@ -39,6 +40,9 @@ setupSecurity(app);
 
 // ─── Logging ────────────────────────────────────────────────────────────────
 app.use(requestLogger);
+
+// ─── Prometheus metrics ─────────────────────────────────────────────────────
+app.use(metricsMiddleware);
 
 // ─── Services persistants ───────────────────────────────────────────────────
 require('./services/syncHistory.service').initDb();
@@ -64,6 +68,8 @@ app.use('/api/pdf', require('./routes/pdf.routes'));
 app.use('/api/export', require('./routes/export.routes'));
 app.use('/api/cache', requireAdminAuth, require('./routes/cache.routes'));
 app.use('/api/feature-flags', requireAdminAuth, require('./routes/featureFlags.routes'));
+app.use('/api/docs', require('./routes/docs.routes'));
+app.use('/metrics', require('./routes/metrics.routes'));
 
 // ─── 404 ────────────────────────────────────────────────────────────────────
 app.use((req, res) => {
