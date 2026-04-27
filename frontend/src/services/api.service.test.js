@@ -131,6 +131,28 @@ describe('api.service', () => {
     expect(result).toBe(true);
   });
 
+  it('generateCSV appelle POST /export/csv avec responseType blob', async () => {
+    mockPost.mockResolvedValue({ data: new Blob(['csv']) });
+    const result = await apiService.generateCSV(1, { preprod: [10], prod: [20] });
+    expect(mockPost).toHaveBeenCalledWith(
+      '/export/csv',
+      { projectId: 1, milestones: { preprod: [10], prod: [20] } },
+      { responseType: 'blob', timeout: 60000 }
+    );
+    expect(result).toBeInstanceOf(Blob);
+  });
+
+  it('generateExcel appelle POST /export/excel avec responseType blob', async () => {
+    mockPost.mockResolvedValue({ data: new Blob(['xlsx']) });
+    const result = await apiService.generateExcel(2, { preprod: [], prod: [] });
+    expect(mockPost).toHaveBeenCalledWith(
+      '/export/excel',
+      { projectId: 2, milestones: { preprod: [], prod: [] } },
+      { responseType: 'blob', timeout: 60000 }
+    );
+    expect(result).toBeInstanceOf(Blob);
+  });
+
   it('_handleError formate le message', async () => {
     mockGet.mockRejectedValue({ response: { data: { error: 'Not found' } }, message: 'Network error' });
     await expect(apiService.getProjects()).rejects.toThrow('Get Projects: Not found');

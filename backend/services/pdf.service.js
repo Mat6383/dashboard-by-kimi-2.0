@@ -2,24 +2,80 @@
  * ================================================
  * PDF SERVICE — Génération de PDF via Puppeteer
  * ================================================
+ * Optimisations mémoire :
+ *  - Browser persistent pour éviter les coûts de lancement
+ *  - Restart automatique après MAX_GENERATIONS générations
+ *  - Fermeture automatique après IDLE_TIMEOUT_MS d'inactivité
+ *  - Timeouts sur setContent et page.pdf
+ *  - Logging mémoire en mode debug
  */
 
 const puppeteer = require('puppeteer');
 const logger = require('./logger.service');
 
+const _getMaxGenerations = () => parseInt(process.env.PDF_MAX_GENERATIONS, 10) || 50;
+const IDLE_TIMEOUT_MS = parseInt(process.env.PDF_IDLE_TIMEOUT_MS, 10) || 10 * 60 * 1000; // 10 min
+const PAGE_TIMEOUT_MS = parseInt(process.env.PDF_PAGE_TIMEOUT_MS, 10) || 30_000; // 30s
+
 class PdfService {
   constructor() {
     this.browser = null;
+    this.generationCount = 0;
+    this.idleTimer = null;
+    this.lastActivity = Date.now();
   }
 
   async _getBrowser() {
+    const maxGen = _getMaxGenerations();
+    // Si le browser a dépassé le quota de générations, on le recycle
+    if (this.browser && this.generationCount >= maxGen) {
+      logger.info(`[PdfService] Recycle du browser après ${this.generationCount} générations`);
+      await this.close();
+    }
+
     if (!this.browser) {
       this.browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--disable-background-timer-throttling',
+          '--disable-renderer-backgrounding',
+          '--disable-backgrounding-occluded-windows',
+        ],
       });
+      this.generationCount = 0;
+      logger.info('[PdfService] Browser Puppeteer lancé');
     }
+
+    this._resetIdleTimer();
     return this.browser;
+  }
+
+  _resetIdleTimer() {
+    this.lastActivity = Date.now();
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+    }
+    this.idleTimer = setTimeout(() => {
+      logger.info(`[PdfService] Fermeture idle après ${IDLE_TIMEOUT_MS}ms d'inactivité`);
+      this.close().catch((err) => logger.error('[PdfService] Erreur fermeture idle:', err.message));
+    }, IDLE_TIMEOUT_MS);
+  }
+
+  _logMemory() {
+    if (process.env.NODE_ENV === 'production' || process.env.DEBUG_PDF_MEMORY) {
+      const mem = process.memoryUsage();
+      logger.debug(
+        '[PdfService] Mémoire — rss:',
+        Math.round(mem.rss / 1024 / 1024),
+        'MB, heapUsed:',
+        Math.round(mem.heapUsed / 1024 / 1024),
+        'MB'
+      );
+    }
   }
 
   /**
@@ -33,7 +89,7 @@ class PdfService {
     const page = await browser.newPage();
 
     try {
-      await page.setContent(html, { waitUntil: 'networkidle0' });
+      await page.setContent(html, { waitUntil: 'networkidle0', timeout: PAGE_TIMEOUT_MS });
 
       const pdfBuffer = await page.pdf({
         format: options.format === 'A4-Landscape' ? 'A4' : 'A4',
@@ -53,9 +109,12 @@ class PdfService {
             <span>Page <span class="pageNumber"></span> / <span class="totalPages"></span></span>
           </div>
         `,
+        timeout: PAGE_TIMEOUT_MS,
       });
 
-      logger.info('[PdfService] PDF généré');
+      this.generationCount++;
+      this._logMemory();
+      logger.info('[PdfService] PDF généré (#' + this.generationCount + ')');
       return pdfBuffer;
     } finally {
       await page.close();
@@ -157,10 +216,20 @@ class PdfService {
   }
 
   async close() {
+    if (this.idleTimer) {
+      clearTimeout(this.idleTimer);
+      this.idleTimer = null;
+    }
     if (this.browser) {
-      await this.browser.close();
+      try {
+        await this.browser.close();
+        logger.info('[PdfService] Browser fermé');
+      } catch (err) {
+        logger.warn('[PdfService] Erreur fermeture browser:', err.message);
+      }
       this.browser = null;
     }
+    this.generationCount = 0;
   }
 }
 

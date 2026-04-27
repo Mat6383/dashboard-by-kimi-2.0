@@ -104,6 +104,48 @@ function App() {
     }
   };
 
+  const handleExportCSV = async () => {
+    if (!projectId) return;
+    try {
+      const blob = await apiService.generateCSV(projectId, {
+        preprod: selectedPreprodMilestones,
+        prod: selectedProdMilestones,
+      });
+      const url = window.URL.createObjectURL(new Blob([blob], { type: 'text/csv' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `qa-dashboard-${projectId}-${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showToast('CSV généré avec succès', 'success');
+    } catch (err) {
+      showToast('Erreur génération CSV', 'error');
+    }
+  };
+
+  const handleExportExcel = async () => {
+    if (!projectId) return;
+    try {
+      const blob = await apiService.generateExcel(projectId, {
+        preprod: selectedPreprodMilestones,
+        prod: selectedProdMilestones,
+      });
+      const url = window.URL.createObjectURL(
+        new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      );
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `qa-dashboard-${projectId}-${Date.now()}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showToast('Excel généré avec succès', 'success');
+    } catch (err) {
+      showToast('Erreur génération Excel', 'error');
+    }
+  };
+
   if (error && !metrics) {
     return (
       <div className="app-error">
@@ -145,6 +187,8 @@ function App() {
       onLogin={loginWithGitLab}
       onLogout={logout}
       onExportPdfBackend={handleExportPdfBackend}
+      onExportCSV={handleExportCSV}
+      onExportExcel={handleExportExcel}
     >
       {loading && !metrics ? (
         <div className="loading-container">

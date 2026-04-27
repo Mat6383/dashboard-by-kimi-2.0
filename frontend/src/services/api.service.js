@@ -483,6 +483,34 @@ const apiService = {
     }
   },
 
+  // ---- Export CSV / Excel ------------------------------------------------
+
+  async generateCSV(projectId, milestones) {
+    try {
+      const response = await apiClient.post(
+        '/export/csv',
+        { projectId, milestones },
+        { responseType: 'blob', timeout: 60000 }
+      );
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Generate CSV', error);
+    }
+  },
+
+  async generateExcel(projectId, milestones) {
+    try {
+      const response = await apiClient.post(
+        '/export/excel',
+        { projectId, milestones },
+        { responseType: 'blob', timeout: 60000 }
+      );
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Generate Excel', error);
+    }
+  },
+
   // ---- Fin Dashboard 8 ---------------------------------------------------
 
   /**

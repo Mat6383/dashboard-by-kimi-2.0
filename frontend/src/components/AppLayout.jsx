@@ -11,6 +11,8 @@ import {
   LogIn,
   LogOut,
   User,
+  FileText,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 function getDashboardRoutes(isAdmin) {
@@ -82,6 +84,8 @@ export default function AppLayout({
   onLogin,
   onLogout,
   onExportPdfBackend,
+  onExportCSV,
+  onExportExcel,
 }) {
   const dashboardRoutes = getDashboardRoutes(isAdmin);
   return (
@@ -180,6 +184,32 @@ export default function AppLayout({
               type="button"
             >
               <Download size={16} />
+            </button>
+          )}
+
+          {/* Export CSV */}
+          {currentPath === '/global-view' && onExportCSV && (
+            <button
+              className="btn-icon"
+              style={{ backgroundColor: '#10B981', color: 'white', marginRight: '8px', border: 'none' }}
+              onClick={onExportCSV}
+              title="Exporter CSV"
+              type="button"
+            >
+              <FileText size={16} />
+            </button>
+          )}
+
+          {/* Export Excel */}
+          {currentPath === '/global-view' && onExportExcel && (
+            <button
+              className="btn-icon"
+              style={{ backgroundColor: '#3B82F6', color: 'white', marginRight: '8px', border: 'none' }}
+              onClick={onExportExcel}
+              title="Exporter Excel"
+              type="button"
+            >
+              <FileSpreadsheet size={16} />
             </button>
           )}
 

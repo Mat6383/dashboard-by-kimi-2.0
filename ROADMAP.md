@@ -126,8 +126,8 @@
 
 | Métrique            | Actuel       | Cible |
 | ------------------- | ------------ | ----- |
-| Tests backend       | 336 / 336 ✅ | 350+  |
-| Tests frontend      | 40 / 40 ✅   | 80+   |
+| Tests backend       | 385 / 385 ✅ | 400+  |
+| Tests frontend      | 131 / 131 ✅ | 150+  |
 | Couverture backend  | 65 % ✅      | 70 %  |
 | Couverture frontend | 87 % ✅      | 50 %  |
 | Vulnérabilités npm  | 0 ✅         | 0     |
@@ -153,8 +153,8 @@
 - [x] **P5#2 Tests des gros modaux** — QuickClosureModal (12/12), ReportGeneratorModal (16/16), TestClosureModal (12/12) ✅
 - [x] **P5#3 Split App.jsx** — ~142 lignes ✅
 - [x] **P5#4 Tests routes backend** — featureFlags, runs, projects, crosstest, sync/history, sync/auto-config, reports → backend 65 %+ ✅
-- [ ] **P5#5 Export CSV/Excel** — Complément au PDF/PPTX existant
-- [ ] **P5#6 Tests E2E Playwright** — Corriger health/db + feature-flags + serveur backend
+- [x] **P5#5 Export CSV/Excel** — Complément au PDF/PPTX existant (`xlsx`, routes `/api/export/csv` & `/excel`)
+- [x] **P5#6 Tests E2E Playwright** — Parcours complet login → dashboard → export → notifications
 - [ ] **P5#7 Tests unitaires services SQLite** — syncHistory, comments, featureFlags services
 - [ ] **P5#8 Coverage routes SSE backend** — sync/execute, sync/status-to-gitlab, sync/preview, sync/iteration
 
@@ -166,6 +166,8 @@
 - [x] **P6#4 Graphiques de tendance historique** — Table `metric_snapshots` + cron quotidien + endpoint `/trends` + composant `HistoricalTrends`
 - [x] **P6#5 Authentification multi-utilisateurs** — OAuth GitLab (`passport-gitlab2`) + JWT + rôles admin/viewer + route `/auth/callback`
 - [x] **P6#6 Support multi-projets simultané** — Comparateur radar (`/compare`) + sélection persistante + table comparative
+- [x] **P6#7 Export CSV/Excel** — `xlsx` + endpoints `/api/export/csv` & `/excel` + boutons UI + tests
+- [x] **P6#8 Tests E2E Playwright** — Parcours utilisateur complet (login → dashboard → exports → notifications)
 
 ## 📝 Notes
 

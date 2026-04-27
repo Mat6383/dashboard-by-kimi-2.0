@@ -61,6 +61,7 @@ app.use('/api/sync', require('./routes/sync.routes'));
 app.use('/api/crosstest', require('./routes/crosstest.routes'));
 app.use('/api/notifications', require('./routes/notifications.routes'));
 app.use('/api/pdf', require('./routes/pdf.routes'));
+app.use('/api/export', require('./routes/export.routes'));
 app.use('/api/cache', requireAdminAuth, require('./routes/cache.routes'));
 app.use('/api/feature-flags', requireAdminAuth, require('./routes/featureFlags.routes'));
 
