@@ -140,5 +140,5 @@ npx playwright test
 ## 🌿 État Git
 
 - **Branche active** : `main`
-- **Commits non pushés** : Modifications P6 complètes (non commitées)
-- **Dernier commit sur `main`** : `608117f` — feat(P6): Évolutions Futures
+- **Commits non pushés** : Aucun (tout commité)
+- **Dernier commit sur `main`** : `dac7a88` — feat(P6): Export CSV/Excel + E2E Playwright + Perf Puppeteer
