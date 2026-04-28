@@ -53,10 +53,10 @@ function StatusBadge({ success }: { success: boolean }) {
 
 export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
   const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [total, setTotal] = useState<number>(0);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [offset, setOffset] = useState<number>(0);
+  const [offset, setOffset] = useState(0);
   const limit = 50;
 
   const [filters, setFilters] = useState<{ action: string; from: string; to: string }>({
@@ -90,7 +90,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
   const totalPages = Math.ceil(total / limit);
   const currentPage = Math.floor(offset / limit) + 1;
 
-  const themeStyles = {
+  const themeStyles: Record<string, React.CSSProperties> = {
     container: {
       padding: '24px',
       maxWidth: '1400px',
@@ -188,7 +188,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
       alignItems: 'center',
       gap: '4px',
     },
-  } satisfies Record<string, React.CSSProperties>;
+  };
 
   return (
     <div style={themeStyles.container}>
