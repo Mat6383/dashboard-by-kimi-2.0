@@ -1,6 +1,7 @@
 import React, { createContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import apiService from '../services/api.service';
 import { useDashboardSSE } from '../hooks/useDashboardSSE';
+import { useProjects, useAnomalies, useCircuitBreakers } from '../hooks/queries';
 
 export const DashboardContext = createContext(null);
 
@@ -8,7 +9,6 @@ const REFRESH_COOLDOWN = 5000;
 
 export function DashboardProvider({ children }) {
   const [projectId, setProjectId] = useState(() => parseInt(localStorage.getItem('testmo_projectId')) || 1);
-  const [projects, setProjects] = useState([]);
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,8 +32,13 @@ export function DashboardProvider({ children }) {
     const saved = localStorage.getItem('testmo_autoRefresh');
     return saved !== null ? saved === 'true' : true;
   });
-  const [anomalies, setAnomalies] = useState([]);
-  const [circuitBreakers, setCircuitBreakers] = useState([]);
+
+  // ─── React Query hooks (remplacent useState + useEffect manuels) ───────────
+  const { data: projects = [], refetch: refetchProjects } = useProjects();
+
+  const { data: anomalies = [], refetch: refetchAnomalies } = useAnomalies(projectId);
+
+  const { data: circuitBreakers = [], refetch: refetchCircuitBreakers } = useCircuitBreakers({ autoRefresh });
 
   const sse = useDashboardSSE({
     projectId,
@@ -58,21 +63,6 @@ export function DashboardProvider({ children }) {
     }
   }, [sse.data]);
 
-  // Charger les anomalies et circuit breakers
-  useEffect(() => {
-    loadAnomalies();
-    loadCircuitBreakers();
-  }, [loadAnomalies, loadCircuitBreakers]);
-
-  // Polling circuit breakers toutes les 30s
-  useEffect(() => {
-    if (!autoRefresh) return;
-    const interval = setInterval(() => {
-      loadCircuitBreakers();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [autoRefresh, loadCircuitBreakers]);
-
   const checkBackendHealth = useCallback(async () => {
     try {
       await apiService.healthCheck();
@@ -83,16 +73,10 @@ export function DashboardProvider({ children }) {
     }
   }, []);
 
+  // Wrappers rétrocompatibles pour les consumers (useAutoRefresh, App.jsx, etc.)
   const loadProjects = useCallback(async () => {
-    try {
-      const response = await apiService.getProjects();
-      if (response.success && response.data.result) {
-        setProjects(response.data.result);
-      }
-    } catch (err) {
-      setError(err.message || 'Erreur chargement projets');
-    }
-  }, []);
+    await refetchProjects();
+  }, [refetchProjects]);
 
   const handleClearCache = useCallback(async () => {
     try {
@@ -103,26 +87,12 @@ export function DashboardProvider({ children }) {
   }, []);
 
   const loadAnomalies = useCallback(async () => {
-    try {
-      const response = await apiService.getAnomalies(projectId);
-      if (response.success) {
-        setAnomalies(response.data);
-      }
-    } catch (err) {
-      console.warn('Erreur chargement anomalies:', err.message);
-    }
-  }, [projectId]);
+    await refetchAnomalies();
+  }, [refetchAnomalies]);
 
   const loadCircuitBreakers = useCallback(async () => {
-    try {
-      const response = await apiService.getCircuitBreakers();
-      if (response.success) {
-        setCircuitBreakers(response.data);
-      }
-    } catch (err) {
-      console.warn('Erreur chargement circuit breakers:', err.message);
-    }
-  }, []);
+    await refetchCircuitBreakers();
+  }, [refetchCircuitBreakers]);
 
   const loadDashboardMetrics = useCallback(
     async (force = false) => {
