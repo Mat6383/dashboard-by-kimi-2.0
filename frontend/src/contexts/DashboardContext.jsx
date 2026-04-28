@@ -33,6 +33,7 @@ export function DashboardProvider({ children }) {
     return saved !== null ? saved === 'true' : true;
   });
   const [anomalies, setAnomalies] = useState([]);
+  const [circuitBreakers, setCircuitBreakers] = useState([]);
 
   const sse = useDashboardSSE({
     projectId,
@@ -57,10 +58,20 @@ export function DashboardProvider({ children }) {
     }
   }, [sse.data]);
 
-  // Charger les anomalies quand le projet change
+  // Charger les anomalies et circuit breakers
   useEffect(() => {
     loadAnomalies();
-  }, [loadAnomalies]);
+    loadCircuitBreakers();
+  }, [loadAnomalies, loadCircuitBreakers]);
+
+  // Polling circuit breakers toutes les 30s
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const interval = setInterval(() => {
+      loadCircuitBreakers();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [autoRefresh, loadCircuitBreakers]);
 
   const checkBackendHealth = useCallback(async () => {
     try {
@@ -101,6 +112,17 @@ export function DashboardProvider({ children }) {
       console.warn('Erreur chargement anomalies:', err.message);
     }
   }, [projectId]);
+
+  const loadCircuitBreakers = useCallback(async () => {
+    try {
+      const response = await apiService.getCircuitBreakers();
+      if (response.success) {
+        setCircuitBreakers(response.data);
+      }
+    } catch (err) {
+      console.warn('Erreur chargement circuit breakers:', err.message);
+    }
+  }, []);
 
   const loadDashboardMetrics = useCallback(
     async (force = false) => {
@@ -212,6 +234,8 @@ export function DashboardProvider({ children }) {
       liveError: sse.error,
       anomalies,
       loadAnomalies,
+      circuitBreakers,
+      loadCircuitBreakers,
       checkBackendHealth,
       loadProjects,
       loadDashboardMetrics,
@@ -237,6 +261,8 @@ export function DashboardProvider({ children }) {
       sse.error,
       anomalies,
       loadAnomalies,
+      circuitBreakers,
+      loadCircuitBreakers,
       checkBackendHealth,
       loadProjects,
       loadDashboardMetrics,

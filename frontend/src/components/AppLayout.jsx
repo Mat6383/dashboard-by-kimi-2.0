@@ -91,10 +91,35 @@ export default function AppLayout({
   // Live
   liveConnected,
   liveError,
+  // Resilience
+  circuitBreakers,
 }) {
   const dashboardRoutes = getDashboardRoutes(isAdmin);
   return (
     <div className={`app ${tvMode ? 'tv-mode' : ''} ${darkMode ? 'dark-theme' : ''}`}>
+      {/* Banner mode dégradé */}
+      {circuitBreakers?.some((b) => b.state === 'OPEN') && (
+        <div
+          style={{
+            backgroundColor: '#FEF3C7',
+            color: '#92400E',
+            padding: '8px 16px',
+            textAlign: 'center',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            borderBottom: '1px solid #FCD34D',
+          }}
+          role="alert"
+        >
+          ⚠️ Mode dégradé — certains services externes sont temporairement indisponibles (
+          {circuitBreakers
+            .filter((b) => b.state === 'OPEN')
+            .map((b) => b.name)
+            .join(', ')}
+          )
+        </div>
+      )}
+
       {/* Header */}
       <header className="app-header" role="banner">
         <div className="header-left">

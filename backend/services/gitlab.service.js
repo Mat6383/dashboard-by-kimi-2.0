@@ -657,5 +657,40 @@ class GitLabService {
 }
 
 const instance = new GitLabService();
+
+// ─── Circuit Breaker + Resilience ────────────────────────────────────────────
+const { CircuitBreaker } = require('../utils/circuitBreaker');
+const { withResilience } = require('../utils/withResilience');
+
+const gitlabBreaker = new CircuitBreaker({ name: 'gitlab', failureThreshold: 5, resetTimeoutMs: 30000 });
+
+function wrapMethod(service, methodName, breaker, options) {
+  const original = service[methodName].bind(service);
+  service[methodName] = (...args) => withResilience(() => original(...args), breaker, options);
+}
+
+wrapMethod(instance, '_getPaginated', gitlabBreaker, {
+  label: 'gitlab._getPaginated',
+  maxRetries: 3,
+  baseDelayMs: 600,
+});
+wrapMethod(instance, 'findIteration', gitlabBreaker, {
+  label: 'gitlab.findIteration',
+  maxRetries: 2,
+  baseDelayMs: 600,
+});
+wrapMethod(instance, 'getIssuesByLabelAndIteration', gitlabBreaker, {
+  label: 'gitlab.getIssuesByLabelAndIteration',
+  maxRetries: 2,
+  baseDelayMs: 600,
+});
+wrapMethod(instance, 'executeGraphQL', gitlabBreaker, {
+  label: 'gitlab.executeGraphQL',
+  maxRetries: 2,
+  baseDelayMs: 800,
+});
+wrapMethod(instance, 'healthCheck', gitlabBreaker, { label: 'gitlab.healthCheck', maxRetries: 2, baseDelayMs: 500 });
+
 module.exports = instance;
 module.exports.GitLabService = GitLabService;
+module.exports.gitlabBreaker = gitlabBreaker;

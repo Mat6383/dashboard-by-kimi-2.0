@@ -47,6 +47,7 @@ function App() {
     setShowProductionSection,
     liveConnected,
     liveError,
+    circuitBreakers,
     checkBackendHealth,
     loadProjects,
     loadDashboardMetrics,
@@ -184,6 +185,7 @@ function App() {
       lastUpdate={lastUpdate}
       liveConnected={liveConnected}
       liveError={liveError}
+      circuitBreakers={circuitBreakers}
       currentPath={location.pathname}
       exportHandler={exportHandler}
       user={user}

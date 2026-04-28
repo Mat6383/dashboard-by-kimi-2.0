@@ -26,10 +26,10 @@ const gitlabService = require('./gitlab.service');
 // Mapping empiriquement vérifié sur cette instance Testmo (≠ IDs standards)
 // Confirmé en croisant l'UI Testmo et les données /runs/{id}/results
 const STATUS_TO_LABEL = {
-  2: 'Test::OK',               // Passed  (vert)
-  3: 'Test::KO',               // Failed  (rouge)
-  4: 'DoubleTestNécessaire',   // Retest  (orange)
-  8: 'Test::WIP'               // WIP     (violet)
+  2: 'Test::OK', // Passed  (vert)
+  3: 'Test::KO', // Failed  (rouge)
+  4: 'DoubleTestNécessaire', // Retest  (orange)
+  8: 'Test::WIP', // WIP     (violet)
   // 1 = Untested initial (aucun result créé)
   // 5, 6, 7 = statuts non observés → ignorés pour l'instant
 };
@@ -39,7 +39,7 @@ const STATUS_ID_TO_NAME = {
   2: 'Passed',
   3: 'Failed',
   4: 'Retest',
-  8: 'WIP'
+  8: 'WIP',
 };
 
 // Tous les labels Test:: gérés par cette sync (pour les retirer avant d'en ajouter un nouveau)
@@ -50,15 +50,15 @@ const ALL_TEST_LABELS = [
   'Test::SKIPPED',
   'Test::BLOCKED',
   'DoubleTestNécessaire',
-  'Test::TODO'
+  'Test::TODO',
 ];
 
 // ─── Status natif GitLab Work Items (GIDs confirmés Phase 0) ─────────────────
 // Projet neo-logix/legacy/neo-fugu-pilot — allowedStatuses sur type Issue
-const GITLAB_STATUS_TODO   = process.env.GITLAB_STATUS_TODO   || 'gid://gitlab/WorkItems::Statuses::Custom::Status/15';
-const GITLAB_STATUS_OK     = process.env.GITLAB_STATUS_OK     || 'gid://gitlab/WorkItems::Statuses::Custom::Status/18';
-const GITLAB_STATUS_KO     = process.env.GITLAB_STATUS_KO     || 'gid://gitlab/WorkItems::Statuses::Custom::Status/17';
-const GITLAB_STATUS_WIP    = process.env.GITLAB_STATUS_WIP    || 'gid://gitlab/WorkItems::Statuses::Custom::Status/21';
+const GITLAB_STATUS_TODO = process.env.GITLAB_STATUS_TODO || 'gid://gitlab/WorkItems::Statuses::Custom::Status/15';
+const GITLAB_STATUS_OK = process.env.GITLAB_STATUS_OK || 'gid://gitlab/WorkItems::Statuses::Custom::Status/18';
+const GITLAB_STATUS_KO = process.env.GITLAB_STATUS_KO || 'gid://gitlab/WorkItems::Statuses::Custom::Status/17';
+const GITLAB_STATUS_WIP = process.env.GITLAB_STATUS_WIP || 'gid://gitlab/WorkItems::Statuses::Custom::Status/21';
 const GITLAB_STATUS_RETEST = process.env.GITLAB_STATUS_RETEST || 'gid://gitlab/WorkItems::Statuses::Custom::Status/19';
 
 // GID du champ custom "Version Prod" (CustomField/1) — confirmé Phase 0
@@ -66,10 +66,10 @@ const VERSION_FIELD_KEY = process.env.GITLAB_VERSION_FIELD_ID || 'gid://gitlab/I
 
 // Mapping Testmo status_id → GitLab status natif
 const STATUS_TO_GITLAB_STATUS = {
-  2: GITLAB_STATUS_OK,      // Passed  (vert)
-  3: GITLAB_STATUS_KO,      // Failed  (rouge)
-  4: GITLAB_STATUS_RETEST,  // Retest  (orange)
-  8: GITLAB_STATUS_WIP      // WIP     (violet)
+  2: GITLAB_STATUS_OK, // Passed  (vert)
+  3: GITLAB_STATUS_KO, // Failed  (rouge)
+  4: GITLAB_STATUS_RETEST, // Retest  (orange)
+  8: GITLAB_STATUS_WIP, // WIP     (violet)
 };
 
 // ─── Standalone helpers (exportés pour tests) ────────────────────────────────
@@ -80,12 +80,12 @@ function buildCommentText(runName, statusId) {
 }
 
 function isCommentDuplicate(existingNotes, commentText) {
-  return existingNotes.some(n => n.body === commentText);
+  return existingNotes.some((n) => n.body === commentText);
 }
 
 function computeLabelChanges(currentLabels, newLabel) {
   if (!newLabel) return { addLabel: null, removeLabels: [], action: 'skip' };
-  const labelsToRemove = currentLabels.filter(l => ALL_TEST_LABELS.includes(l) && l !== newLabel);
+  const labelsToRemove = currentLabels.filter((l) => ALL_TEST_LABELS.includes(l) && l !== newLabel);
   const alreadyHasLabel = currentLabels.includes(newLabel);
   if (alreadyHasLabel && labelsToRemove.length === 0) {
     return { addLabel: newLabel, removeLabels: [], action: 'noop' };
@@ -105,16 +105,16 @@ function computeStatusChange(currentStatus, newStatus) {
 class StatusSyncService {
   constructor() {
     this.baseURL = process.env.TESTMO_URL;
-    this.token   = process.env.TESTMO_TOKEN;
+    this.token = process.env.TESTMO_TOKEN;
     this.timeout = parseInt(process.env.API_TIMEOUT) || 30000;
 
     this.client = axios.create({
       baseURL: `${this.baseURL}/api/v1`,
       timeout: this.timeout,
       headers: {
-        'Authorization': `Bearer ${this.token}`,
-        'Content-Type': 'application/json'
-      }
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json',
+      },
     });
 
     // Délai entre requêtes GitLab (rate-limit)
@@ -122,7 +122,7 @@ class StatusSyncService {
   }
 
   _delay() {
-    return new Promise(resolve => setTimeout(resolve, this.apiDelay));
+    return new Promise((resolve) => setTimeout(resolve, this.apiDelay));
   }
 
   // ─── Testmo API helpers ────────────────────────────────────────────────────
@@ -151,7 +151,7 @@ class StatusSyncService {
     // eslint-disable-next-line no-constant-condition
     while (true) {
       const resp = await this.client.get(`/runs/${runId}/results`, {
-        params: page > 1 ? { page } : {}
+        params: page > 1 ? { page } : {},
         // Note: per_page et is_latest en query param causent 422 → filtre mémoire + défaut API
       });
 
@@ -165,7 +165,7 @@ class StatusSyncService {
     }
 
     // Ne garder que le résultat le plus récent par case_id
-    return all.filter(r => r.is_latest === true);
+    return all.filter((r) => r.is_latest === true);
   }
 
   /**
@@ -183,11 +183,11 @@ class StatusSyncService {
 
     while (remaining.size > 0) {
       const resp = await this.client.get(`/projects/${projectId}/cases`, {
-        params: { page }
+        params: { page },
         // Note: per_page en query param cause 422 → on utilise le défaut (100)
       });
-      const data   = resp.data?.result || [];
-      const pages  = resp.data?.last_page || 1;
+      const data = resp.data?.result || [];
+      const pages = resp.data?.last_page || 1;
 
       for (const c of data) {
         if (remaining.has(c.id)) {
@@ -236,10 +236,12 @@ class StatusSyncService {
     try {
       // Récupère les commentaires existants pour vérifier l'idempotence
       const existingNotes = await gitlabService.getIssueNotes(projectId, issueIid);
-      const alreadyExists = existingNotes.some(n => n.body === commentText);
+      const alreadyExists = existingNotes.some((n) => n.body === commentText);
 
       if (alreadyExists) {
-        logger.info(`[StatusSync] Commentaire déjà présent sur #${issueIid} pour run="${runName}" status=${statusId} — ignoré`);
+        logger.info(
+          `[StatusSync] Commentaire déjà présent sur #${issueIid} pour run="${runName}" status=${statusId} — ignoré`
+        );
         return;
       }
 
@@ -272,10 +274,19 @@ class StatusSyncService {
    * @param {boolean}  dryRun        - Si true : calcule sans appeler GitLab
    * @returns {Object} { updated, skipped, errors, total }
    */
-  async syncRunStatusToGitLab(runId, iterationName, gitlabProjectId, onEvent = () => {}, dryRun = false, version = null) {
+  async syncRunStatusToGitLab(
+    runId,
+    iterationName,
+    gitlabProjectId,
+    onEvent = () => {},
+    dryRun = false,
+    version = null
+  ) {
     const stats = { updated: 0, skipped: 0, errors: 0, total: 0, dryRun };
 
-    onEvent('info', { message: `Démarrage sync Testmo run #${runId} → GitLab "${iterationName}"${dryRun ? ' [DRY-RUN — aucune modif GitLab]' : ''}` });
+    onEvent('info', {
+      message: `Démarrage sync Testmo run #${runId} → GitLab "${iterationName}"${dryRun ? ' [DRY-RUN — aucune modif GitLab]' : ''}`,
+    });
     logger.info(`[StatusSync] run=${runId}, iteration="${iterationName}", glProject=${gitlabProjectId}`);
 
     // 0. Nom du run Testmo (pour les commentaires GitLab)
@@ -300,7 +311,7 @@ class StatusSyncService {
 
     // Récupère les noms de cases (les résultats ne les contiennent pas)
     onEvent('info', { message: 'Résolution des noms de cases Testmo…' });
-    const neededIds = [...new Set(results.map(r => r.case_id).filter(Boolean))];
+    const neededIds = [...new Set(results.map((r) => r.case_id).filter(Boolean))];
     const caseNames = await this._getCaseNames(neededIds);
     onEvent('info', { message: `${caseNames.size}/${neededIds.length} noms de cases résolus.` });
 
@@ -312,12 +323,16 @@ class StatusSyncService {
       if (!iteration) {
         throw new Error(`Itération GitLab "${iterationName}" non trouvée dans le projet ${gitlabProjectId}`);
       }
-      onEvent('info', { message: `Récupération des issues GitLab pour l'itération ${iteration.id}${version ? ` (version=${version})` : ''}…` });
+      onEvent('info', {
+        message: `Récupération des issues GitLab pour l'itération ${iteration.id}${version ? ` (version=${version})` : ''}…`,
+      });
       issues = version
         ? await gitlabService.getIssuesByVersionAndIteration(gitlabProjectId, version, iteration.id)
         : await gitlabService.getIssuesForIteration(gitlabProjectId, iteration.id);
     } else if (version) {
-      onEvent('info', { message: `Mode version-seule : recherche des issues avec Version Prod="${version}" + status Test TODO…` });
+      onEvent('info', {
+        message: `Mode version-seule : recherche des issues avec Version Prod="${version}" + status Test TODO…`,
+      });
       issues = await gitlabService.getIssuesByVersionOnly(gitlabProjectId, version);
     } else {
       throw new Error('iterationName ou version requis');
@@ -329,7 +344,7 @@ class StatusSyncService {
     }
 
     // Index issues par titre (titre normalisé → issue)
-    const normalize = s => (s || '').toLowerCase().trim();
+    const normalize = (s) => (s || '').toLowerCase().trim();
     const issueByTitle = new Map();
     for (const issue of issues) {
       issueByTitle.set(normalize(issue.title), issue);
@@ -340,7 +355,7 @@ class StatusSyncService {
     stats.total = results.length;
 
     for (const result of results) {
-      const statusId  = result.status_id;
+      const statusId = result.status_id;
       const newStatus = STATUS_TO_GITLAB_STATUS[statusId]; // undefined si Untested
 
       const caseName = result.case_name || caseNames.get(result.case_id);
@@ -371,7 +386,7 @@ class StatusSyncService {
           caseName,
           issueIid: issue.iid,
           workItemGlobalId,
-          newStatus
+          newStatus,
         });
         continue;
       }
@@ -402,21 +417,39 @@ class StatusSyncService {
 
 const statusSyncService = new StatusSyncService();
 
+// ─── Circuit Breaker + Resilience ────────────────────────────────────────────
+const { CircuitBreaker } = require('../utils/circuitBreaker');
+const { withResilience } = require('../utils/withResilience');
+
+const statusSyncBreaker = new CircuitBreaker({ name: 'statusSync', failureThreshold: 3, resetTimeoutMs: 60000 });
+
+function wrapMethod(service, methodName, breaker, options) {
+  const original = service[methodName].bind(service);
+  service[methodName] = (...args) => withResilience(() => original(...args), breaker, options);
+}
+
+wrapMethod(statusSyncService, 'syncRunStatusToGitLab', statusSyncBreaker, {
+  label: 'statusSync.syncRunStatusToGitLab',
+  maxRetries: 2,
+  baseDelayMs: 1000,
+});
+
 module.exports = statusSyncService;
+module.exports.statusSyncBreaker = statusSyncBreaker;
 // Legacy (conservé pour rétrocompatibilité pendant transition)
-module.exports.STATUS_TO_LABEL    = STATUS_TO_LABEL;
-module.exports.ALL_TEST_LABELS    = ALL_TEST_LABELS;
+module.exports.STATUS_TO_LABEL = STATUS_TO_LABEL;
+module.exports.ALL_TEST_LABELS = ALL_TEST_LABELS;
 // Courant
-module.exports.STATUS_ID_TO_NAME     = STATUS_ID_TO_NAME;
+module.exports.STATUS_ID_TO_NAME = STATUS_ID_TO_NAME;
 module.exports.STATUS_TO_GITLAB_STATUS = STATUS_TO_GITLAB_STATUS;
-module.exports.GITLAB_STATUS_TODO    = GITLAB_STATUS_TODO;
-module.exports.GITLAB_STATUS_OK      = GITLAB_STATUS_OK;
-module.exports.GITLAB_STATUS_KO      = GITLAB_STATUS_KO;
-module.exports.GITLAB_STATUS_WIP     = GITLAB_STATUS_WIP;
-module.exports.GITLAB_STATUS_RETEST  = GITLAB_STATUS_RETEST;
-module.exports.VERSION_FIELD_KEY     = VERSION_FIELD_KEY;
-module.exports.StatusSyncService     = StatusSyncService;
-module.exports.buildCommentText      = buildCommentText;
-module.exports.isCommentDuplicate    = isCommentDuplicate;
-module.exports.computeLabelChanges   = computeLabelChanges;
-module.exports.computeStatusChange   = computeStatusChange;
+module.exports.GITLAB_STATUS_TODO = GITLAB_STATUS_TODO;
+module.exports.GITLAB_STATUS_OK = GITLAB_STATUS_OK;
+module.exports.GITLAB_STATUS_KO = GITLAB_STATUS_KO;
+module.exports.GITLAB_STATUS_WIP = GITLAB_STATUS_WIP;
+module.exports.GITLAB_STATUS_RETEST = GITLAB_STATUS_RETEST;
+module.exports.VERSION_FIELD_KEY = VERSION_FIELD_KEY;
+module.exports.StatusSyncService = StatusSyncService;
+module.exports.buildCommentText = buildCommentText;
+module.exports.isCommentDuplicate = isCommentDuplicate;
+module.exports.computeLabelChanges = computeLabelChanges;
+module.exports.computeStatusChange = computeStatusChange;

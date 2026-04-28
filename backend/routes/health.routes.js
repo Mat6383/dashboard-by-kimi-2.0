@@ -164,4 +164,20 @@ router.get('/detailed', async (_req, res) => {
   });
 });
 
+/**
+ * GET /api/health/circuit-breakers
+ * État des circuit breakers externes
+ */
+router.get('/circuit-breakers', (_req, res) => {
+  const { testmoBreaker } = require('../services/testmo.service');
+  const { gitlabBreaker } = require('../services/gitlab.service');
+  const { statusSyncBreaker } = require('../services/status-sync.service');
+
+  res.json({
+    success: true,
+    data: [testmoBreaker.getStatus(), gitlabBreaker.getStatus(), statusSyncBreaker.getStatus()],
+    timestamp: new Date().toISOString(),
+  });
+});
+
 module.exports = router;

@@ -1500,8 +1500,46 @@ class TestmoService {
 
 const testmoService = new TestmoService();
 
+// ─── Circuit Breaker + Resilience ────────────────────────────────────────────
+const { CircuitBreaker } = require('../utils/circuitBreaker');
+const { withResilience } = require('../utils/withResilience');
+
+const testmoBreaker = new CircuitBreaker({ name: 'testmo', failureThreshold: 5, resetTimeoutMs: 30000 });
+
+function wrapMethod(service, methodName, breaker, options) {
+  const original = service[methodName].bind(service);
+  service[methodName] = (...args) => withResilience(() => original(...args), breaker, options);
+}
+
+wrapMethod(testmoService, 'getProjects', testmoBreaker, {
+  label: 'testmo.getProjects',
+  maxRetries: 3,
+  baseDelayMs: 500,
+});
+wrapMethod(testmoService, 'getProjectRuns', testmoBreaker, {
+  label: 'testmo.getProjectRuns',
+  maxRetries: 3,
+  baseDelayMs: 500,
+});
+wrapMethod(testmoService, 'getProjectMetrics', testmoBreaker, {
+  label: 'testmo.getProjectMetrics',
+  maxRetries: 2,
+  baseDelayMs: 800,
+});
+wrapMethod(testmoService, 'getEscapeAndDetectionRates', testmoBreaker, {
+  label: 'testmo.getEscapeAndDetectionRates',
+  maxRetries: 2,
+  baseDelayMs: 800,
+});
+wrapMethod(testmoService, 'healthCheck', testmoBreaker, {
+  label: 'testmo.healthCheck',
+  maxRetries: 2,
+  baseDelayMs: 500,
+});
+
 module.exports = testmoService;
 module.exports._calculatePercentage = _calculatePercentage;
 module.exports.aggregateSessions = aggregateSessions;
 module.exports.globalMetrics = globalMetrics;
+module.exports.testmoBreaker = testmoBreaker;
 // isCaseEnriched est déjà accessible via TestmoService.prototype sur l'instance exportée

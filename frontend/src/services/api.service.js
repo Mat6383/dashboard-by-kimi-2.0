@@ -522,6 +522,15 @@ const apiService = {
     }
   },
 
+  async getCircuitBreakers() {
+    try {
+      const response = await apiClient.get('/health/circuit-breakers');
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Get Circuit Breakers', error);
+    }
+  },
+
   // ---- Audit Logs --------------------------------------------------------
 
   async getAuditLogs(filters = {}) {
