@@ -3,7 +3,8 @@ import Database from 'better-sqlite3';
 import logger, { redactSensitive } from './logger.service';
 import { run } from '../db/migrate';
 
-const DB_PATH = path.join(__dirname, '..', 'db', 'sync-history.db');
+const DB_DIR = process.env.DB_DATA_DIR || path.join(__dirname, '..', 'db');
+const DB_PATH = path.join(DB_DIR, 'sync-history.db');
 
 class AuditService {
   db: any;

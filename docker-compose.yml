@@ -3,8 +3,6 @@
 # Backend (Node + Chromium + SQLite) + Frontend (Nginx statique)
 # ───────────────────────────────────────────────────────────────────────────────
 
-version: "3.8"
-
 services:
   # ═════════════════════════════════════════════════════════════════════════════
   # Backend API
@@ -22,20 +20,15 @@ services:
       # Le frontend est servi par Nginx sur le même domaine en production
       - FRONTEND_URL=http://localhost:8080
     volumes:
-      # Persistance SQLite (bases + migrations appliquées)
-      - sqlite-data:/app/db
+      # Persistance SQLite (bases *.db dans /app/db-data)
+      - sqlite-data:/app/db-data
       # Logs host-accessibles
       - ./backend/logs:/app/logs
     ports:
       - "3001:3001"
     networks:
       - dashboard-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
+    # Healthcheck géré par le Dockerfile (évite conflit compose vs Dockerfile)
 
   # ═════════════════════════════════════════════════════════════════════════════
   # Frontend — Nginx statique + reverse-proxy /api
@@ -51,8 +44,7 @@ services:
     networks:
       - dashboard-net
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Volumes persistants

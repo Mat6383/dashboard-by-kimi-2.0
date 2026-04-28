@@ -5,7 +5,8 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { run as runMigrations } from '../db/migrate';
 
-const DB_PATH = path.join(__dirname, '../db/sync-history.db');
+const DB_DIR = process.env.DB_DATA_DIR || path.join(__dirname, '../db');
+const DB_PATH = path.join(DB_DIR, 'sync-history.db');
 const RATE_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
 
 class NotificationService {

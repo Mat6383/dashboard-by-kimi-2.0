@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install --package-lock=false
 
 COPY . .
 RUN npm run build
@@ -32,6 +32,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+ENV DB_DATA_DIR=/app/db-data
 
 # Dépendances système de Chromium (Puppeteer) + SQLite runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -51,8 +52,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
-# Volume pour persistance SQLite + logs
-VOLUME ["/app/db", "/app/logs"]
+# Volume pour persistance SQLite (données .db) + logs
+# Les services écrivent les bases SQLite dans DB_DATA_DIR (/app/db-data)
+# tandis que le code (migrate.js + migrations/) reste dans l'image.
+VOLUME ["/app/db-data", "/app/logs"]
 
 EXPOSE 3001
 

@@ -17,7 +17,7 @@ class CommentsService {
    */
   init() {
     try {
-      const dbPath = path.join(__dirname, '../db/crosstest-comments.db');
+      const dbPath = path.join(process.env.DB_DATA_DIR || path.join(__dirname, '../db'), 'crosstest-comments.db');
       this.db = new Database(dbPath);
 
       run(this.db, 'comments');

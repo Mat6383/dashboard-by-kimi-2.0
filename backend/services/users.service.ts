@@ -3,7 +3,8 @@ import path from 'path';
 import logger from './logger.service';
 import { run as runMigrations } from '../db/migrate';
 
-const DB_PATH = path.join(__dirname, '../db/sync-history.db');
+const DB_DIR = process.env.DB_DATA_DIR || path.join(__dirname, '../db');
+const DB_PATH = path.join(DB_DIR, 'sync-history.db');
 
 class UsersService {
   db: any;
