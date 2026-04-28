@@ -124,6 +124,23 @@ const featureFlagUpdateBody = z.object({
   rolloutPercentage: z.number().int().min(0).max(100).optional(),
 });
 
+const webhookIdParam = z.object({
+  id: z.coerce.number().int().positive('ID webhook invalide'),
+});
+
+const webhookCreateBody = z.object({
+  url: z.string().url('URL invalide'),
+  events: z.array(z.string().min(1)).min(1, 'Au moins un event requis'),
+  secret: z.string().min(1, 'Secret requis'),
+});
+
+const webhookUpdateBody = z.object({
+  url: z.string().url('URL invalide').optional(),
+  events: z.array(z.string().min(1)).min(1, 'Au moins un event requis').optional(),
+  secret: z.string().min(1, 'Secret requis').optional(),
+  enabled: z.boolean().optional(),
+});
+
 // ─── Middleware ────────────────────────────────────────────────────────────
 function validate(schema) {
   return (req, res, next) => {
@@ -213,4 +230,7 @@ module.exports = {
   autoConfigBody,
   milestonesQuery,
   runResultsQuery,
+  webhookIdParam,
+  webhookCreateBody,
+  webhookUpdateBody,
 };

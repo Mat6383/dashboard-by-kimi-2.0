@@ -186,7 +186,14 @@
 - [x] **P9#1 Temps réel SSE dashboard** — Endpoint `GET /api/dashboard/:projectId/stream` (SSE), hook `useDashboardSSE`, indicateur "Live" UI, fallback polling, auto-reconnect ✅ _poussé_
 - [x] **P9#2 Détection d'anomalies** — Algo z-score sur tendances historiques, endpoint `/api/anomalies`, badges "trending" sur KPIs ✅ _poussé_
 - [x] **P9#3 Circuit breaker & resilience** — `CircuitBreaker` class sur appels Testmo/GitLab, retry exponentiel jobs sync, mode dégradé avec banner ✅ _poussé_
-- [ ] **P9#4 Feature Flags UI admin** — CRUD `/admin/features`, rollout progressif, audit intégré 🚧 _prochaine session_
+- [x] **P9#4 Feature Flags UI admin** — CRUD `/admin/features`, rollout progressif UI, audit intégré ✅ _poussé_
+
+## 🚀 P10 — Rollout progressif & Webhooks (Session actuelle)
+
+- [x] **P10#1 Rollout progressif sticky par utilisateur** — `isEnabled(key, userId)` avec hash SHA256 déterministe, `getAll(userId)` applique le %, route publique `?userId=xxx` ✅
+- [x] **P10#2 Webhooks sortants configurables** — Table `webhook_subscriptions`, CRUD admin `/api/webhooks`, émission HMAC-SHA256 (`X-Webhook-Signature`), events `feature-flag.changed` ✅
+- [x] **P10#3 Tests E2E Playwright** — Parcours CRUD admin + test rollout sticky déterministe côté API ✅
+- [x] **P10#4 Consumer hook enrichi** — `useFeatureFlags(key, userId)` avec `rolloutPercentage`, helper `isBetaRollout()`, badge "Bêta / X%" dans l'admin ✅
 
 ## 📝 Notes
 

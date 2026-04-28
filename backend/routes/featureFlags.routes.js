@@ -16,9 +16,11 @@ const {
  * GET /api/feature-flags
  * Retourne tous les flags sous forme d'objet { [key]: boolean }.
  * Lecture publique — rétrocompatibilité consumer.
+ * @query {string} [userId] - ID utilisateur pour rollout progressif sticky.
  */
 router.get('/', (req, res) => {
-  const flags = featureFlagsService.getAll();
+  const { userId } = req.query;
+  const flags = featureFlagsService.getAll(userId || null);
   res.json({ success: true, data: flags, timestamp: new Date().toISOString() });
 });
 
@@ -157,13 +159,17 @@ router.delete(
 
 /**
  * GET /api/feature-flags/:key
- * Retourne l'état d'un flag spécifique.
+ * Retourne l'état d'un flag spécifique + métadonnées publiques (rollout).
  * Lecture publique — rétrocompatibilité consumer.
+ * @query {string} [userId] - ID utilisateur pour rollout progressif sticky.
  */
 router.get('/:key', (req, res) => {
   const { key } = req.params;
-  const enabled = featureFlagsService.isEnabled(key);
-  res.json({ success: true, data: { key, enabled }, timestamp: new Date().toISOString() });
+  const { userId } = req.query;
+  const enabled = featureFlagsService.isEnabled(key, false, userId || null);
+  const details = featureFlagsService.getByKey(key);
+  const rolloutPercentage = details ? details.rolloutPercentage : 100;
+  res.json({ success: true, data: { key, enabled, rolloutPercentage }, timestamp: new Date().toISOString() });
 });
 
 module.exports = router;
