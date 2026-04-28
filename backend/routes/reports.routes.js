@@ -5,6 +5,8 @@ const ReportService = require('../services/report.service');
 const logger = require('../services/logger.service');
 const { safeErrorResponse } = require('../utils/errorResponse');
 const { validateBody, reportsGenerateBody } = require('../validators');
+const { auditAction } = require('../middleware/audit.middleware');
+const { exportRunsTotal } = require('../middleware/metrics');
 
 const reportService = new ReportService(testmoService);
 
@@ -14,7 +16,7 @@ const reportService = new ReportService(testmoService);
  *
  * Accepte runIds[] (nouveau format) OU milestoneId (ancien format).
  */
-router.post('/generate', validateBody(reportsGenerateBody), async (req, res) => {
+router.post('/generate', validateBody(reportsGenerateBody), auditAction('report.generate'), async (req, res) => {
   try {
     const { projectId, runIds, milestoneId, formats, recommendations, complement } = req.body;
 
@@ -65,6 +67,7 @@ router.post('/generate', validateBody(reportsGenerateBody), async (req, res) => 
       failedTests: data.failedTests.length,
     };
 
+    exportRunsTotal.inc({ format: 'pptx' });
     logger.info(`Rapport généré: ${data.milestoneName} — ${data.verdict}`);
     res.json(result);
   } catch (error) {

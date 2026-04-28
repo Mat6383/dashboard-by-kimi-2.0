@@ -10,8 +10,10 @@ const pdfService = require('../services/pdf.service');
 const testmoService = require('../services/testmo.service');
 const { requireAuth } = require('../middleware/auth.middleware');
 const { safeErrorResponse } = require('../utils/errorResponse');
+const { auditAction } = require('../middleware/audit.middleware');
+const { exportRunsTotal } = require('../middleware/metrics');
 
-router.post('/generate', requireAuth, async (req, res) => {
+router.post('/generate', requireAuth, auditAction('export.pdf'), async (req, res) => {
   try {
     const { projectId, milestones, format = 'A4', darkMode = false } = req.body;
     if (!projectId) {
@@ -28,6 +30,7 @@ router.post('/generate', requireAuth, async (req, res) => {
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="qa-dashboard-${projectId}-${Date.now()}.pdf"`);
+    exportRunsTotal.inc({ format: 'pdf' });
     res.send(pdfBuffer);
   } catch (error) {
     res.status(500).json(safeErrorResponse(error, 'POST /api/pdf/generate'));

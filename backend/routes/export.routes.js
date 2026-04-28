@@ -10,6 +10,8 @@ const exportService = require('../services/export.service');
 const testmoService = require('../services/testmo.service');
 const { requireAuth } = require('../middleware/auth.middleware');
 const { safeErrorResponse } = require('../utils/errorResponse');
+const { auditAction } = require('../middleware/audit.middleware');
+const { exportRunsTotal } = require('../middleware/metrics');
 
 async function _getMetricsAndName(projectId, milestones) {
   const metrics = await testmoService.getProjectMetrics(
@@ -32,7 +34,7 @@ async function _getMetricsAndName(projectId, milestones) {
   return { metrics, projectName };
 }
 
-router.post('/csv', requireAuth, async (req, res) => {
+router.post('/csv', requireAuth, auditAction('export.csv'), async (req, res) => {
   try {
     const { projectId, milestones } = req.body;
     if (!projectId) {
@@ -44,13 +46,14 @@ router.post('/csv', requireAuth, async (req, res) => {
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="qa-dashboard-${projectId}-${Date.now()}.csv"`);
+    exportRunsTotal.inc({ format: 'csv' });
     res.send(csvBuffer);
   } catch (error) {
     res.status(500).json(safeErrorResponse(error, 'POST /api/export/csv'));
   }
 });
 
-router.post('/excel', requireAuth, async (req, res) => {
+router.post('/excel', requireAuth, auditAction('export.excel'), async (req, res) => {
   try {
     const { projectId, milestones } = req.body;
     if (!projectId) {
@@ -62,6 +65,7 @@ router.post('/excel', requireAuth, async (req, res) => {
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="qa-dashboard-${projectId}-${Date.now()}.xlsx"`);
+    exportRunsTotal.inc({ format: 'excel' });
     res.send(xlsxBuffer);
   } catch (error) {
     res.status(500).json(safeErrorResponse(error, 'POST /api/export/excel'));

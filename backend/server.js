@@ -23,6 +23,7 @@ const { setupSecurity } = require('./middleware/security');
 const { metricsMiddleware } = require('./middleware/metrics');
 const requestLogger = require('./middleware/requestLogger');
 const autoSyncJob = require('./jobs/autoSyncJob');
+const auditPruneJob = require('./jobs/auditPruneJob');
 const gracefulShutdown = require('./bootstrap/gracefulShutdown');
 
 const app = express();
@@ -49,6 +50,7 @@ require('./services/syncHistory.service').initDb();
 require('./services/comments.service').init();
 require('./services/metricSnapshots.service').init();
 require('./services/users.service').init();
+require('./services/audit.service').init();
 
 // ─── Passport & Cookies ─────────────────────────────────────────────────────
 app.use(cookieParser());
@@ -68,6 +70,7 @@ app.use('/api/pdf', require('./routes/pdf.routes'));
 app.use('/api/export', require('./routes/export.routes'));
 app.use('/api/cache', requireAdminAuth, require('./routes/cache.routes'));
 app.use('/api/feature-flags', requireAdminAuth, require('./routes/featureFlags.routes'));
+app.use('/api/audit', require('./routes/audit.routes'));
 app.use('/api/docs', require('./routes/docs.routes'));
 app.use('/metrics', require('./routes/metrics.routes'));
 
@@ -103,6 +106,7 @@ app.use((err, req, res, _next) => {
 if (process.env.NODE_ENV !== 'test') {
   autoSyncJob.start();
   require('./jobs/metricsSnapshotJob').start();
+  auditPruneJob.start();
 
   const server = app.listen(PORT, (error) => {
     if (error) {

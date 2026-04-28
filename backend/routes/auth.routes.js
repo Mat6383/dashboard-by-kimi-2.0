@@ -9,6 +9,7 @@ const router = express.Router();
 const passport = require('passport');
 const jwtService = require('../services/auth/jwt.service');
 const { requireAuth } = require('../middleware/auth.middleware');
+const { activeUsersGauge } = require('../middleware/metrics');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
@@ -76,6 +77,9 @@ router.get(
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 j
     });
 
+    // Increment active users metric
+    activeUsersGauge.inc();
+
     // Redirect vers le frontend avec un token temporaire dans l'URL hash
     // (le frontend le consomme, le stocke en mémoire, puis efface l'URL)
     res.redirect(`${FRONTEND_URL}/auth/callback?token=${encodeURIComponent(accessToken)}`);
@@ -111,7 +115,8 @@ router.post('/refresh', (req, res) => {
   res.json({ success: true, accessToken: newAccess });
 });
 
-router.post('/logout', (_req, res) => {
+router.post('/logout', (req, res) => {
+  activeUsersGauge.dec();
   res.clearCookie('access_token', { path: '/' });
   res.clearCookie('refresh_token', { path: '/' });
   res.json({ success: true, message: 'Déconnexion réussie' });

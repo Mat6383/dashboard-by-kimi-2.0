@@ -563,13 +563,25 @@ paths:
         200:
           description: OK
 
+  /health/ready:
+    get:
+      tags: [Monitoring]
+      summary: Readiness probe (DB + APIs externes)
+      responses:
+        200:
+          description: Service prêt
+        503:
+          description: Service dégradé
+
   /health/detailed:
     get:
       tags: [Monitoring]
-      summary: Healthcheck détaillé (DB, APIs externes)
+      summary: Healthcheck détaillé (DB, APIs externes, disque, mémoire)
       responses:
         200:
-          description: État des dépendances
+          description: État complet des dépendances
+        503:
+          description: Service dégradé
 
   /metrics:
     get:
@@ -577,7 +589,46 @@ paths:
       summary: Métriques Prometheus
       responses:
         200:
-          description: Métriques au format Prometheus
+          description: Métriques au format Prometheus (text/plain)
+
+  /audit:
+    get:
+      tags: [Admin]
+      summary: Journal d'audit (admin uniquement)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: action
+          in: query
+          schema: { type: string }
+          description: Filtrer par action
+        - name: actorId
+          in: query
+          schema: { type: integer }
+          description: Filtrer par ID utilisateur
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+          description: Date de début (YYYY-MM-DD)
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+          description: Date de fin (YYYY-MM-DD)
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+          description: Nombre d'entrées par page
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+          description: Offset de pagination
+      responses:
+        200:
+          description: Liste paginée des entrées d'audit
+        401:
+          description: Non authentifié
+        403:
+          description: Accès interdit (admin requis)
 
 components:
   securitySchemes:

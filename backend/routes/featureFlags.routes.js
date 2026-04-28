@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const featureFlagsService = require('../services/featureFlags.service');
 const { safeErrorResponse } = require('../utils/errorResponse');
+const { auditAction } = require('../middleware/audit.middleware');
 
 /**
  * GET /api/feature-flags
@@ -26,7 +27,7 @@ router.get('/:key', (req, res) => {
  * PUT /api/feature-flags/:key
  * Body: { enabled: boolean }
  */
-router.put('/:key', (req, res) => {
+router.put('/:key', auditAction('feature-flag.update', { captureParams: true }), (req, res) => {
   const { key } = req.params;
   const { enabled } = req.body;
   if (typeof enabled !== 'boolean') {

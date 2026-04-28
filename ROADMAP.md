@@ -126,8 +126,8 @@
 
 | Métrique            | Actuel       | Cible |
 | ------------------- | ------------ | ----- |
-| Tests backend       | 416 / 416 ✅ | 450+  |
-| Tests frontend      | 131 / 131 ✅ | 150+  |
+| Tests backend       | 444 / 444 ✅ | 450+  |
+| Tests frontend      | 137 / 137 ✅ | 150+  |
 | Couverture backend  | 80 % ✅      | 70 %  |
 | Couverture frontend | 87 % ✅      | 50 %  |
 | Vulnérabilités npm  | 0 ✅         | 0     |
@@ -174,6 +174,12 @@
 - [x] **P7#1 Audit sécurité complète** — Headers hardening (COOP, CORP, Referrer-Policy, HSTS), remplacement `xlsx` → `exceljs`, masquage secrets logger, cookies JWT `sameSite=strict` + `path=/`
 - [x] **P7#2 Documentation API OpenAPI/Swagger** — Spec OpenAPI 3.0 + `swagger-ui-express` sur `/api/docs`
 - [x] **P7#3 Monitoring avancé Prometheus** — `prom-client` + middleware métriques HTTP + endpoint `/metrics`
+
+## 🚀 P8 — Observabilité & Ops (Session en cours)
+
+- [x] **P8#1 Audit logging traçabilité** — Table `audit_log` + service + middleware + UI admin `/admin/audit` avec filtres et pagination
+- [x] **P8#2 Health checks améliorés** — Liveness `/health`, readiness `/health/ready`, diagnostics `/health/detailed` (DB, APIs, disque, mémoire)
+- [x] **P8#3 Prometheus business metrics** — Gauges `active_users`, `db_size_bytes`, counters `sync_runs_total`, `export_runs_total`, seuils d'alerte
 
 ## 📝 Notes
 

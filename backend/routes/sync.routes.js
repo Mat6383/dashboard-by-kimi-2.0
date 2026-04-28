@@ -9,6 +9,8 @@ const PROJECTS = require('../config/projects.config');
 const gitlabServiceInstance = require('../services/gitlab.service');
 const requireAdminAuth = require('../middleware/adminAuth');
 const { safeErrorResponse } = require('../utils/errorResponse');
+const { auditAction } = require('../middleware/audit.middleware');
+const { syncRunsTotal } = require('../middleware/metrics');
 const {
   validateParams,
   validateBody,
@@ -117,7 +119,7 @@ router.post('/preview', validateBody(syncPreviewBody), async (req, res) => {
  * Body: { projectId, iterationName }
  * Exécute la synchronisation avec streaming SSE
  */
-router.post('/execute', validateBody(syncExecuteBody), async (req, res) => {
+router.post('/execute', validateBody(syncExecuteBody), auditAction('sync.execute'), async (req, res) => {
   const { projectId, iterationName } = req.body;
 
   const project = PROJECTS.find((p) => p.id === projectId);
@@ -158,6 +160,9 @@ router.post('/execute', validateBody(syncExecuteBody), async (req, res) => {
 
     // Enregistrer en historique
     syncHistoryService.addRun(project.label, iterationName, 'execute', stats);
+
+    // Prometheus metrics
+    syncRunsTotal.inc({ status: stats.error ? 'failure' : 'success' });
 
     // 'done' a déjà été émis par syncIteration, mais on s'assure
     if (!stats.error) {
@@ -290,7 +295,7 @@ router.get('/auto-config', (req, res) => {
  * Body (tous les champs sont optionnels) :
  *   { enabled, runId, iterationName, gitlabProjectId }
  */
-router.put('/auto-config', validateBody(autoConfigBody), (req, res) => {
+router.put('/auto-config', validateBody(autoConfigBody), auditAction('sync.config.update'), (req, res) => {
   try {
     const { enabled, runId, iterationName, gitlabProjectId } = req.body;
     const patch = {};

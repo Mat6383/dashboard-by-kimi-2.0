@@ -3,10 +3,13 @@
  * PROMETHEUS METRICS MIDDLEWARE
  * ================================================
  * Collecte les métriques HTTP (latence, compteur, erreurs)
- * pour monitoring avec Prometheus / Grafana.
+ * et métriques business pour monitoring avec Prometheus / Grafana.
  */
 
 const client = require('prom-client');
+const fs = require('fs');
+const path = require('path');
+const logger = require('../services/logger.service');
 
 // Collecte des métriques par défaut (mémoire, CPU, event loop...)
 client.collectDefaultMetrics({ prefix: 'qa_dashboard_' });
@@ -30,6 +33,60 @@ const httpErrorsTotal = new client.Counter({
   help: 'Nombre total de réponses HTTP en erreur (4xx/5xx)',
   labelNames: ['method', 'route', 'status_code'],
 });
+
+// Métriques business
+const activeUsersGauge = new client.Gauge({
+  name: 'qa_dashboard_active_users',
+  help: "Nombre d'utilisateurs actuellement connectés (JWT valide)",
+});
+
+const dbSizeGauge = new client.Gauge({
+  name: 'qa_dashboard_db_size_bytes',
+  help: 'Taille des fichiers SQLite en bytes',
+  labelNames: ['database'],
+});
+
+const syncRunsTotal = new client.Counter({
+  name: 'qa_dashboard_sync_runs_total',
+  help: 'Nombre total de synchronisations exécutées',
+  labelNames: ['status'],
+});
+
+const exportRunsTotal = new client.Counter({
+  name: 'qa_dashboard_export_runs_total',
+  help: "Nombre total d'exports générés",
+  labelNames: ['format'],
+});
+
+const alertThresholdGauge = new client.Gauge({
+  name: 'qa_dashboard_alert_threshold',
+  help: 'Seuils configurés pour les alertes',
+  labelNames: ['metric'],
+});
+
+// Initialiser les seuils d'alerte
+alertThresholdGauge.set({ metric: 'error_rate' }, parseFloat(process.env.ALERT_ERROR_RATE_THRESHOLD) || 5);
+alertThresholdGauge.set({ metric: 'memory' }, parseFloat(process.env.ALERT_MEMORY_THRESHOLD) || 80);
+alertThresholdGauge.set({ metric: 'disk' }, parseFloat(process.env.ALERT_DISK_THRESHOLD) || 85);
+
+/**
+ * Met à jour la taille des bases SQLite (appelable périodiquement ou au scrape).
+ */
+function updateDbSizeMetrics() {
+  try {
+    const dbDir = path.join(__dirname, '..', 'db');
+    const files = ['sync-history.db', 'crosstest-comments.db'];
+    for (const file of files) {
+      const fp = path.join(dbDir, file);
+      if (fs.existsSync(fp)) {
+        const stats = fs.statSync(fp);
+        dbSizeGauge.set({ database: file }, stats.size);
+      }
+    }
+  } catch (err) {
+    logger.error('Metrics: Erreur lors de la lecture de la taille DB:', err.message);
+  }
+}
 
 /**
  * Middleware Express qui instrumente les requêtes HTTP.
@@ -57,4 +114,10 @@ function metricsMiddleware(req, res, next) {
 module.exports = {
   metricsMiddleware,
   register: client.register,
+  activeUsersGauge,
+  dbSizeGauge,
+  syncRunsTotal,
+  exportRunsTotal,
+  alertThresholdGauge,
+  updateDbSizeMetrics,
 };

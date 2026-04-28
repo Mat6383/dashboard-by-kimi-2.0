@@ -511,6 +511,17 @@ const apiService = {
     }
   },
 
+  // ---- Audit Logs --------------------------------------------------------
+
+  async getAuditLogs(filters = {}) {
+    try {
+      const response = await apiClient.get('/audit', { params: filters });
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Get Audit Logs', error);
+    }
+  },
+
   // ---- Fin Dashboard 8 ---------------------------------------------------
 
   /**

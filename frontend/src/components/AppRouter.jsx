@@ -8,6 +8,7 @@ import AuthCallback from './AuthCallback';
 import NotificationSettings from './NotificationSettings';
 import HistoricalTrends from './HistoricalTrends';
 import CompareDashboard from './CompareDashboard';
+import AuditLogViewer from './AuditLogViewer';
 
 // Lazy loading des dashboards administratifs et secondaires
 const TvModeDashboard = lazy(() => import('./TvModeDashboard'));
@@ -97,6 +98,7 @@ export default function AppRouter({
         <Route path="/notifications" element={<NotificationSettings isDark={darkMode} />} />
         <Route path="/historical-trends" element={<HistoricalTrends projectId={projectId} isDark={darkMode} />} />
         <Route path="/compare" element={<CompareDashboard isDark={darkMode} />} />
+        <Route path="/admin/audit" element={<AuditLogViewer isDark={darkMode} />} />
         <Route
           path="/configuration"
           element={

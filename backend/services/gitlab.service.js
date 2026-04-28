@@ -631,12 +631,13 @@ class GitLabService {
    * Smoke test rapide de l'API GitLab
    * @returns {Promise<{ok: boolean, responseTimeMs: number, error?: string}>}
    */
-  async healthCheck() {
+  async healthCheck(options = {}) {
+    const { timeout = 5000 } = options;
     const start = Date.now();
     try {
       const url = this.projectId ? `/projects/${this.projectId}` : '/projects';
       const params = this.projectId ? {} : { per_page: 1 };
-      await this.client.get(url, { params, timeout: 5000 });
+      await this.client.get(url, { params, timeout });
       return { ok: true, responseTimeMs: Date.now() - start };
     } catch (error) {
       return { ok: false, responseTimeMs: Date.now() - start, error: error.message };

@@ -76,8 +76,8 @@ describe('API Integration Tests', () => {
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('OK');
       expect(res.body).toHaveProperty('checks');
-      expect(res.body.checks).toHaveProperty('syncHistory');
-      expect(res.body.checks).toHaveProperty('comments');
+      expect(res.body.checks).toHaveProperty('syncHistoryDB');
+      expect(res.body.checks).toHaveProperty('commentsDB');
       expect(res.body.checks).toHaveProperty('testmoAPI');
       expect(res.body.checks).toHaveProperty('gitlabAPI');
       expect(res.body.checks.testmoAPI.status).toBe('OK');

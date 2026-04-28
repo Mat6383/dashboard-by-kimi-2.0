@@ -3,12 +3,13 @@ const router = express.Router();
 const testmoService = require('../services/testmo.service');
 const logger = require('../services/logger.service');
 const { safeErrorResponse } = require('../utils/errorResponse');
+const { auditAction } = require('../middleware/audit.middleware');
 
 /**
  * Nettoie le cache (maintenance)
  * LEAN: Gestion optimisée du cache
  */
-router.post('/clear', (req, res) => {
+router.post('/clear', auditAction('cache.clear'), (req, res) => {
   try {
     testmoService.clearCache();
     logger.info('Cache cleared manually');

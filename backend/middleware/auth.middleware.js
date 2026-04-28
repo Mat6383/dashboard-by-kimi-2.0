@@ -10,6 +10,7 @@
 const jwtService = require('../services/auth/jwt.service');
 const usersService = require('../services/users.service');
 const logger = require('../services/logger.service');
+const auditService = require('../services/audit.service');
 
 function extractToken(req) {
   if (req.headers.authorization?.startsWith('Bearer ')) {
@@ -65,6 +66,20 @@ function requireRole(...allowedRoles) {
 
     if (!allowedRoles.includes(req.user.role)) {
       logger.warn(`[RBAC] Accès refusé pour ${req.user.email} (rôle: ${req.user.role}) sur ${req.path}`);
+      auditService.log({
+        actorId: req.user.id,
+        actorEmail: req.user.email,
+        actorRole: req.user.role,
+        action: 'rbac.denied',
+        resource: 'auth',
+        method: req.method,
+        path: req.originalUrl || req.path,
+        ip: req.ip || req.connection?.remoteAddress || null,
+        userAgent: req.headers['user-agent'] || null,
+        statusCode: 403,
+        details: { requiredRoles: allowedRoles },
+        success: false,
+      });
       return res.status(403).json({
         success: false,
         error: 'Accès interdit — privilèges insuffisants',

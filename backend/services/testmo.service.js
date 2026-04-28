@@ -1462,10 +1462,11 @@ class TestmoService {
    * Smoke test rapide de l'API Testmo
    * @returns {Promise<{ok: boolean, responseTimeMs: number, error?: string}>}
    */
-  async healthCheck() {
+  async healthCheck(options = {}) {
+    const { timeout = 5000 } = options;
     const start = Date.now();
     try {
-      await this.client.get('/projects', { params: { limit: 1 }, timeout: 5000 });
+      await this.client.get('/projects', { params: { limit: 1 }, timeout });
       return { ok: true, responseTimeMs: Date.now() - start };
     } catch (error) {
       return { ok: false, responseTimeMs: Date.now() - start, error: error.message };

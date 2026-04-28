@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
 const syncHistoryService = require('../services/syncHistory.service');
 const commentsService = require('../services/comments.service');
@@ -7,46 +9,91 @@ const gitlabService = require('../services/gitlab.service');
 const { getStats } = require('../services/apiTimer.service');
 
 /**
- * Route de santé (Health Check)
- * DevOps: Monitoring et disponibilité
+ * GET /api/health
+ * Liveness probe — lightweight, no external calls
  */
-router.get('/', (req, res) => {
+router.get('/', (_req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
     version: '2.0.0',
+    checks: { server: { status: 'OK' } },
   });
 });
 
 /**
- * GET /api/health/db
- * Vérifie la connectivité SQLite (sync-history + comments)
+ * Helper: run a DB check with actual response time measurement
  */
-router.get('/db', (req, res) => {
+function checkDb(dbService, label) {
+  const start = Date.now();
+  try {
+    if (!dbService.db) dbService.initDb ? dbService.initDb() : dbService.init();
+    const db = dbService.db;
+    const row = db?.prepare('SELECT 1 AS ok').get();
+    return {
+      status: row?.ok === 1 ? 'OK' : 'FAIL',
+      responseTimeMs: Date.now() - start,
+    };
+  } catch (err) {
+    return { status: 'FAIL', error: err.message, responseTimeMs: Date.now() - start };
+  }
+}
+
+/**
+ * Helper: disk usage check
+ */
+function checkDisk() {
+  try {
+    const backendDir = path.resolve(__dirname, '..');
+    const stat = fs.statfsSync(backendDir);
+    const totalBytes = stat.blocks * stat.bsize;
+    const freeBytes = stat.bavail * stat.bsize;
+    const usedBytes = totalBytes - freeBytes;
+    const usagePercent = totalBytes > 0 ? parseFloat(((usedBytes / totalBytes) * 100).toFixed(2)) : 0;
+    return {
+      status: 'OK',
+      freeBytes,
+      totalBytes,
+      usagePercent,
+    };
+  } catch (err) {
+    return { status: 'FAIL', error: err.message };
+  }
+}
+
+/**
+ * GET /api/health/ready
+ * Readiness probe — DB + external APIs
+ */
+router.get('/ready', async (_req, res) => {
   const checks = {};
   let allOk = true;
 
-  try {
-    if (!syncHistoryService.db) syncHistoryService.initDb();
-    const db1 = syncHistoryService.db;
-    const row1 = db1?.prepare('SELECT 1 AS ok').get();
-    checks.syncHistory = { status: row1?.ok === 1 ? 'OK' : 'FAIL', responseTimeMs: 0 };
-  } catch (err) {
-    checks.syncHistory = { status: 'FAIL', error: 'Erreur interne' };
-    allOk = false;
-  }
+  const db1 = checkDb(syncHistoryService, 'syncHistory');
+  checks.syncHistoryDB = db1;
+  if (db1.status !== 'OK') allOk = false;
 
-  try {
-    if (!commentsService.db) commentsService.init();
-    const db2 = commentsService.db;
-    const row2 = db2?.prepare('SELECT 1 AS ok').get();
-    checks.comments = { status: row2?.ok === 1 ? 'OK' : 'FAIL', responseTimeMs: 0 };
-  } catch (err) {
-    checks.comments = { status: 'FAIL', error: 'Erreur interne' };
-    allOk = false;
-  }
+  const db2 = checkDb(commentsService, 'comments');
+  checks.commentsDB = db2;
+  if (db2.status !== 'OK') allOk = false;
+
+  const testmo = await testmoService.healthCheck({ timeout: 3000 });
+  checks.testmoAPI = {
+    status: testmo.ok ? 'OK' : 'FAIL',
+    responseTimeMs: testmo.responseTimeMs,
+    ...(testmo.error && { error: testmo.error }),
+  };
+  if (!testmo.ok) allOk = false;
+
+  const gitlab = await gitlabService.healthCheck({ timeout: 3000 });
+  checks.gitlabAPI = {
+    status: gitlab.ok ? 'OK' : 'FAIL',
+    responseTimeMs: gitlab.responseTimeMs,
+    ...(gitlab.error && { error: gitlab.error }),
+  };
+  if (!gitlab.ok) allOk = false;
 
   res.status(allOk ? 200 : 503).json({
     status: allOk ? 'OK' : 'DEGRADED',
@@ -57,41 +104,23 @@ router.get('/db', (req, res) => {
 
 /**
  * GET /api/health/detailed
- * Health check complet : DB + APIs externes + stats temps de réponse
+ * Full diagnostics for human operators / admin UI
  */
-router.get('/detailed', async (req, res) => {
+router.get('/detailed', async (_req, res) => {
   const checks = {};
   let allOk = true;
 
-  // ─── DB checks ────────────────────────────────────────────────────────────
-  const dbStart = Date.now();
-  try {
-    const db1 = syncHistoryService.db || syncHistoryService.initDb();
-    const row1 = db1?.prepare('SELECT 1 AS ok').get();
-    checks.syncHistory = {
-      status: row1?.ok === 1 ? 'OK' : 'FAIL',
-      responseTimeMs: Date.now() - dbStart,
-    };
-  } catch (err) {
-    checks.syncHistory = { status: 'FAIL', error: err.message };
-    allOk = false;
-  }
+  // DB checks
+  const db1 = checkDb(syncHistoryService, 'syncHistory');
+  checks.syncHistoryDB = db1;
+  if (db1.status !== 'OK') allOk = false;
 
-  const db2Start = Date.now();
-  try {
-    const db2 = commentsService.db || commentsService.init();
-    const row2 = db2?.prepare('SELECT 1 AS ok').get();
-    checks.comments = {
-      status: row2?.ok === 1 ? 'OK' : 'FAIL',
-      responseTimeMs: Date.now() - db2Start,
-    };
-  } catch (err) {
-    checks.comments = { status: 'FAIL', error: err.message };
-    allOk = false;
-  }
+  const db2 = checkDb(commentsService, 'comments');
+  checks.commentsDB = db2;
+  if (db2.status !== 'OK') allOk = false;
 
-  // ─── External API checks ──────────────────────────────────────────────────
-  const testmo = await testmoService.healthCheck();
+  // External API checks
+  const testmo = await testmoService.healthCheck({ timeout: 3000 });
   checks.testmoAPI = {
     status: testmo.ok ? 'OK' : 'FAIL',
     responseTimeMs: testmo.responseTimeMs,
@@ -99,7 +128,7 @@ router.get('/detailed', async (req, res) => {
   };
   if (!testmo.ok) allOk = false;
 
-  const gitlab = await gitlabService.healthCheck();
+  const gitlab = await gitlabService.healthCheck({ timeout: 3000 });
   checks.gitlabAPI = {
     status: gitlab.ok ? 'OK' : 'FAIL',
     responseTimeMs: gitlab.responseTimeMs,
@@ -107,7 +136,14 @@ router.get('/detailed', async (req, res) => {
   };
   if (!gitlab.ok) allOk = false;
 
-  // ─── Response time stats ──────────────────────────────────────────────────
+  // Disk check
+  const disk = checkDisk();
+  if (disk.status !== 'OK') allOk = false;
+
+  // Memory
+  const mem = process.memoryUsage();
+
+  // API stats
   const apiStats = getStats();
 
   res.status(allOk ? 200 : 503).json({
@@ -116,6 +152,13 @@ router.get('/detailed', async (req, res) => {
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
     version: '2.0.0',
+    memory: {
+      rss: mem.rss,
+      heapTotal: mem.heapTotal,
+      heapUsed: mem.heapUsed,
+      external: mem.external,
+    },
+    disk,
     checks,
     apiStats,
   });
