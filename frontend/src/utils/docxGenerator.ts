@@ -37,11 +37,11 @@ function statusColor(ok) {
     return ok ? COLORS.green : COLORS.red;
 }
 
-function bold(text, color) {
+function bold(text, color?) {
     return new TextRun({ text, bold: true, color: color || COLORS.black });
 }
 
-function italic(text, color) {
+function italic(text, color?) {
     return new TextRun({ text, italics: true, color: color || COLORS.gray });
 }
 
@@ -66,7 +66,7 @@ function h2(text) {
     });
 }
 
-function bullet(label, value, valueColor) {
+function bullet(label, value, valueColor?) {
     return new Paragraph({
         children: [
             new TextRun({ text: '• ', color: COLORS.blue }),
@@ -103,8 +103,8 @@ function twoColTable(rows) {
             bottom: { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
             left:   { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
             right:  { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
-            insideH:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
-            insideV:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
+            insideHorizontal:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
+            insideVertical:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
         },
         rows: rows.map(([label, value, valueColor, isHeader], idx) => {
             const bg = isHeader ? COLORS.blue : (idx % 2 === 0 ? COLORS.white : COLORS.lightGray);
@@ -238,8 +238,8 @@ export const generateQuickClosureDoc = async ({
                 bottom: { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
                 left:   { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
                 right:  { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
-                insideH:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
-                insideV:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
+                insideHorizontal:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
+                insideVertical:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
             },
             rows: runRows.map(([col1, col2, col3, col4, col5, col6, isHeader], idx) => {
                 const bg = isHeader ? COLORS.blue : (idx % 2 === 0 ? COLORS.white : COLORS.lightGray);
@@ -248,7 +248,7 @@ export const generateQuickClosureDoc = async ({
                     children: [col1, col2, col3, col4, col5, col6].map(val => new TableCell({
                         shading: { fill: bg, type: ShadingType.CLEAR },
                         children: [new Paragraph({
-                            children: [new TextRun({ text: val, bold: !!isHeader, color: fg })],
+                            children: [new TextRun({ text: String(val), bold: !!isHeader, color: fg })],
                             spacing: { before: 60, after: 60 },
                             indent: { left: 80 }
                         })]
@@ -379,8 +379,8 @@ export const generateQuickClosureDoc = async ({
                 bottom: { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
                 left:   { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
                 right:  { style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
-                insideH:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
-                insideV:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
+                insideHorizontal:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
+                insideVertical:{ style: BorderStyle.SINGLE, size: 1, color: 'D1D5DB' },
             },
             rows: [
                 new TableRow({

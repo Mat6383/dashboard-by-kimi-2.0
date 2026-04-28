@@ -19,8 +19,9 @@ import {
 } from 'lucide-react';
 import apiService from '../services/api.service';
 import { useToast } from '../hooks/useToast';
+import { unwrapApiResponse, type FeatureFlag } from '../types/api.types';
 
-function formatDate(iso) {
+function formatDate(iso: string | null | undefined): string {
   if (!iso) return '-';
   const d = new Date(iso);
   return d.toLocaleString('fr-FR', {
@@ -32,13 +33,17 @@ function formatDate(iso) {
   });
 }
 
-export default function FeatureFlagsAdmin({ isDark }) {
+interface FeatureFlagsAdminProps {
+  isDark: boolean;
+}
+
+export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
   const { showToast } = useToast();
-  const [flags, setFlags] = useState([]);
+  const [flags, setFlags] = useState<FeatureFlag[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingFlag, setEditingFlag] = useState(null);
+  const [editingFlag, setEditingFlag] = useState<FeatureFlag | null>(null);
 
   const [form, setForm] = useState({
     key: '',
@@ -51,7 +56,7 @@ export default function FeatureFlagsAdmin({ isDark }) {
     setLoading(true);
     try {
       const res = await apiService.getFeatureFlagsAdmin();
-      setFlags(res.data || []);
+      setFlags(unwrapApiResponse(res).flags || []);
     } catch (err) {
       showToast('Erreur chargement des flags', 'error');
     } finally {
@@ -69,7 +74,7 @@ export default function FeatureFlagsAdmin({ isDark }) {
     setModalOpen(true);
   };
 
-  const openEdit = (flag) => {
+  const openEdit = (flag: FeatureFlag) => {
     setEditingFlag(flag);
     setForm({
       key: flag.key,
@@ -85,7 +90,7 @@ export default function FeatureFlagsAdmin({ isDark }) {
     setEditingFlag(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     try {
@@ -114,7 +119,7 @@ export default function FeatureFlagsAdmin({ isDark }) {
     }
   };
 
-  const handleDelete = async (key) => {
+  const handleDelete = async (key: string) => {
     if (!window.confirm(`Supprimer le flag "${key}" ?`)) return;
     try {
       await apiService.deleteFeatureFlag(key);
@@ -125,7 +130,7 @@ export default function FeatureFlagsAdmin({ isDark }) {
     }
   };
 
-  const handleToggleEnabled = async (flag) => {
+  const handleToggleEnabled = async (flag: FeatureFlag) => {
     try {
       await apiService.updateFeatureFlag(flag.key, { enabled: !flag.enabled });
       setFlags((prev) => prev.map((f) => (f.key === flag.key ? { ...f, enabled: !f.enabled } : f)));
@@ -135,7 +140,7 @@ export default function FeatureFlagsAdmin({ isDark }) {
     }
   };
 
-  const handleRolloutChange = async (flag, value) => {
+  const handleRolloutChange = async (flag: FeatureFlag, value: string) => {
     const num = Math.min(100, Math.max(0, Number(value)));
     try {
       await apiService.updateFeatureFlag(flag.key, { rolloutPercentage: num });
@@ -145,7 +150,7 @@ export default function FeatureFlagsAdmin({ isDark }) {
     }
   };
 
-  const theme = {
+  const theme: Record<string, React.CSSProperties> = {
     container: {
       padding: '24px',
       maxWidth: '1200px',

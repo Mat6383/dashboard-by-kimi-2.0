@@ -23,8 +23,8 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('testmo_darkMode', isDark);
-      localStorage.setItem('testmo_tvMode', tvMode);
+      localStorage.setItem('testmo_darkMode', String(isDark));
+      localStorage.setItem('testmo_tvMode', String(tvMode));
     } catch (err) {
       console.warn('localStorage quota exceeded:', err);
     }

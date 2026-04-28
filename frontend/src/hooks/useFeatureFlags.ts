@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import apiClient from '../services/api.service';
+import { apiClient } from '../services/api.service';
 
 /**
  * Hook pour consommer les feature flags du backend.

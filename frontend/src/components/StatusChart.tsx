@@ -23,6 +23,7 @@ import {
   Legend
 } from 'chart.js';
 import '../styles/StatusChart.css';
+import type { ChartOptions } from 'chart.js';
 
 // Enregistrer les composants Chart.js
 ChartJS.register(
@@ -79,7 +80,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
           label: function (context) {
             const label = context.label || '';
             const value = context.parsed || 0;
-            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
             const percentage = ((value / total) * 100).toFixed(1);
             return `${label}: ${value} tests (${percentage}%)`;
           }
@@ -99,7 +100,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
         }
       }
     }
-  };
+  } satisfies ChartOptions<'doughnut'>;
 
   // Configuration Bar Chart
   const barData = {
@@ -126,7 +127,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
         callbacks: {
           label: function (context) {
             const value = context.parsed.y || 0;
-            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const total = (context.dataset.data as number[]).reduce((a, b) => a + b, 0);
             const percentage = ((value / total) * 100).toFixed(1);
             return `${value} tests (${percentage}%)`;
           }
@@ -162,7 +163,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
         }
       }
     }
-  };
+  } satisfies ChartOptions<'bar'>;
 
   return (
     <div className="status-chart-container">

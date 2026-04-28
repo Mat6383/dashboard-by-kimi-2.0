@@ -5,6 +5,7 @@ import {
   FileSpreadsheet, Globe, Pencil, ChevronDown
 } from 'lucide-react';
 import apiService from '../services/api.service';
+import { unwrapApiResponse } from '../types/api.types';
 import '../styles/ReportGeneratorModal.css';
 
 const RECO_TYPES = [
@@ -147,10 +148,10 @@ const ReportGeneratorModal = ({ isOpen, onClose, metrics, project, isDark }) => 
         projectId,
         runIds,
         formats,
-        recommendations: recommendations.filter(r => r.text.trim()),
+        recommendations: recommendations.filter(r => r.text.trim()).map(r => r.text.trim()),
         complement: complement.trim(),
       });
-      setGenerated(response.data || response);
+      setGenerated(unwrapApiResponse(response));
     } catch (err) {
       setError(err.message || 'Erreur lors de la génération');
     } finally {

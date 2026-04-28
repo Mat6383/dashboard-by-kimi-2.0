@@ -195,6 +195,7 @@ export interface AutoSyncConfig {
   iterationName: string | null;
   gitlabProjectId: string | null;
   updatedAt: string | null;
+  version?: string | null;
 }
 
 // ─── Notifications ───────────────────────────────────────────────────────────
@@ -209,12 +210,26 @@ export interface NotificationSettings {
 // ─── Audit Logs ──────────────────────────────────────────────────────────────
 export interface AuditLog {
   id: number;
+  timestamp: string;
+  actor_id: number | null;
+  actor_email: string | null;
+  actor_role: string | null;
   action: string;
-  entity: string;
-  entityId: string;
-  userId: string | null;
-  details: string | null;
-  createdAt: string;
+  resource: string | null;
+  resource_id: string | null;
+  method: string | null;
+  path: string | null;
+  ip: string | null;
+  user_agent: string | null;
+  status_code: number | null;
+  details: unknown;
+  success: boolean;
+}
+
+export interface AuditLogListResponse extends ApiSuccessResponse<AuditLog[]> {
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 // ─── Circuit Breakers ────────────────────────────────────────────────────────

@@ -22,6 +22,7 @@ import type {
   AutoSyncConfig,
   NotificationSettings,
   AuditLog,
+  AuditLogListResponse,
   CircuitBreakerState,
   AnomalyItem,
   FeatureFlagAdminResponse,
@@ -29,6 +30,7 @@ import type {
   FeatureFlagCreateInput,
   FeatureFlagUpdateInput,
   ApiResponse,
+  ApiErrorResponse,
   MultiProjectSummaryItem,
 } from '../types/api.types';
 
@@ -89,8 +91,10 @@ export { apiClient };
 export interface ReportGenerateParams {
   projectId: number;
   milestoneId?: number;
+  runIds?: (number | string)[];
   formats?: { html?: boolean; pptx?: boolean };
   recommendations?: string[];
+  complement?: string;
 }
 
 export interface ExportMilestones {
@@ -508,7 +512,7 @@ const apiService = {
 
   // ---- Audit Logs --------------------------------------------------------
 
-  async getAuditLogs(filters: Record<string, unknown> = {}): Promise<ApiResponse<AuditLog[]>> {
+  async getAuditLogs(filters: Record<string, unknown> = {}): Promise<AuditLogListResponse | ApiErrorResponse> {
     return apiCall('Get Audit Logs', async () => {
       const response = await apiClient.get('/audit', { params: filters });
       return response.data;

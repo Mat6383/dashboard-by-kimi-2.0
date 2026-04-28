@@ -22,10 +22,10 @@ export function PreferencesProvider({ children }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('testmo_useBusinessTerms', useBusinessTerms);
+      localStorage.setItem('testmo_useBusinessTerms', String(useBusinessTerms));
       localStorage.setItem('testmo_selectedPreprodMilestones', JSON.stringify(selectedPreprodMilestones));
       localStorage.setItem('testmo_selectedProdMilestones', JSON.stringify(selectedProdMilestones));
-      localStorage.setItem('testmo_showProductionSection', showProductionSection);
+      localStorage.setItem('testmo_showProductionSection', String(showProductionSection));
     } catch (err) {
       console.warn('localStorage quota exceeded:', err);
     }

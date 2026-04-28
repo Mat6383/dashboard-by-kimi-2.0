@@ -93,7 +93,7 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
         fontSize: '0.9rem',
         marginBottom: '1rem',
         boxSizing: 'border-box'
-    };
+    } satisfies React.CSSProperties;
 
     const checkboxItemStyle = {
         display: 'flex',
@@ -112,7 +112,7 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
         border: '1px solid var(--border-color)',
         borderRadius: '8px',
         padding: '0.4rem'
-    };
+    } satisfies React.CSSProperties;
 
     return (
         <div className={`tv-dashboard ${isDark ? 'dark' : ''}`} style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>

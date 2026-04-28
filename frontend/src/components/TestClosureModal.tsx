@@ -138,7 +138,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
     padding: '20mm',
     fontFamily: 'Arial, sans-serif',
     boxSizing: 'border-box',
-  };
+  } satisfies React.CSSProperties;
 
   return (
     <>

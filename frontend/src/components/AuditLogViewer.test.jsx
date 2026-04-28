@@ -15,6 +15,7 @@ describe('AuditLogViewer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetAuditLogs.mockResolvedValue({
+      success: true,
       data: [
         {
           id: 1,
@@ -63,7 +64,7 @@ describe('AuditLogViewer', () => {
   });
 
   it('shows empty state when no logs', async () => {
-    mockGetAuditLogs.mockResolvedValue({ data: [], total: 0, limit: 50, offset: 0 });
+    mockGetAuditLogs.mockResolvedValue({ success: true, data: [], total: 0, limit: 50, offset: 0 });
     render(<AuditLogViewer isDark={false} />);
     await waitFor(() => expect(screen.getByText(/Aucune entrée d'audit trouvée/i)).toBeInTheDocument());
   });
@@ -98,6 +99,7 @@ describe('AuditLogViewer', () => {
 
   it('shows pagination when there are multiple pages', async () => {
     mockGetAuditLogs.mockResolvedValue({
+      success: true,
       data: Array.from({ length: 50 }, (_, i) => ({
         id: i + 1,
         timestamp: '2026-04-28T10:00:00Z',

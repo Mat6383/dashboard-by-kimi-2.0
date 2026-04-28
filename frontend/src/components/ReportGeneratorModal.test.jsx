@@ -169,7 +169,7 @@ describe('ReportGeneratorModal', () => {
         pptxFilename: 'report.pptx',
       },
     };
-    apiService.generateReport.mockResolvedValue({ data: mockResponse });
+    apiService.generateReport.mockResolvedValue({ success: true, data: mockResponse });
 
     render(<ReportGeneratorModal {...baseProps} />);
     const generateBtn = screen.getByRole('button', { name: /Générer le rapport/i });

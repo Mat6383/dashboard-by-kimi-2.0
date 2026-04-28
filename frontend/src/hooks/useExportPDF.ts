@@ -25,12 +25,21 @@ import { useToast } from './useToast';
  * @param {boolean} [defaultOptions.preCapture=false] - Force display:block temporairement
  * @param {boolean} [defaultOptions.multiPage=false] - Pagination auto si contenu trop long
  */
-export function useExportPDF(defaultOptions = {}) {
+export interface ExportPDFOptions {
+  orientation?: 'portrait' | 'landscape';
+  backgroundColor?: string;
+  scale?: number;
+  logging?: boolean;
+  preCapture?: boolean;
+  multiPage?: boolean;
+}
+
+export function useExportPDF(defaultOptions: ExportPDFOptions = {}) {
   const [isExporting, setIsExporting] = useState(false);
   const { showToast } = useToast();
 
   const exportPDF = useCallback(
-    async (element, filename, callOptions = {}) => {
+    async (element: HTMLElement | null, filename: string, callOptions: ExportPDFOptions = {}) => {
       if (!element) return;
 
       const opts = { ...defaultOptions, ...callOptions };

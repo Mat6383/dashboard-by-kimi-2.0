@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '../services/api.service';
 import { useToast } from '../hooks/useToast';
+import { unwrapApiResponse } from '../types/api.types';
 import { Bell, Mail, MessageSquare, Send, Save, TestTube } from 'lucide-react';
 
 export default function NotificationSettings({ isDark }) {
@@ -30,14 +31,15 @@ export default function NotificationSettings({ isDark }) {
     setLoading(true);
     try {
       const res = await apiService.getNotificationSettings();
-      if (res.data) {
+      const data = unwrapApiResponse(res) as any;
+      if (data) {
         setSettings({
-          email: res.data.email || '',
-          slackWebhook: res.data.slack_webhook || '',
-          teamsWebhook: res.data.teams_webhook || '',
-          enabledSlaEmail: !!res.data.enabled_sla_email,
-          enabledSlaSlack: !!res.data.enabled_sla_slack,
-          enabledSlaTeams: !!res.data.enabled_sla_teams,
+          email: data.email || '',
+          slackWebhook: data.slack_webhook || '',
+          teamsWebhook: data.teams_webhook || '',
+          enabledSlaEmail: !!data.enabled_sla_email,
+          enabledSlaSlack: !!data.enabled_sla_slack,
+          enabledSlaTeams: !!data.enabled_sla_teams,
         });
       }
     } catch (err) {
@@ -57,7 +59,7 @@ export default function NotificationSettings({ isDark }) {
         enabledSlaEmail: settings.enabledSlaEmail,
         enabledSlaSlack: settings.enabledSlaSlack,
         enabledSlaTeams: settings.enabledSlaTeams,
-      });
+      } as any);
       showToast('Paramètres sauvegardés', 'success');
     } catch (err) {
       showToast('Erreur sauvegarde', 'error');

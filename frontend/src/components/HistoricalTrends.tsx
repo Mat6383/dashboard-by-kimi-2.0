@@ -13,6 +13,7 @@ import {
   Filler,
 } from 'chart.js';
 import { apiClient } from '../services/api.service';
+import type { ChartOptions } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
@@ -91,7 +92,7 @@ export default function HistoricalTrends({ projectId, isDark }) {
           max: 100,
         },
       },
-    }),
+    } satisfies ChartOptions<'line'>),
     [isDark]
   );
 

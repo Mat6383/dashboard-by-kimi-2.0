@@ -11,6 +11,10 @@ vi.mock('../services/api.service', () => ({
     get: (...args) => mockGet(...args),
     put: (...args) => mockPut(...args),
   },
+  apiClient: {
+    get: (...args) => mockGet(...args),
+    put: (...args) => mockPut(...args),
+  },
 }));
 
 describe('useFeatureFlags', () => {

@@ -23,7 +23,7 @@ vi.mock('../services/api.service', () => ({
 describe('NotificationSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetSettings.mockResolvedValue({ data: null });
+    mockGetSettings.mockResolvedValue({ success: true, data: null });
   });
 
   it('renders settings form', async () => {
@@ -34,6 +34,7 @@ describe('NotificationSettings', () => {
 
   it('loads existing settings', async () => {
     mockGetSettings.mockResolvedValue({
+      success: true,
       data: { email: 'admin@test.com', slack_webhook: 'https://slack.test', enabled_sla_email: 1 },
     });
     render(<NotificationSettings isDark={false} />);

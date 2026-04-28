@@ -218,13 +218,16 @@
 - [x] **P13#3** Migrer composants feuilles en `.tsx` (MetricCard, PreprodSection, ProductionSection, TrendBadge) ✅
 - [x] **P13#4** Ajouter `useMutation` pour les actions POST/PUT/DELETE (reports, crosstest, sync, notifications, feature-flags, exports, cache) ✅
 
+## 🚀 P15 — TypeScript complet ✅
+
+- [x] **P15#1** Renommer tous les fichiers `.jsx → .tsx` / `.js → .ts` (49 fichiers)
+- [x] **P15#2** Corriger les erreurs TypeScript (`tsc --noEmit` passe 0 erreur)
+- [x] **P15#3** Typer les contexts, hooks, composants feuilles et utilitaires
+- [x] **P15#4** Mettre à jour `tsconfig.json` (inclusion uniquement `.ts/.tsx`)
+
 ## 🚧 Prochaine session
 
-### P14 — Performance & DX
-
-- [x] **P14#1** Migrer `loadDashboardMetrics` du Context vers React Query (avec invalidation SSE)
-- [x] **P14#2** Lazy loading des dashboards les plus lourds
-- [x] **P14#3** Bundle split par route (React.lazy + Suspense)
+À définir — toutes les sessions P0→P15 sont livrées.
 
 ## 📝 Notes
 

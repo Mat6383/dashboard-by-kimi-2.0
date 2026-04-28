@@ -24,6 +24,7 @@ import {
   Filler,
 } from 'chart.js';
 import apiService from '../services/api.service';
+import type { ChartOptions } from 'chart.js';
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
@@ -38,7 +39,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
     const fetchTrends = async () => {
       try {
         setLoading(true);
-        const response = await apiService.getAnnualTrends(projectId);
+        const response = await apiService.getAnnualTrends(projectId) as any;
         if (controller.signal.aborted) return;
         setTrends(response.data || []);
         setError(null);
@@ -66,7 +67,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
           position: 'top',
           labels: {
             color: isDark ? '#E2E8F0' : '#111827',
-            font: { size: 12, weight: '600' },
+            font: { size: 12, weight: 600 },
           },
         },
         tooltip: {
@@ -84,7 +85,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
           ticks: { color: isDark ? '#9CA3AF' : '#6B7280' },
         },
       },
-    }),
+    } satisfies ChartOptions<'line'>),
     [isDark]
   );
 
@@ -338,7 +339,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
                   x: { ...chartOptions.scales.x, stacked: true },
                   y: { ...chartOptions.scales.y, stacked: true },
                 },
-              }}
+              } satisfies ChartOptions<'bar'>}
             />
           </div>
         </div>

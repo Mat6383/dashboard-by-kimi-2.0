@@ -11,17 +11,17 @@ const FOCUSABLE_SELECTOR = [
 
 export function useFocusTrap(isActive) {
   const containerRef = useRef(null);
-  const previouslyFocused = useRef(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!isActive) return;
 
-    previouslyFocused.current = document.activeElement;
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
 
     const container = containerRef.current;
     if (!container) return;
 
-    const focusableElements = Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR));
+    const focusableElements = Array.from(container.querySelectorAll(FOCUSABLE_SELECTOR)) as HTMLElement[];
     const first = focusableElements[0];
     const last = focusableElements[focusableElements.length - 1];
 

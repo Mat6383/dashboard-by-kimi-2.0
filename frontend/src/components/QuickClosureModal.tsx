@@ -60,7 +60,7 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                     setLoading(true);
                     const response = await apiService.getAnnualTrends(project.id);
                     // On prend les runs, on peut inverser pour avoir les plus récents en premier
-                    setTrends([...(response.data || [])].reverse());
+                    setTrends([...((response as { data?: unknown[] }).data || [])].reverse());
                 } catch (err) {
                     console.error('Erreur lors du chargement des tendances :', err);
                 } finally {

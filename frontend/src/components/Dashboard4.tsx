@@ -235,7 +235,6 @@ const Dashboard4 = ({
         <PreprodSection
           metrics={metrics}
           raw={raw}
-          runs={runs}
           sortedRuns={sortedRuns}
           showAllRuns={showAllRuns}
           setShowAllRuns={setShowAllRuns}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Shield, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import apiService from '../services/api.service';
+import type { AuditLog } from '../types/api.types';
+import { unwrapApiResponse } from '../types/api.types';
 
-const ACTION_LABELS = {
+const ACTION_LABELS: Record<string, string> = {
   'cache.clear': 'Nettoyage cache',
   'feature-flag.update': 'Mise à jour feature flag',
   'sync.execute': 'Exécution sync',
@@ -16,7 +18,7 @@ const ACTION_LABELS = {
   'rbac.denied': 'Accès refusé (RBAC)',
 };
 
-function formatDate(iso) {
+function formatDate(iso: string | null): string {
   if (!iso) return '-';
   const d = new Date(iso);
   return d.toLocaleString('fr-FR', {
@@ -29,7 +31,7 @@ function formatDate(iso) {
   });
 }
 
-function StatusBadge({ success }) {
+function StatusBadge({ success }: { success: boolean }) {
   return (
     <span
       className="status-badge"
@@ -49,15 +51,15 @@ function StatusBadge({ success }) {
   );
 }
 
-export default function AuditLogViewer({ isDark }) {
-  const [logs, setLogs] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [offset, setOffset] = useState(0);
+export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [offset, setOffset] = useState<number>(0);
   const limit = 50;
 
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{ action: string; from: string; to: string }>({
     action: '',
     from: '',
     to: '',
@@ -67,15 +69,15 @@ export default function AuditLogViewer({ isDark }) {
     setLoading(true);
     setError(null);
     try {
-      const params = { limit, offset };
+      const params: Record<string, string | number> = { limit, offset };
       if (filters.action) params.action = filters.action;
       if (filters.from) params.from = filters.from;
       if (filters.to) params.to = filters.to;
       const result = await apiService.getAuditLogs(params);
-      setLogs(result.data || []);
-      setTotal(result.total || 0);
+      setLogs(unwrapApiResponse(result));
+      setTotal('total' in result ? result.total : 0);
     } catch (err) {
-      setError(err.message || 'Erreur de chargement');
+      setError(err instanceof Error ? err.message : 'Erreur de chargement');
     } finally {
       setLoading(false);
     }
@@ -186,7 +188,7 @@ export default function AuditLogViewer({ isDark }) {
       alignItems: 'center',
       gap: '4px',
     },
-  };
+  } satisfies Record<string, React.CSSProperties>;
 
   return (
     <div style={themeStyles.container}>
