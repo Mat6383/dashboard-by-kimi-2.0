@@ -3,14 +3,17 @@
  * TESTMO DASHBOARD - Entry Point
  * ================================================
  * Point d'entrée principal de l'application React
- * 
+ *
  * @author Matou - Neo-Logix QA Lead
  */
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import * as Sentry from '@sentry/react';
+import { queryClient } from './lib/queryClient';
 
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 if (SENTRY_DSN) {
@@ -36,16 +39,19 @@ import App from './App';
 // Montage de l'application
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ThemeProvider>
-        <PreferencesProvider>
-          <DashboardProvider>
-            <ToastProvider>
-              <App />
-            </ToastProvider>
-          </DashboardProvider>
-        </PreferencesProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <ThemeProvider>
+          <PreferencesProvider>
+            <DashboardProvider>
+              <ToastProvider>
+                <App />
+              </ToastProvider>
+            </DashboardProvider>
+          </PreferencesProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   </React.StrictMode>
 );
