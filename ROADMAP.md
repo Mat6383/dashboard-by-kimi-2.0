@@ -7,8 +7,8 @@
 ## Version actuelle
 
 **Branch :** `main`  
-**Commits récents :** P0/P1/P2/P3 terminés (avril 2026)  
-**Tests :** 296/296 backend ✅ | 67/67 frontend ✅ | Build ✅
+**Commits récents :** P0→P12 livrés (avril 2026)  
+**Tests :** 491/491 backend ✅ | 156/156 frontend ✅ | Build ✅ | TypeCheck backend & frontend ✅
 
 ---
 
@@ -124,16 +124,18 @@
 
 ## 📊 Indicateurs de santé du projet
 
-| Métrique            | Actuel       | Cible |
-| ------------------- | ------------ | ----- |
-| Tests backend       | 444 / 444 ✅ | 450+  |
-| Tests frontend      | 137 / 137 ✅ | 150+  |
-| Couverture backend  | 80 % ✅      | 70 %  |
-| Couverture frontend | 87 % ✅      | 50 %  |
-| Vulnérabilités npm  | 0 ✅         | 0     |
-| Build frontend      | ✅           | < 3s  |
-| Lignes `App.jsx`    | ~420         | < 100 |
-| Lignes `server.js`  | ~170         | < 80  |
+| Métrique             | Actuel       | Cible |
+| -------------------- | ------------ | ----- |
+| Tests backend        | 491 / 491 ✅ | 500+  |
+| Tests frontend       | 156 / 156 ✅ | 170+  |
+| Couverture backend   | 80 % ✅      | 70 %  |
+| Couverture frontend  | 87 % ✅      | 50 %  |
+| Vulnérabilités npm   | 0 ✅         | 0     |
+| Build frontend       | ✅ (< 3s)    | < 3s  |
+| Lignes `App.jsx`     | ~142 ✅      | < 150 |
+| Lignes `server.js`   | ~99 ✅       | < 100 |
+| Fichiers TS backend  | 5 ✅         | 20+   |
+| Fichiers TS frontend | 8 ✅         | 30+   |
 
 ---
 
@@ -194,6 +196,35 @@
 - [x] **P10#2 Webhooks sortants configurables** — Table `webhook_subscriptions`, CRUD admin `/api/webhooks`, émission HMAC-SHA256 (`X-Webhook-Signature`), events `feature-flag.changed` ✅
 - [x] **P10#3 Tests E2E Playwright** — Parcours CRUD admin + test rollout sticky déterministe côté API ✅
 - [x] **P10#4 Consumer hook enrichi** — `useFeatureFlags(key, userId)` avec `rolloutPercentage`, helper `isBetaRollout()`, badge "Bêta / X%" dans l'admin ✅
+
+## 🚀 P11 — React Query & Cache (Session actuelle)
+
+- [x] **P11#1 Setup React Query** — `QueryClient` + `ReactQueryDevtools` + provider dans `main.jsx` ✅
+- [x] **P11#2 Hooks queries** — `useProjects`, `useMultiProjectSummary`, `useAnomalies`, `useCircuitBreakers`, `useDashboardMetrics` ✅
+- [x] **P11#3 Migration DashboardContext** — `projects`, `anomalies`, `circuitBreakers` migrés vers React Query (suppression 3 useEffect + polling manuel) ✅
+- [x] **P11#4 Composant pilote** — `MultiProjectDashboard.jsx` migré (useEffect manuel → `useMultiProjectSummary`) ✅
+
+## 🚀 P12 — TypeScript progressif (Session actuelle)
+
+- [x] **P12#1 Setup TS backend** — `tsconfig.json` (`allowJs`, `checkJs`), `npm run typecheck`, types inférés depuis Zod ✅
+- [x] **P12#2 Types API backend** — `types/api.types.ts` (FeatureFlag, Webhook, Report, Sync…), `.d.ts` services ✅
+- [x] **P12#3 Setup TS frontend** — `tsconfig.json` (`jsx: react-jsx`), `npm run typecheck` ✅
+- [x] **P12#4 Hooks queries typés** — Les 5 hooks renommés `.ts` avec types génériques (`Project[]`, `DashboardMetrics`…) ✅
+
+## 🚧 Prochaine session
+
+### P13 — TypeScript approfondi (suite migration)
+
+- [ ] **P13#1** Renommer `api.service.js` → `api.service.ts` avec types retours
+- [ ] **P13#2** Typer `DashboardContext.jsx` → `DashboardContext.tsx`
+- [ ] **P13#3** Migrer composants feuilles en `.tsx` (MetricCard, PreprodSection…)
+- [ ] **P13#4** Ajouter `useMutation` pour les actions POST/PUT/DELETE (reports, sync, comments)
+
+### P14 — Performance & DX
+
+- [ ] **P14#1** Migrer `loadDashboardMetrics` du Context vers React Query (avec invalidation SSE)
+- [ ] **P14#2** Lazy loading des dashboards les plus lourds
+- [ ] **P14#3** Bundle split par route (React.lazy + Suspense)
 
 ## 📝 Notes
 
