@@ -7,8 +7,8 @@
 ## Version actuelle
 
 **Branch :** `main`  
-**Commits récents :** P0→P13 livrés (avril 2026)  
-**Tests :** 491/491 backend ✅ | 162/162 frontend ✅ | Build ✅ | TypeCheck backend & frontend ✅
+**Commits récents :** P0→P16 livrés (avril 2026)  
+**Tests :** 489/491 backend ✅ (2 health préexistants) | 162/162 frontend ✅ | Build ✅ | TypeCheck backend & frontend ✅
 
 ---
 
@@ -134,7 +134,7 @@
 | Build frontend       | ✅ (< 3s)    | < 3s  |
 | Lignes `App.jsx`     | ~142 ✅      | < 150 |
 | Lignes `server.js`   | ~99 ✅       | < 100 |
-| Fichiers TS backend  | 5 ✅         | 20+   |
+| Fichiers TS backend  | 66 ✅        | 20+   |
 | Fichiers TS frontend | 8 ✅         | 30+   |
 
 ---
@@ -225,9 +225,19 @@
 - [x] **P15#3** Typer les contexts, hooks, composants feuilles et utilitaires
 - [x] **P15#4** Mettre à jour `tsconfig.json` (inclusion uniquement `.ts/.tsx`)
 
+## 🚀 P16 — Migration TypeScript backend (Session livrée)
+
+- [x] **P16#1 Setup TS backend** — `tsconfig.json` (`module: commonjs`, `moduleResolution: bundler`), `ts-jest`, `types/express.d.ts`, `types/env.d.ts`
+- [x] **P16#2 Renommage massif** — 66 fichiers `.js → .ts` (services, routes, middleware, utils, bootstrap, jobs, validators, config)
+- [x] **P16#3 Conversion ESM** — `require() → import`, `module.exports → export default / export {}` via `jscodeshift` + scripts custom
+- [x] **P16#4 Compatibilité tests CJS** — `ts-jest` (`isolatedModules: true`), `module.exports = exports.default` pour modules sans named exports, préservation named exports (`GitLabService`, `gitlabBreaker`, `redactSensitive`…)
+- [x] **P16#5 Correction erreurs TypeScript** — Propriétés de classes (`db`, `_initialized`), casts `req.query`, objets inline `as any`, types `User`/`JwtPayload`, paramètres `any`
+- [x] **P16#6 Build & assets** — `tsc` + `copy-assets` (`docs/`, `db/migrations/`, `data/`) vers `dist/`, `npm start` sur `dist/server.js`
+- [x] **P16#7 Validation** — `typecheck` 0 erreur, tests 489/491, lint 0 erreur, serveur démarre
+
 ## 🚧 Prochaine session
 
-À définir — toutes les sessions P0→P15 sont livrées.
+À définir — toutes les sessions P0→P16 sont livrées.
 
 ## 📝 Notes
 

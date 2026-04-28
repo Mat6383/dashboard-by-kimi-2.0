@@ -10,11 +10,11 @@
  */
 
 require('dotenv').config();
-const syncService = require('./services/sync.service');
-const logger = require('./services/logger.service');
+import syncService from './services/sync.service';
+import logger from './services/logger.service';
 
 const args = process.argv.slice(2);
-const iterationName = args.find(a => !a.startsWith('--'));
+const iterationName = args.find((a) => !a.startsWith('--'));
 const isTest = args.includes('--test');
 const dryRun = args.includes('--dry-run');
 

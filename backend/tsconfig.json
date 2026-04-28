@@ -19,5 +19,5 @@
     "sourceMap": true
   },
   "include": ["**/*.ts", "**/*.js"],
-  "exclude": ["node_modules", "dist", "coverage", "tests"]
+  "exclude": ["node_modules", "dist", "coverage", "tests", "run-sync.js", "test-testmo-api.js", "scripts"]
 }
