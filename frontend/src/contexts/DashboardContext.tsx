@@ -1,9 +1,9 @@
-import React, { createContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import React, { createContext, useState, useCallback, useEffect, useMemo } from 'react';
 import apiService from '../services/api.service';
 import { useDashboardSSE } from '../hooks/useDashboardSSE';
-import { useProjects, useAnomalies, useCircuitBreakers } from '../hooks/queries';
+import { useProjects, useAnomalies, useCircuitBreakers, useDashboardMetrics } from '../hooks/queries';
+import { queryClient } from '../lib/queryClient';
 import type { DashboardMetrics, Project, AnomalyItem, CircuitBreakerState } from '../types/api.types';
-import { unwrapApiResponse } from '../types/api.types';
 
 export interface DashboardContextValue {
   projectId: number;
@@ -34,21 +34,12 @@ export interface DashboardContextValue {
   loadProjects: () => Promise<void>;
   loadDashboardMetrics: (force?: boolean) => Promise<void>;
   handleClearCache: () => Promise<void>;
-  isLoadingRef: React.MutableRefObject<boolean>;
-  lastRefreshRef: React.MutableRefObject<number>;
-  abortControllerRef: React.MutableRefObject<AbortController | null>;
 }
 
 export const DashboardContext = createContext<DashboardContextValue | null>(null);
 
-const REFRESH_COOLDOWN = 5000;
-
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [projectId, setProjectId] = useState(() => parseInt(localStorage.getItem('testmo_projectId') || '1', 10));
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'ok' | 'error'>('checking');
   const [exportHandler, setExportHandler] = useState<(() => void) | null>(null);
   const [selectedPreprodMilestones, setSelectedPreprodMilestones] = useState<number[]>(() => {
@@ -69,12 +60,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     return saved !== null ? saved === 'true' : true;
   });
 
-  // ─── React Query hooks (remplacent useState + useEffect manuels) ───────────
-  const { data: projects = [], refetch: refetchProjects } = useProjects();
-
-  const { data: anomalies = [], refetch: refetchAnomalies } = useAnomalies(projectId);
-
-  const { data: circuitBreakers = [], refetch: refetchCircuitBreakers } = useCircuitBreakers({ autoRefresh });
+  const preprod = selectedPreprodMilestones.length > 0 ? selectedPreprodMilestones : null;
+  const prod = selectedProdMilestones.length > 0 ? selectedProdMilestones : null;
 
   const sse = useDashboardSSE({
     projectId,
@@ -83,21 +70,36 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     enabled: autoRefresh,
   });
 
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const lastRefreshRef = useRef<number>(Date.now());
-  const isLoadingRef = useRef<boolean>(false);
+  // ─── React Query hooks (remplacent useState + useEffect manuels) ───────────
+  const { data: projects = [], refetch: refetchProjects } = useProjects();
 
-  // Appliquer les données SSE temps réel
+  const { data: anomalies = [], refetch: refetchAnomalies } = useAnomalies(projectId);
+
+  const { data: circuitBreakers = [], refetch: refetchCircuitBreakers } = useCircuitBreakers({ autoRefresh });
+
+  const {
+    data: metrics,
+    isLoading: loading,
+    error: queryError,
+    dataUpdatedAt,
+    refetch: refetchMetrics,
+  } = useDashboardMetrics(projectId, preprod, prod, { autoRefresh, liveConnected: sse.connected });
+
+  const error = queryError instanceof Error ? queryError.message : null;
+  const lastUpdate = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
+
+  // Appliquer les données SSE temps réel dans le cache React Query
   useEffect(() => {
     if (sse.data) {
-      setMetrics((prev) => ({
-        ...sse.data!.metrics,
-        qualityRates: sse.data!.qualityRates,
-      }));
-      setLastUpdate(new Date(sse.data!.timestamp));
-      lastRefreshRef.current = Date.now();
+      queryClient.setQueryData<DashboardMetrics>(
+        ['dashboard-metrics', projectId, preprod, prod],
+        {
+          ...sse.data.metrics,
+          qualityRates: sse.data.qualityRates,
+        }
+      );
     }
-  }, [sse.data]);
+  }, [sse.data, projectId, preprod, prod]);
 
   const checkBackendHealth = useCallback(async () => {
     try {
@@ -118,7 +120,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     try {
       await apiService.clearCache();
     } catch (err) {
-      setError((err as Error).message || 'Erreur nettoyage cache');
+      console.error('Erreur nettoyage cache:', err);
     }
   }, []);
 
@@ -132,57 +134,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   const loadDashboardMetrics = useCallback(
     async (force = false) => {
-      if (isLoadingRef.current && !force) {
-        console.log('[loadDashboardMetrics] Chargement déjà en cours, ignoré');
-        return;
-      }
-
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      const controller = new AbortController();
-      abortControllerRef.current = controller;
-      isLoadingRef.current = true;
-
-      try {
-        setLoading(true);
-        setError(null);
-
-        const preprod = selectedPreprodMilestones.length > 0 ? selectedPreprodMilestones : null;
-        const prod = selectedProdMilestones.length > 0 ? selectedProdMilestones : null;
-
-        const [metricsResponse, qualityResponse] = await Promise.all([
-          apiService.getDashboardMetrics(projectId, preprod, prod, controller.signal),
-          apiService.getQualityRates(projectId, preprod, prod, controller.signal),
-        ]);
-
-        if (controller.signal.aborted) return;
-
-        const metricsData = unwrapApiResponse(metricsResponse);
-        setMetrics({
-          ...metricsData,
-          qualityRates: qualityResponse.success ? qualityResponse.data : null,
-        });
-        setLastUpdate(new Date());
-        lastRefreshRef.current = Date.now();
-      } catch (err) {
-        if (
-          (err as Error).name === 'AbortError' ||
-          (err as Error).name === 'CanceledError' ||
-          controller.signal.aborted
-        ) {
-          return;
-        }
-        setError((err as Error).message);
-        console.error('Erreur chargement métriques:', err);
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-        isLoadingRef.current = false;
-      }
+      await refetchMetrics();
     },
-    [projectId, selectedPreprodMilestones, selectedProdMilestones]
+    [refetchMetrics]
   );
 
   useEffect(() => {
@@ -224,7 +178,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       projectId,
       setProjectId,
       projects,
-      metrics,
+      metrics: metrics ?? null,
       loading,
       error,
       lastUpdate,
@@ -249,9 +203,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       loadProjects,
       loadDashboardMetrics,
       handleClearCache,
-      isLoadingRef,
-      lastRefreshRef,
-      abortControllerRef,
     }),
     [
       projectId,

@@ -9,11 +9,19 @@ import { unwrapApiResponse } from '../../types/api.types';
  * @param preprodMilestones - IDs des milestones préprod
  * @param prodMilestones - IDs des milestones prod
  */
+export interface UseDashboardMetricsOptions {
+  autoRefresh?: boolean;
+  liveConnected?: boolean;
+}
+
 export function useDashboardMetrics(
   projectId: number | null,
   preprodMilestones: number[] | null = null,
-  prodMilestones: number[] | null = null
+  prodMilestones: number[] | null = null,
+  options: UseDashboardMetricsOptions = {}
 ) {
+  const { autoRefresh = false, liveConnected = false } = options;
+
   return useQuery<DashboardMetrics>({
     queryKey: ['dashboard-metrics', projectId, preprodMilestones, prodMilestones],
     queryFn: async ({ signal }) => {
@@ -28,5 +36,6 @@ export function useDashboardMetrics(
     },
     enabled: !!projectId,
     staleTime: 2 * 60 * 1000,
+    refetchInterval: autoRefresh && !liveConnected ? 60000 : false,
   });
 }

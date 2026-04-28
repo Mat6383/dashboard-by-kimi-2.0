@@ -52,8 +52,6 @@ function App() {
     loadProjects,
     loadDashboardMetrics,
     handleClearCache,
-    isLoadingRef,
-    lastRefreshRef,
   } = useDashboard();
 
   const navigate = useNavigate();
@@ -71,16 +69,8 @@ function App() {
   );
 
   useAutoRefresh({
-    autoRefresh,
     checkBackendHealth,
     loadProjects,
-    loadDashboardMetrics,
-    isLoadingRef,
-    lastRefreshRef,
-    projectId,
-    selectedPreprodMilestones,
-    selectedProdMilestones,
-    liveConnected,
   });
 
   const handleProjectChange = (event) => setProjectId(parseInt(event.target.value));

@@ -4,12 +4,14 @@ import { useDashboard } from '../hooks/useDashboard';
 import MetricsCards from './MetricsCards';
 import StatusChart from './StatusChart';
 import RunsList from './RunsList';
-import ConfigurationScreen from './ConfigurationScreen';
-import AuthCallback from './AuthCallback';
-import NotificationSettings from './NotificationSettings';
-import HistoricalTrends from './HistoricalTrends';
-import CompareDashboard from './CompareDashboard';
-import AuditLogViewer from './AuditLogViewer';
+
+// Lazy loading des routes secondaires
+const ConfigurationScreen = lazy(() => import('./ConfigurationScreen'));
+const AuthCallback = lazy(() => import('./AuthCallback'));
+const NotificationSettings = lazy(() => import('./NotificationSettings'));
+const HistoricalTrends = lazy(() => import('./HistoricalTrends'));
+const CompareDashboard = lazy(() => import('./CompareDashboard'));
+const AuditLogViewer = lazy(() => import('./AuditLogViewer'));
 
 // Lazy loading des dashboards administratifs et secondaires
 const TvModeDashboard = lazy(() => import('./TvModeDashboard'));

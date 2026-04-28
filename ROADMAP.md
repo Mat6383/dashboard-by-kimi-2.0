@@ -222,9 +222,9 @@
 
 ### P14 — Performance & DX
 
-- [ ] **P14#1** Migrer `loadDashboardMetrics` du Context vers React Query (avec invalidation SSE)
-- [ ] **P14#2** Lazy loading des dashboards les plus lourds
-- [ ] **P14#3** Bundle split par route (React.lazy + Suspense)
+- [x] **P14#1** Migrer `loadDashboardMetrics` du Context vers React Query (avec invalidation SSE)
+- [x] **P14#2** Lazy loading des dashboards les plus lourds
+- [x] **P14#3** Bundle split par route (React.lazy + Suspense)
 
 ## 📝 Notes
 
