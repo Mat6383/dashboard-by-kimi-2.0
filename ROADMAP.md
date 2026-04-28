@@ -181,6 +181,13 @@
 - [x] **P8#2 Health checks améliorés** — Liveness `/health`, readiness `/health/ready`, diagnostics `/health/detailed` (DB, APIs, disque, mémoire)
 - [x] **P8#3 Prometheus business metrics** — Gauges `active_users`, `db_size_bytes`, counters `sync_runs_total`, `export_runs_total`, seuils d'alerte
 
+## 🚀 P9 — Temps réel & Intelligence (Session en cours)
+
+- [ ] **P9#1 Temps réel SSE dashboard** — Endpoint `GET /api/dashboard/:projectId/stream` (SSE), hook `useDashboardSSE`, indicateur "Live" UI, fallback polling, auto-reconnect
+- [ ] **P9#2 Détection d'anomalies** — Algo z-score sur tendances historiques, endpoint `/api/anomalies`, badges "trending" sur KPIs
+- [ ] **P9#3 Circuit breaker & resilience** — `CircuitBreaker` class sur appels Testmo/GitLab, retry exponentiel jobs sync, mode dégradé avec banner
+- [ ] **P9#4 Feature Flags UI admin** — CRUD `/admin/features`, rollout progressif, audit intégré
+
 ## 📝 Notes
 
 > **Règle d'or :** Une PR = un item de cette checklist. Pas de mega-PR.

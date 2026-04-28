@@ -13,6 +13,7 @@ import {
   User,
   FileText,
   FileSpreadsheet,
+  Radio,
 } from 'lucide-react';
 
 function getDashboardRoutes(isAdmin) {
@@ -87,6 +88,9 @@ export default function AppLayout({
   onExportPdfBackend,
   onExportCSV,
   onExportExcel,
+  // Live
+  liveConnected,
+  liveError,
 }) {
   const dashboardRoutes = getDashboardRoutes(isAdmin);
   return (
@@ -232,6 +236,44 @@ export default function AppLayout({
               <span className="slider round" />
             </label>
           </div>
+
+          {/* Indicateur Live */}
+          {liveConnected && (
+            <div
+              className="live-indicator"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                marginRight: '8px',
+                color: '#10B981',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+              }}
+              title="Connexion temps réel active"
+            >
+              <Radio size={14} className="live-pulse" />
+              <span>LIVE</span>
+            </div>
+          )}
+          {liveError && !liveConnected && (
+            <div
+              className="live-indicator"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                marginRight: '8px',
+                color: '#EF4444',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+              }}
+              title={liveError}
+            >
+              <Radio size={14} />
+              <span>OFFLINE</span>
+            </div>
+          )}
 
           {/* Toggle auto-refresh */}
           <button

@@ -45,6 +45,8 @@ function App() {
     setSelectedProdMilestones,
     showProductionSection,
     setShowProductionSection,
+    liveConnected,
+    liveError,
     checkBackendHealth,
     loadProjects,
     loadDashboardMetrics,
@@ -77,6 +79,7 @@ function App() {
     projectId,
     selectedPreprodMilestones,
     selectedProdMilestones,
+    liveConnected,
   });
 
   const handleProjectChange = (event) => setProjectId(parseInt(event.target.value));
@@ -179,6 +182,8 @@ function App() {
       loading={loading}
       backendStatus={backendStatus}
       lastUpdate={lastUpdate}
+      liveConnected={liveConnected}
+      liveError={liveError}
       currentPath={location.pathname}
       exportHandler={exportHandler}
       user={user}

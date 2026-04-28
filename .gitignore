@@ -48,3 +48,4 @@ backend/db/
 coverage/
 backend/coverage/
 frontend/coverage/
+.kimi/

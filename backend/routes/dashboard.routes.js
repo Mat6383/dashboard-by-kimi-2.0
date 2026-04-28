@@ -207,4 +207,76 @@ router.get('/compare', async (req, res) => {
   }
 });
 
+/**
+ * Stream SSE temps réel des métriques dashboard
+ * Polling toutes les 30s avec push uniquement si données changées
+ */
+router.get('/:projectId/stream', validateParams(projectIdParam), validateQuery(milestonesQuery), async (req, res) => {
+  try {
+    const projectId = parseInt(req.params.projectId);
+    const preprodMilestones = req.query.preprodMilestones ? req.query.preprodMilestones.split(',').map(Number) : null;
+    const prodMilestones = req.query.prodMilestones ? req.query.prodMilestones.split(',').map(Number) : null;
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+
+    const send = (event, data) => {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+      if (typeof res.flush === 'function') res.flush();
+    };
+
+    let lastHash = null;
+    let closed = false;
+
+    const fetchAndSend = async () => {
+      if (closed) return;
+      try {
+        const [metrics, qualityRates] = await Promise.all([
+          testmoService.getProjectMetrics(projectId, preprodMilestones, prodMilestones),
+          testmoService.getEscapeAndDetectionRates(projectId, preprodMilestones, prodMilestones),
+        ]);
+        const payload = { metrics, qualityRates, timestamp: new Date().toISOString() };
+        const hash = JSON.stringify(payload);
+        if (hash !== lastHash) {
+          lastHash = hash;
+          send('metrics', payload);
+        }
+      } catch (err) {
+        if (!closed) {
+          logger.warn(`[SSE Dashboard ${projectId}]`, err.message);
+          send('error', { message: err.message });
+        }
+      }
+    };
+
+    // Heartbeat
+    const heartbeat = setInterval(() => {
+      if (!closed) {
+        res.write(': ping\n\n');
+        if (typeof res.flush === 'function') res.flush();
+      }
+    }, 15000);
+
+    // Premier envoi immédiat
+    await fetchAndSend();
+
+    // Polling périodique
+    const poll = setInterval(fetchAndSend, 30000);
+
+    req.on('close', () => {
+      closed = true;
+      clearInterval(heartbeat);
+      clearInterval(poll);
+    });
+  } catch (error) {
+    // Si les headers SSE ne sont pas encore envoyés, on peut renvoyer une erreur JSON classique
+    if (!res.headersSent) {
+      res.status(500).json(safeErrorResponse(error, `GET /api/dashboard/${req.params.projectId}/stream`));
+    }
+  }
+});
+
 module.exports = router;

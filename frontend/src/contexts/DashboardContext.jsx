@@ -1,5 +1,6 @@
 import React, { createContext, useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import apiService from '../services/api.service';
+import { useDashboardSSE } from '../hooks/useDashboardSSE';
 
 export const DashboardContext = createContext(null);
 
@@ -27,9 +28,33 @@ export function DashboardProvider({ children }) {
     return saved !== null ? saved === 'true' : true;
   });
 
+  const [autoRefresh, setAutoRefresh] = useState(() => {
+    const saved = localStorage.getItem('testmo_autoRefresh');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  const sse = useDashboardSSE({
+    projectId,
+    preprodMilestones: selectedPreprodMilestones,
+    prodMilestones: selectedProdMilestones,
+    enabled: autoRefresh,
+  });
+
   const abortControllerRef = useRef(null);
   const lastRefreshRef = useRef(Date.now());
   const isLoadingRef = useRef(false);
+
+  // Appliquer les données SSE temps réel
+  useEffect(() => {
+    if (sse.data) {
+      setMetrics((prev) => ({
+        ...sse.data.metrics,
+        qualityRates: sse.data.qualityRates,
+      }));
+      setLastUpdate(new Date(sse.data.timestamp));
+      lastRefreshRef.current = Date.now();
+    }
+  }, [sse.data]);
 
   const checkBackendHealth = useCallback(async () => {
     try {
@@ -118,10 +143,11 @@ export function DashboardProvider({ children }) {
       localStorage.setItem('testmo_selectedPreprodMilestones', JSON.stringify(selectedPreprodMilestones));
       localStorage.setItem('testmo_selectedProdMilestones', JSON.stringify(selectedProdMilestones));
       localStorage.setItem('testmo_showProductionSection', showProductionSection);
+      localStorage.setItem('testmo_autoRefresh', autoRefresh);
     } catch (err) {
       console.warn('localStorage quota exceeded:', err);
     }
-  }, [projectId, selectedPreprodMilestones, selectedProdMilestones, showProductionSection]);
+  }, [projectId, selectedPreprodMilestones, selectedProdMilestones, showProductionSection, autoRefresh]);
 
   // Sync cross-onglets via événement storage
   useEffect(() => {
@@ -163,6 +189,10 @@ export function DashboardProvider({ children }) {
       setSelectedProdMilestones,
       showProductionSection,
       setShowProductionSection,
+      autoRefresh,
+      setAutoRefresh,
+      liveConnected: sse.connected,
+      liveError: sse.error,
       checkBackendHealth,
       loadProjects,
       loadDashboardMetrics,
@@ -183,6 +213,9 @@ export function DashboardProvider({ children }) {
       selectedPreprodMilestones,
       selectedProdMilestones,
       showProductionSection,
+      autoRefresh,
+      sse.connected,
+      sse.error,
       checkBackendHealth,
       loadProjects,
       loadDashboardMetrics,

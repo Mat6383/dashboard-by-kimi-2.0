@@ -91,6 +91,22 @@ describe('useAutoRefresh', () => {
     expect(mocks.loadDashboardMetrics.mock.calls.length).toBe(callsBefore);
   });
 
+  it('ne crée pas d intervalle quand liveConnected est true', () => {
+    renderHook(() =>
+      useAutoRefresh({
+        autoRefresh: true,
+        liveConnected: true,
+        ...mocks,
+        projectId: 1,
+        selectedPreprodMilestones: EMPTY_PREPROD,
+        selectedProdMilestones: EMPTY_PROD,
+      })
+    );
+    const callsBefore = mocks.loadDashboardMetrics.mock.calls.length;
+    vi.advanceTimersByTime(60000);
+    expect(mocks.loadDashboardMetrics.mock.calls.length).toBe(callsBefore);
+  });
+
   it('nettoie l intervalle au démontage', () => {
     const { unmount } = renderHook(() =>
       useAutoRefresh({

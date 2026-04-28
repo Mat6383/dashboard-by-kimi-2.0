@@ -19,6 +19,7 @@ export function useAutoRefresh({
   projectId,
   selectedPreprodMilestones,
   selectedProdMilestones,
+  liveConnected = false,
 }) {
   // 1. Chargement initial au montage
   useEffect(() => {
@@ -34,9 +35,9 @@ export function useAutoRefresh({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, selectedPreprodMilestones, selectedProdMilestones]);
 
-  // 3. Auto-refresh toutes les minutes (LEAN)
+  // 3. Auto-refresh toutes les minutes (LEAN) — désactivé si SSE live connecté
   useEffect(() => {
-    if (!autoRefresh) return;
+    if (!autoRefresh || liveConnected) return;
 
     const interval = setInterval(() => {
       // eslint-disable-next-line no-console
@@ -45,7 +46,7 @@ export function useAutoRefresh({
     }, 60000);
 
     return () => clearInterval(interval);
-  }, [autoRefresh, loadDashboardMetrics]);
+  }, [autoRefresh, liveConnected, loadDashboardMetrics]);
 
   // 4. Rafraîchissement forcé au retour sur la page
   useEffect(() => {
