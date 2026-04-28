@@ -1,0 +1,66 @@
+# ───────────────────────────────────────────────────────────────────────────────
+# QA Dashboard by Kimi 2.0 — Docker Compose
+# Backend (Node + Chromium + SQLite) + Frontend (Nginx statique)
+# ───────────────────────────────────────────────────────────────────────────────
+
+version: "3.8"
+
+services:
+  # ═════════════════════════════════════════════════════════════════════════════
+  # Backend API
+  # ═════════════════════════════════════════════════════════════════════════════
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: qa-dashboard-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      - NODE_ENV=production
+      # Le frontend est servi par Nginx sur le même domaine en production
+      - FRONTEND_URL=http://localhost:8080
+    volumes:
+      # Persistance SQLite (bases + migrations appliquées)
+      - sqlite-data:/app/db
+      # Logs host-accessibles
+      - ./backend/logs:/app/logs
+    ports:
+      - "3001:3001"
+    networks:
+      - dashboard-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ═════════════════════════════════════════════════════════════════════════════
+  # Frontend — Nginx statique + reverse-proxy /api
+  # ═════════════════════════════════════════════════════════════════════════════
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: qa-dashboard-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    networks:
+      - dashboard-net
+    depends_on:
+      backend:
+        condition: service_healthy
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Volumes persistants
+# ═══════════════════════════════════════════════════════════════════════════════
+volumes:
+  sqlite-data:
+    driver: local
+
+networks:
+  dashboard-net:
+    driver: bridge

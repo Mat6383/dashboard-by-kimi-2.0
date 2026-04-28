@@ -1,10 +1,155 @@
 # Déploiement — QA Dashboard by Kimi 2.0
 
-> Guide de mise en production sur un VPS (Ubuntu/Debian) avec **PM2** + **Nginx**.
+> Deux approches de mise en production : **Docker** (recommandé, portabilité maximale) ou **PM2 + Nginx** (manuel sur VPS).
 
 ---
 
-## Prérequis
+## 🐳 Option 1 — Docker (Recommandé)
+
+> Déploiement conteneurisé en 3 commandes. Backend (Node + Chromium), Frontend (Nginx statique), SQLite persistant via volume Docker.
+
+---
+
+### Prérequis
+
+| Outil          | Version | Rôle                         |
+| -------------- | ------- | ---------------------------- |
+| Docker         | 24.x+   | Container runtime            |
+| Docker Compose | 2.20+   | Orchestration multi-services |
+
+```bash
+# Vérification
+docker --version
+docker compose version
+```
+
+---
+
+### 1. Configuration
+
+```bash
+# Cloner le repo
+git clone https://github.com/Matou6383/dashboard-by-kimi-2.0.git
+cd dashboard-by-kimi-2.0
+
+# Variables d'environnement backend
+cp backend/.env.example backend/.env
+nano backend/.env
+```
+
+**Minimum requis en production :**
+
+```env
+NODE_ENV=production
+PORT=3001
+FRONTEND_URL=http://localhost:8080
+
+TESTMO_URL=https://votre-instance.testmo.net
+TESTMO_TOKEN=your_token_here
+
+GITLAB_URL=https://gitlab.votre-instance.fr
+GITLAB_TOKEN=your_read_token
+GITLAB_WRITE_TOKEN=your_write_token
+GITLAB_VERIFY_SSL=true
+
+ADMIN_API_TOKEN=$(openssl rand -hex 32)
+
+SENTRY_DSN=https://xxx@yyy.sentry.io/zzz   # optionnel mais recommandé
+```
+
+> 🔒 Le fichier `.env` est automatiquement exclu du build Docker via `.dockerignore`. Les secrets ne sont jamais dans l'image.
+
+---
+
+### 2. Build & Démarrage
+
+```bash
+# Build complet (backend + frontend)
+docker compose build
+
+# Démarrage en arrière-plan
+docker compose up -d
+
+# Vérification
+docker compose ps
+docker compose logs -f backend
+```
+
+**Accès :**
+
+- Application : `http://localhost:8080`
+- API directe : `http://localhost:3001/api/health`
+- Health checks intégrés sur les deux services.
+
+---
+
+### 3. Mise à jour (zero-downtime)
+
+```bash
+# Pull des changements
+git pull origin main
+
+# Rebuild + redémarrage
+docker compose up -d --build
+
+# Nettoyage des anciennes images (optionnel)
+docker image prune -f
+```
+
+---
+
+### 4. Backup SQLite
+
+```bash
+# Backup du volume
+docker run --rm -v dashboard-by-kimi-2-0_sqlite-data:/data \
+  -v $(pwd)/backup:/backup alpine \
+  tar -czf /backup/dashboard-$(date +%Y%m%d).tar.gz -C /data .
+
+# Ou copie directe depuis le container
+docker cp qa-dashboard-backend:/app/db ./backup/db-$(date +%Y%m%d)
+```
+
+---
+
+### 5. Commandes utiles
+
+| Action                     | Commande                                    |
+| -------------------------- | ------------------------------------------- |
+| Logs backend               | `docker compose logs -f backend`            |
+| Logs frontend              | `docker compose logs -f frontend`           |
+| Restart backend            | `docker compose restart backend`            |
+| Shell dans le backend      | `docker compose exec backend bash`          |
+| Voir les volumes           | `docker volume ls`                          |
+| Arrêter tout               | `docker compose down`                       |
+| Arrêter + supprimer volume | `docker compose down -v` ⚠️ (perte données) |
+
+---
+
+### Architecture Docker
+
+```
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│   Nginx (80)    │─────▶│  Backend (3001) │─────▶│  SQLite (vol)   │
+│  /api → proxy   │      │  Puppeteer PDF  │      │  /app/db/*.db   │
+│  / → static SPA │      │  Cron sync      │      │  migrations     │
+└─────────────────┘      └─────────────────┘      └─────────────────┘
+       frontend               backend                 sqlite-data
+```
+
+- **Frontend** : Nginx `alpine-slim` sert `frontend/dist/` et proxifie `/api/` vers le backend.
+- **Backend** : Node `bookworm-slim` avec Chromium système (pas de téléchargement Puppeteer). Multi-stage pour minimiser la taille.
+- **SQLite** : Volume Docker nommé `sqlite-data` monté sur `/app/db`. Persiste across recréations.
+
+---
+
+## 🖥️ Option 2 — PM2 + Nginx (VPS manuel)
+
+> Déploiement classique sur serveur Ubuntu/Debian avec PM2 (process manager) et Nginx (reverse proxy).
+
+---
+
+### Prérequis
 
 | Outil   | Version  | Rôle                                       |
 | ------- | -------- | ------------------------------------------ |
@@ -31,11 +176,11 @@ sudo apt-get install -y nginx
 
 ---
 
-## 1. Cloner et configurer
+### 1. Cloner et configurer
 
 ```bash
 cd /var/www
-git clone https://github.com/Mat6383/dashboard-by-kimi-2.0.git
+git clone https://github.com/Matou6383/dashboard-by-kimi-2.0.git
 cd dashboard-by-kimi-2.0
 ```
 
@@ -70,7 +215,7 @@ SENTRY_DSN=https://xxx@yyy.sentry.io/zzz   # optionnel mais recommandé
 
 ---
 
-## 2. Installation des dépendances
+### 2. Installation des dépendances
 
 ```bash
 # Racine (workspaces backend + frontend)
@@ -84,9 +229,9 @@ Le build génère le dossier `frontend/dist/` avec les assets optimisés.
 
 ---
 
-## 3. Démarrage avec PM2
+### 3. Démarrage avec PM2
 
-### Fichier de configuration PM2
+#### Fichier de configuration PM2
 
 Créer `ecosystem.config.js` à la racine du projet :
 
@@ -124,7 +269,7 @@ module.exports = {
 };
 ```
 
-### Commandes PM2
+#### Commandes PM2
 
 ```bash
 # Démarrer
@@ -148,9 +293,9 @@ pm2 delete qa-dashboard-backend
 
 ---
 
-## 4. Configuration Nginx
+### 4. Configuration Nginx
 
-### Fichier de site
+#### Fichier de site
 
 Créer `/etc/nginx/sites-available/dashboard` :
 
@@ -200,7 +345,7 @@ server {
 }
 ```
 
-### Activation
+#### Activation
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/dashboard /etc/nginx/sites-enabled/
@@ -210,7 +355,7 @@ sudo systemctl reload nginx
 
 ---
 
-## 5. SSL avec Let's Encrypt
+### 5. SSL avec Let's Encrypt
 
 ```bash
 sudo apt-get install -y certbot python3-certbot-nginx
@@ -222,7 +367,7 @@ sudo certbot renew --dry-run
 
 ---
 
-## 6. Mise à jour (zero-downtime)
+### 6. Mise à jour (zero-downtime)
 
 ```bash
 cd /var/www/dashboard-by-kimi-2.0
@@ -246,7 +391,7 @@ curl -s https://dashboard.votre-domaine.fr/api/health | jq .
 
 ---
 
-## 7. Backup (recommandé)
+### 7. Backup (recommandé)
 
 ```bash
 # SQLite databases
@@ -259,10 +404,10 @@ sudo tar -czf /backup/dashboard-$(date +%Y%m%d).tar.gz \
 
 ## Vérification post-déploiement
 
-| Check          | Commande                                             |
-| -------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Backend up     | `curl https://dashboard.votre-domaine.fr/api/health` |
-| Frontend build | `curl -I https://dashboard.votre-domaine.fr` → 200   |
-| PM2 status     | `pm2 status`                                         |
-| Logs erreurs   | `pm2 logs qa-dashboard-backend --lines 50`           |
-| SSL valide     | `echo                                                | openssl s_client -servername dashboard.votre-domaine.fr -connect dashboard.votre-domaine.fr:443 2>/dev/null \| openssl x509 -noout -dates` |
+| Check          | Commande (Docker)                       | Commande (PM2)                                       |
+| -------------- | --------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------- |
+| Backend up     | `curl http://localhost:3001/api/health` | `curl https://dashboard.votre-domaine.fr/api/health` |
+| Frontend build | `curl -I http://localhost:8080` → 200   | `curl -I https://dashboard.votre-domaine.fr` → 200   |
+| Containers     | `docker compose ps`                     | —                                                    |
+| Logs erreurs   | `docker compose logs backend --tail 50` | `pm2 logs qa-dashboard-backend --lines 50`           |
+| SSL valide     | —                                       | `echo                                                | openssl s_client -servername dashboard.votre-domaine.fr -connect dashboard.votre-domaine.fr:443 2>/dev/null | openssl x509 -noout -dates` |
