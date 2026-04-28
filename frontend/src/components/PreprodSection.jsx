@@ -18,6 +18,10 @@ export function getPassRateColor(passRate) {
   return '#EF4444';
 }
 
+function getTrend(anomalies, metricKey) {
+  return anomalies?.find((a) => a.metric === metricKey) || null;
+}
+
 export default function PreprodSection({
   metrics,
   raw,
@@ -27,6 +31,7 @@ export default function PreprodSection({
   isDark,
   useBusiness,
   getAlertForMetric,
+  anomalies,
 }) {
   const d1 = metrics;
 
@@ -58,6 +63,7 @@ export default function PreprodSection({
           label={useBusiness ? 'tests exécutés (Cible: ≥ 90%)' : 'tests executed (Target: ≥ 90%)'}
           alert={getAlertForMetric('Completion Rate')}
           useBusiness={useBusiness}
+          trend={getTrend(anomalies, 'completion_rate')}
         />
         <MetricCard
           title={useBusiness ? 'Taux de Succès' : 'Pass Rate'}
@@ -74,6 +80,7 @@ export default function PreprodSection({
           }
           alert={getAlertForMetric('Pass Rate') || getAlertForMetric('Blocked Rate')}
           useBusiness={useBusiness}
+          trend={getTrend(anomalies, 'pass_rate')}
         />
         <MetricCard
           title={useBusiness ? "Taux d'Échec" : 'Failure Rate'}

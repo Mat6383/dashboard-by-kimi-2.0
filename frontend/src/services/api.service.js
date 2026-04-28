@@ -511,6 +511,17 @@ const apiService = {
     }
   },
 
+  // ---- Anomalies ---------------------------------------------------------
+
+  async getAnomalies(projectId) {
+    try {
+      const response = await apiClient.get(`/anomalies/${projectId}`);
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Get Anomalies', error);
+    }
+  },
+
   // ---- Audit Logs --------------------------------------------------------
 
   async getAuditLogs(filters = {}) {

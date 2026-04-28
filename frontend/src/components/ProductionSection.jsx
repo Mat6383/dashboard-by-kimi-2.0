@@ -10,6 +10,11 @@
 
 import React from 'react';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
+import TrendBadge from './TrendBadge';
+
+function getTrend(anomalies, metricKey) {
+  return anomalies?.find((a) => a.metric === metricKey) || null;
+}
 
 export default function ProductionSection({
   rates,
@@ -19,6 +24,7 @@ export default function ProductionSection({
   onToggleProductionSection,
   isDark,
   useBusiness,
+  anomalies,
 }) {
   return (
     <div>
@@ -117,6 +123,7 @@ export default function ProductionSection({
                   }}
                 >
                   <ShieldAlert size={24} color={escapeOk ? '#10B981' : '#EF4444'} /> Taux d&apos;Échappement
+                  <TrendBadge trend={getTrend(anomalies, 'escape_rate')} style={{ marginLeft: '8px' }} />
                 </h3>
                 <div
                   style={{
@@ -190,6 +197,7 @@ export default function ProductionSection({
                   }}
                 >
                   <ShieldCheck size={24} color={ddpOk ? '#10B981' : '#EF4444'} /> Taux de Détection
+                  <TrendBadge trend={getTrend(anomalies, 'detection_rate')} style={{ marginLeft: '8px' }} />
                 </h3>
                 <div
                   style={{

@@ -199,4 +199,4 @@ La feuille de route P0→P8 est entièrement complète. Quelques pistes pour une
 
 - **Branche active** : `main`
 - **Commits non pushés** : Aucun (tout pushé sur `origin/main`)
-- **Dernier commit sur `main`** : `ff93636` — Session P7 terminée : audit sécurité, OpenAPI/Swagger, Prometheus
+- **Dernier commit sur `main`** : `c115c73` — feat(P8): Observabilité & Ops — audit logging, health checks, Prometheus business metrics

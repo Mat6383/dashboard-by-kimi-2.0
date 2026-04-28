@@ -32,6 +32,7 @@ export function DashboardProvider({ children }) {
     const saved = localStorage.getItem('testmo_autoRefresh');
     return saved !== null ? saved === 'true' : true;
   });
+  const [anomalies, setAnomalies] = useState([]);
 
   const sse = useDashboardSSE({
     projectId,
@@ -55,6 +56,11 @@ export function DashboardProvider({ children }) {
       lastRefreshRef.current = Date.now();
     }
   }, [sse.data]);
+
+  // Charger les anomalies quand le projet change
+  useEffect(() => {
+    loadAnomalies();
+  }, [loadAnomalies]);
 
   const checkBackendHealth = useCallback(async () => {
     try {
@@ -84,6 +90,17 @@ export function DashboardProvider({ children }) {
       setError(err.message || 'Erreur nettoyage cache');
     }
   }, []);
+
+  const loadAnomalies = useCallback(async () => {
+    try {
+      const response = await apiService.getAnomalies(projectId);
+      if (response.success) {
+        setAnomalies(response.data);
+      }
+    } catch (err) {
+      console.warn('Erreur chargement anomalies:', err.message);
+    }
+  }, [projectId]);
 
   const loadDashboardMetrics = useCallback(
     async (force = false) => {
@@ -193,6 +210,8 @@ export function DashboardProvider({ children }) {
       setAutoRefresh,
       liveConnected: sse.connected,
       liveError: sse.error,
+      anomalies,
+      loadAnomalies,
       checkBackendHealth,
       loadProjects,
       loadDashboardMetrics,
@@ -216,6 +235,8 @@ export function DashboardProvider({ children }) {
       autoRefresh,
       sse.connected,
       sse.error,
+      anomalies,
+      loadAnomalies,
       checkBackendHealth,
       loadProjects,
       loadDashboardMetrics,

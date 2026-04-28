@@ -49,3 +49,4 @@ coverage/
 backend/coverage/
 frontend/coverage/
 .kimi/
+test-results/

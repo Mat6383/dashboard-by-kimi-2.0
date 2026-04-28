@@ -29,6 +29,7 @@ const Dashboard4 = ({
   setExportHandler,
   showProductionSection = true,
   onToggleProductionSection,
+  anomalies = [],
 }) => {
   const dashboardRef = useRef(null);
   const [showAllRuns, setShowAllRuns] = React.useState(false);
@@ -241,6 +242,7 @@ const Dashboard4 = ({
           isDark={isDark}
           useBusiness={useBusiness}
           getAlertForMetric={getAlertForMetric}
+          anomalies={anomalies}
         />
 
         <ProductionSection
@@ -251,6 +253,7 @@ const Dashboard4 = ({
           onToggleProductionSection={onToggleProductionSection}
           isDark={isDark}
           useBusiness={useBusiness}
+          anomalies={anomalies}
         />
       </div>
 

@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { useDashboard } from '../hooks/useDashboard';
 import MetricsCards from './MetricsCards';
 import StatusChart from './StatusChart';
 import RunsList from './RunsList';
@@ -44,6 +45,7 @@ export default function AppRouter({
   selectedProdMilestones,
   onSaveSelection,
 }) {
+  const { anomalies } = useDashboard();
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
@@ -83,6 +85,7 @@ export default function AppRouter({
               setExportHandler={setExportHandler}
               showProductionSection={showProductionSection}
               onToggleProductionSection={onToggleProductionSection}
+              anomalies={anomalies}
             />
           }
         />

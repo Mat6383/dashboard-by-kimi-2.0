@@ -10,6 +10,7 @@
  */
 
 import React from 'react';
+import TrendBadge from './TrendBadge';
 
 function AlertItem({ alert, useBusiness }) {
   if (!alert) return null;
@@ -66,6 +67,7 @@ export default function MetricCard({
   description,
   alert,
   useBusiness,
+  trend,
 }) {
   return (
     <div
@@ -89,6 +91,7 @@ export default function MetricCard({
       >
         <Icon size={24} color={color} />
         <span style={{ fontWeight: 600, fontSize: '1.4rem', color: 'var(--text-color)' }}>{title}</span>
+        <TrendBadge trend={trend} />
       </div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
         <div style={{ fontSize: '3rem', fontWeight: 800, color }}>{value}%</div>
