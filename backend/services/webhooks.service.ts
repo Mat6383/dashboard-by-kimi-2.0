@@ -15,7 +15,7 @@ class WebhooksService {
    * @param {string[]} events
    * @param {string} secret
    */
-  create(url, events, secret) {
+  create(url: any, events: any, secret: any) {
     const db = this._db();
     if (!db) return null;
     try {
@@ -28,7 +28,7 @@ class WebhooksService {
         .run(url, JSON.stringify(events), secret, 1, now, now);
       logger.info(`Webhooks: subscription créée #${result.lastInsertRowid} → ${url}`);
       return this.getById(result.lastInsertRowid);
-    } catch (err) {
+    } catch (err: any) {
       logger.error('Webhooks: create error', err.message);
       return null;
     }
@@ -44,7 +44,7 @@ class WebhooksService {
       const rows = db
         .prepare('SELECT id, url, events, enabled, created_at, updated_at FROM webhook_subscriptions ORDER BY id DESC')
         .all();
-      return rows.map((r) => ({
+      return rows.map((r: any) => ({
         id: r.id,
         url: r.url,
         events: JSON.parse(r.events),
@@ -52,7 +52,7 @@ class WebhooksService {
         createdAt: r.created_at,
         updatedAt: r.updated_at,
       }));
-    } catch (err) {
+    } catch (err: any) {
       logger.error('Webhooks: getAll error', err.message);
       return [];
     }
@@ -62,7 +62,7 @@ class WebhooksService {
    * Retourne une subscription par ID.
    * @param {number} id
    */
-  getById(id) {
+  getById(id: any) {
     const db = this._db();
     if (!db) return null;
     try {
@@ -78,7 +78,7 @@ class WebhooksService {
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       };
-    } catch (err) {
+    } catch (err: any) {
       logger.error(`Webhooks: getById(${id}) error`, err.message);
       return null;
     }
@@ -89,7 +89,7 @@ class WebhooksService {
    * @param {number} id
    * @param {Object} patch
    */
-  update(id, { url, events, secret, enabled }) {
+  update(id: any, { url, events, secret, enabled }: any) {
     const db = this._db();
     if (!db) return false;
     try {
@@ -116,7 +116,7 @@ class WebhooksService {
       values.push(id);
       const result = db.prepare(`UPDATE webhook_subscriptions SET ${sets.join(', ')} WHERE id = ?`).run(...values);
       return result.changes > 0;
-    } catch (err) {
+    } catch (err: any) {
       logger.error(`Webhooks: update(${id}) error`, err.message);
       return false;
     }
@@ -126,13 +126,13 @@ class WebhooksService {
    * Supprime une subscription.
    * @param {number} id
    */
-  delete(id) {
+  delete(id: any) {
     const db = this._db();
     if (!db) return false;
     try {
       const result = db.prepare('DELETE FROM webhook_subscriptions WHERE id = ?').run(id);
       return result.changes > 0;
-    } catch (err) {
+    } catch (err: any) {
       logger.error(`Webhooks: delete(${id}) error`, err.message);
       return false;
     }
@@ -144,8 +144,8 @@ class WebhooksService {
    * @param {string} event - ex: "feature-flag.changed"
    * @param {Object} payload
    */
-  trigger(event, payload) {
-    const subs = this.getAll().filter((s) => s.enabled && s.events.includes(event));
+  trigger(event: any, payload: any) {
+    const subs = this.getAll().filter((s: any) => s.enabled && s.events.includes(event));
     if (subs.length === 0) return;
 
     for (const sub of subs) {
@@ -155,7 +155,7 @@ class WebhooksService {
     }
   }
 
-  async _send(sub, event, payload) {
+  async _send(sub: any, event: any, payload: any) {
     const body = {
       event,
       timestamp: new Date().toISOString(),
@@ -175,7 +175,7 @@ class WebhooksService {
         validateStatus: () => true, // on logue même les 4xx/5xx sans throw
       });
       logger.info(`Webhooks: event "${event}" envoyé à ${sub.url}`);
-    } catch (err) {
+    } catch (err: any) {
       logger.error(`Webhooks: échec envoi à ${sub.url}`, err.message);
     }
   }

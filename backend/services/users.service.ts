@@ -25,7 +25,7 @@ class UsersService {
    * @param {object} profile — { id, emails:[{value}], displayName, username, photos:[{value}] }
    * @returns {object} user
    */
-  upsertFromGitLab(profile) {
+  upsertFromGitLab(profile: any) {
     const gitlabId = parseInt(profile.id);
     const email = profile.emails?.[0]?.value || `${profile.username}@gitlab.local`;
     const name = profile.displayName || profile.username || 'Utilisateur GitLab';
@@ -55,11 +55,11 @@ class UsersService {
     return user;
   }
 
-  findById(id) {
+  findById(id: any) {
     return this.db.prepare('SELECT * FROM users WHERE id = ?').get(id);
   }
 
-  findByGitLabId(gitlabId) {
+  findByGitLabId(gitlabId: any) {
     return this.db.prepare('SELECT * FROM users WHERE gitlab_id = ?').get(gitlabId);
   }
 
@@ -69,7 +69,7 @@ class UsersService {
       .all();
   }
 
-  updateRole(userId, role) {
+  updateRole(userId: any, role: any) {
     const stmt = this.db.prepare('UPDATE users SET role = ? WHERE id = ?');
     const result = stmt.run(role, userId);
     return result.changes > 0;

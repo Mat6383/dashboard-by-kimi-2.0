@@ -1,3 +1,4 @@
+import { STATUS_TO_LABEL, STATUS_TO_GITLAB_STATUS, GITLAB_STATUS_OK, GITLAB_STATUS_KO, GITLAB_STATUS_WIP, GITLAB_STATUS_RETEST, GITLAB_STATUS_TODO, computeStatusChange, VERSION_FIELD_KEY } from '../services/status-sync.service';
 /**
  * ================================================
  * TESTS DE VÉRIFICATION DES CALCULS ISTQB
@@ -12,7 +13,6 @@
 
 // ─── Helpers extraits de testmo.service.js (sans dépendances) ───────────────
 
-const { STATUS_TO_LABEL } = require('../services/status-sync.service');
 
 function _calculatePercentage(value, total) {
   if (!total || total === 0) return 0;
@@ -832,13 +832,6 @@ describe('computeLabelChanges — logique de mise à jour des labels GitLab', ()
 // Tests GitLab Status Natif (GitLab 17+)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const {
-  STATUS_TO_GITLAB_STATUS,
-  GITLAB_STATUS_OK, GITLAB_STATUS_KO,
-  GITLAB_STATUS_WIP, GITLAB_STATUS_RETEST, GITLAB_STATUS_TODO,
-  computeStatusChange,
-  VERSION_FIELD_KEY
-} = require('../services/status-sync.service');
 
 describe('STATUS_TO_GITLAB_STATUS — mapping Testmo status_id → GitLab status natif', () => {
   test('2 (Passed) → GITLAB_STATUS_OK', () => {

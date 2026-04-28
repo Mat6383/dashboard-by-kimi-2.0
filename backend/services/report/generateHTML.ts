@@ -1,5 +1,5 @@
 import { esc } from './utils';
-function generateHTML(data, recommendations, complement) {
+function generateHTML(data: any, recommendations: any, complement: any) {
   const { milestoneName, stats, runs, functionalRuns, tnrRuns, failedTests, wipTests, passedWithTickets, verdict } =
     data;
   const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -8,7 +8,7 @@ function generateHTML(data, recommendations, complement) {
   const verdictColor = verdict === 'GO' ? '#10b981' : verdict === 'NO GO' ? '#ef4444' : '#f59e0b';
 
   // Badge class for pass rate
-  const prBadge = (rate) => {
+  const prBadge = (rate: any) => {
     if (rate >= 95) return 'badge-green';
     if (rate >= 85) return 'badge-orange';
     return 'badge-red';
@@ -17,7 +17,7 @@ function generateHTML(data, recommendations, complement) {
   // Build functional runs table rows
   const funcRunsRows = functionalRuns
     .map(
-      (r) => `
+      (r: any) => `
       <tr>
         <td><strong>${esc(r.name)}</strong></td>
         <td class="num">${r.total}</td>
@@ -33,7 +33,7 @@ function generateHTML(data, recommendations, complement) {
 
   const tnrRunsRows = tnrRuns
     .map(
-      (r) => `
+      (r: any) => `
       <tr>
         <td><strong>${esc(r.name)}</strong></td>
         <td class="num">${r.total}</td>
@@ -47,9 +47,9 @@ function generateHTML(data, recommendations, complement) {
 
   // Failed tests table
   const failedRows = failedTests
-    .map((ft) => {
+    .map((ft: any) => {
       const tickets =
-        ft.correctionTickets.length > 0 ? ft.correctionTickets.map((t) => `<strong>#${t}</strong>`).join(', ') : '—';
+        ft.correctionTickets.length > 0 ? ft.correctionTickets.map((t: any) => `<strong>#${t}</strong>`).join(', ') : '—';
       const runShort = ft.run.replace(/^.*- /, '');
       return `<tr><td>${runShort}</td><td>${esc(ft.caseName)}</td><td class="num"><span class="badge badge-red">Failed</span></td><td class="num">${tickets}</td></tr>`;
     })
@@ -57,15 +57,15 @@ function generateHTML(data, recommendations, complement) {
 
   // WIP tests table
   const wipRows = (wipTests || [])
-    .map((wt) => {
+    .map((wt: any) => {
       const runShort = wt.run.replace(/^.*- /, '');
       return `<tr><td>${runShort}</td><td>${esc(wt.caseName)}</td><td class="num"><span class="badge badge-orange">WIP</span></td></tr>`;
     })
     .join('');
 
   const passedTicketRows = passedWithTickets
-    .map((pt) => {
-      const tickets = pt.correctionTickets.map((t) => `<strong>#${t}</strong>`).join(', ');
+    .map((pt: any) => {
+      const tickets = pt.correctionTickets.map((t: any) => `<strong>#${t}</strong>`).join(', ');
       const runShort = pt.run.replace(/^.*- /, '');
       return `<tr><td>${runShort}</td><td>${esc(pt.caseName)}</td><td class="num"><span class="badge badge-green">Passed</span></td><td class="num">${tickets}</td></tr>`;
     })
@@ -73,17 +73,17 @@ function generateHTML(data, recommendations, complement) {
 
   // Tickets per run table
   const ticketsPerRunRows = runs
-    .filter((r) => r.gitlabIssues.length > 0)
-    .map((r) => {
+    .filter((r: any) => r.gitlabIssues.length > 0)
+    .map((r: any) => {
       const runShort = r.name.replace(/^.*- /, '');
-      return `<tr><td><strong>${runShort}</strong></td><td style="word-break:break-all;">${r.gitlabIssues.map((i) => '#' + i).join(', ')}</td><td class="num">${r.gitlabIssues.length}</td></tr>`;
+      return `<tr><td><strong>${runShort}</strong></td><td style="word-break:break-all;">${r.gitlabIssues.map((i: any) => '#' + i).join(', ')}</td><td class="num">${r.gitlabIssues.length}</td></tr>`;
     })
     .join('');
 
   // Recommendations
   const recoRows = (recommendations || [])
     .map(
-      (r) =>
+      (r: any) =>
         `<tr>
         <td><strong>${esc(r.category)}</strong></td>
         <td>${esc(r.text)}</td>
@@ -95,15 +95,15 @@ function generateHTML(data, recommendations, complement) {
     .join('');
 
   // Totals for functional
-  const fTotal = functionalRuns.reduce((s, r) => s + r.total, 0);
-  const fPassed = functionalRuns.reduce((s, r) => s + r.passed, 0);
-  const fFailed = functionalRuns.reduce((s, r) => s + r.failed, 0);
-  const fSkipped = functionalRuns.reduce((s, r) => s + r.skipped, 0);
-  const fWip = functionalRuns.reduce((s, r) => s + r.wip, 0);
+  const fTotal = functionalRuns.reduce((s: any, r: any) => s + r.total, 0);
+  const fPassed = functionalRuns.reduce((s: any, r: any) => s + r.passed, 0);
+  const fFailed = functionalRuns.reduce((s: any, r: any) => s + r.failed, 0);
+  const fSkipped = functionalRuns.reduce((s: any, r: any) => s + r.skipped, 0);
+  const fWip = functionalRuns.reduce((s: any, r: any) => s + r.wip, 0);
 
-  const tTotal = tnrRuns.reduce((s, r) => s + r.total, 0);
-  const tPassed = tnrRuns.reduce((s, r) => s + r.passed, 0);
-  const tFailed = tnrRuns.reduce((s, r) => s + r.failed, 0);
+  const tTotal = tnrRuns.reduce((s: any, r: any) => s + r.total, 0);
+  const tPassed = tnrRuns.reduce((s: any, r: any) => s + r.passed, 0);
+  const tFailed = tnrRuns.reduce((s: any, r: any) => s + r.failed, 0);
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -249,7 +249,7 @@ function generateHTML(data, recommendations, complement) {
       <tr><th>Run</th><th>Cas de test</th><th class="num">Statut</th><th class="num">Ticket correction</th></tr>
       ${failedRows}
       <tr style="background:#f1f5f9;font-weight:700;">
-        <td colspan="2">TOTAL TESTS ÉCHOUÉS</td><td class="num">${failedTests.length}</td><td class="num">${failedTests.filter((f) => f.correctionTickets.length > 0).length} tickets créés</td>
+        <td colspan="2">TOTAL TESTS ÉCHOUÉS</td><td class="num">${failedTests.length}</td><td class="num">${failedTests.filter((f: any) => f.correctionTickets.length > 0).length} tickets créés</td>
       </tr>
     </table>`
         : '<p>Aucun test échoué.</p>'

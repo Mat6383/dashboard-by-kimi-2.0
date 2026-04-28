@@ -9,7 +9,7 @@ class CommentsService {
 
   constructor() {
     this.db = null;
-    this.projectId = parseInt(process.env.CROSSTEST_PROJECT_ID) || 63;
+    this.projectId = parseInt(process.env.CROSSTEST_PROJECT_ID || '') || 63;
   }
 
   /**
@@ -39,7 +39,7 @@ class CommentsService {
         .prepare('SELECT * FROM crosstest_comments WHERE gitlab_project_id = ? ORDER BY updated_at DESC')
         .all(this.projectId);
 
-      const result = {};
+      const result: any = {};
       for (const row of rows) {
         result[row.issue_iid] = row;
       }
@@ -57,7 +57,7 @@ class CommentsService {
    * @param {string} milestoneContext  - ex: "R06"
    * @returns {Object} La ligne insérée/mise à jour
    */
-  upsert(iid, comment, milestoneContext = null) {
+  upsert(iid: any, comment: any, milestoneContext = null) {
     try {
       const now = new Date().toISOString();
       const stmt = this.db.prepare(`
@@ -85,7 +85,7 @@ class CommentsService {
    * @param {number} iid - GitLab issue IID
    * @returns {boolean} true si une ligne a été supprimée
    */
-  delete(iid) {
+  delete(iid: any) {
     try {
       const result = this.db
         .prepare('DELETE FROM crosstest_comments WHERE issue_iid = ? AND gitlab_project_id = ?')

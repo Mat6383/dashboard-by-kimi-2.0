@@ -6,24 +6,24 @@ const ACCESS_TTL = '15m';
 const REFRESH_TTL = '7d';
 
 class JwtService {
-  signPayload(payload) {
+  signPayload(payload: any) {
     return jwt.sign(payload, SECRET, { expiresIn: ACCESS_TTL });
   }
 
-  signRefresh(payload) {
+  signRefresh(payload: any) {
     return jwt.sign({ sub: payload.sub, type: 'refresh' }, SECRET, { expiresIn: REFRESH_TTL });
   }
 
-  verify(token) {
+  verify(token: any) {
     try {
       return jwt.verify(token, SECRET);
-    } catch (err) {
+    } catch (err: any) {
       logger.warn('[JwtService] Token invalide:', err.message);
       return null;
     }
   }
 
-  decode(token) {
+  decode(token: any) {
     try {
       return jwt.decode(token);
     } catch {

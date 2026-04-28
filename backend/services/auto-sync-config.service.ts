@@ -9,7 +9,7 @@ const CONFIG_FILE = path.join(__dirname, '..', 'data', 'auto-sync-config.json');
 function _defaultConfig() {
   return {
     enabled: process.env.SYNC_AUTO_ENABLED === 'true',
-    runId: parseInt(process.env.SYNC_AUTO_RUN_ID) || null,
+    runId: parseInt(process.env.SYNC_AUTO_RUN_ID || '') || null,
     iterationName: process.env.SYNC_AUTO_ITERATION_NAME || '',
     gitlabProjectId: process.env.SYNC_AUTO_GITLAB_PROJECT_ID || '',
     version: process.env.SYNC_AUTO_VERSION || '',
@@ -26,14 +26,14 @@ function load() {
       logger.info(`[AutoSyncConfig] Config chargée depuis ${CONFIG_FILE}`);
       return saved;
     }
-  } catch (err) {
+  } catch (err: any) {
     logger.warn(`[AutoSyncConfig] Impossible de lire ${CONFIG_FILE}: ${err.message} — fallback .env`);
   }
   return _defaultConfig();
 }
 
 // ─── Sauvegarde atomique dans fichier ─────────────────────────────────────────
-function save(config) {
+function save(config: any) {
   try {
     const dir = path.dirname(CONFIG_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -41,7 +41,7 @@ function save(config) {
     fs.writeFileSync(tmpFile, JSON.stringify(config, null, 2), 'utf-8');
     fs.renameSync(tmpFile, CONFIG_FILE);
     logger.info(`[AutoSyncConfig] Config sauvegardée dans ${CONFIG_FILE}`);
-  } catch (err) {
+  } catch (err: any) {
     logger.error(`[AutoSyncConfig] Impossible de sauvegarder la config: ${err.message}`);
   }
 }
@@ -69,7 +69,7 @@ function getConfig() {
  * @param {string|number} [patch.gitlabProjectId]
  * @returns {Object} Config mise à jour
  */
-function updateConfig(patch) {
+function updateConfig(patch: any) {
   const allowed = ['enabled', 'runId', 'iterationName', 'gitlabProjectId', 'version'];
 
   for (const key of allowed) {

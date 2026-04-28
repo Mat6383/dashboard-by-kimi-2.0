@@ -1,5 +1,5 @@
-const axios = require('axios');
-const alertService = require('../services/alert.service');
+import axios from 'axios';
+import alertService from '../services/alert.service';
 
 jest.mock('axios');
 jest.mock('../services/logger.service', () => ({

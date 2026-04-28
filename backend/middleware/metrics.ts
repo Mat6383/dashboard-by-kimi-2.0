@@ -57,9 +57,9 @@ const alertThresholdGauge = new client.Gauge({
 });
 
 // Initialiser les seuils d'alerte
-alertThresholdGauge.set({ metric: 'error_rate' }, parseFloat(process.env.ALERT_ERROR_RATE_THRESHOLD) || 5);
-alertThresholdGauge.set({ metric: 'memory' }, parseFloat(process.env.ALERT_MEMORY_THRESHOLD) || 80);
-alertThresholdGauge.set({ metric: 'disk' }, parseFloat(process.env.ALERT_DISK_THRESHOLD) || 85);
+alertThresholdGauge.set({ metric: 'error_rate' }, Number(process.env.ALERT_ERROR_RATE_THRESHOLD) || 5);
+alertThresholdGauge.set({ metric: 'memory' }, Number(process.env.ALERT_MEMORY_THRESHOLD) || 80);
+alertThresholdGauge.set({ metric: 'disk' }, Number(process.env.ALERT_DISK_THRESHOLD) || 85);
 
 /**
  * Met à jour la taille des bases SQLite (appelable périodiquement ou au scrape).
@@ -75,7 +75,7 @@ function updateDbSizeMetrics() {
         dbSizeGauge.set({ database: file }, stats.size);
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     logger.error('Metrics: Erreur lors de la lecture de la taille DB:', err.message);
   }
 }
@@ -83,7 +83,7 @@ function updateDbSizeMetrics() {
 /**
  * Middleware Express qui instrumente les requêtes HTTP.
  */
-function metricsMiddleware(req, res, next) {
+function metricsMiddleware(req: any, res: any, next: any) {
   const start = process.hrtime.bigint();
 
   res.on('finish', () => {

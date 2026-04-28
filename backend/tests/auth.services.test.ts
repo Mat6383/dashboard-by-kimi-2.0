@@ -1,3 +1,5 @@
+import jwtService from '../services/auth/jwt.service';
+import usersService from '../services/users.service';
 /**
  * Tests des services d'authentification
  * JWT + Users
@@ -22,7 +24,6 @@ describe('Auth Services', () => {
 
   describe('JwtService', () => {
     it('signs and verifies a payload', () => {
-      const jwtService = require('../services/auth/jwt.service');
       const token = jwtService.signPayload({ sub: 1, email: 'test@test.com', role: 'admin' });
       expect(typeof token).toBe('string');
 
@@ -33,12 +34,10 @@ describe('Auth Services', () => {
     });
 
     it('returns null for invalid token', () => {
-      const jwtService = require('../services/auth/jwt.service');
       expect(jwtService.verify('invalid-token')).toBeNull();
     });
 
     it('signs and verifies refresh token', () => {
-      const jwtService = require('../services/auth/jwt.service');
       const token = jwtService.signRefresh({ sub: 1 });
       const decoded = jwtService.verify(token);
       expect(decoded.sub).toBe(1);
@@ -48,7 +47,6 @@ describe('Auth Services', () => {
 
   describe('UsersService', () => {
     it('creates first user as admin', () => {
-      const usersService = require('../services/users.service');
       usersService.init();
       const user = usersService.upsertFromGitLab({
         id: '123',
@@ -64,7 +62,6 @@ describe('Auth Services', () => {
     });
 
     it('creates subsequent users as viewer', () => {
-      const usersService = require('../services/users.service');
       usersService.init();
       usersService.upsertFromGitLab({
         id: '1',
@@ -82,7 +79,6 @@ describe('Auth Services', () => {
     });
 
     it('updates existing user on re-login', () => {
-      const usersService = require('../services/users.service');
       usersService.init();
       usersService.upsertFromGitLab({
         id: '99',
@@ -101,7 +97,6 @@ describe('Auth Services', () => {
     });
 
     it('finds user by id', () => {
-      const usersService = require('../services/users.service');
       usersService.init();
       const created = usersService.upsertFromGitLab({
         id: '42',
@@ -114,7 +109,6 @@ describe('Auth Services', () => {
     });
 
     it('updates role', () => {
-      const usersService = require('../services/users.service');
       usersService.init();
       const user = usersService.upsertFromGitLab({
         id: '7',

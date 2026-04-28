@@ -15,7 +15,7 @@ class AlertService {
    * @param {number} projectId
    * @param {Array} alerts - Liste des alertes SLA
    */
-  async sendSLAAlert(projectId, alerts) {
+  async sendSLAAlert(projectId: any, alerts: any) {
     if (!alerts || alerts.length === 0) return;
 
     const text = this._formatSlackMessage(projectId, alerts);
@@ -24,15 +24,15 @@ class AlertService {
     await Promise.all([this._sendSlack(text), this._sendTeams(teamsCard)]);
   }
 
-  _formatSlackMessage(projectId, alerts) {
+  _formatSlackMessage(projectId: any, alerts: any) {
     const lines = alerts.map(
-      (a) => `• *[${a.severity.toUpperCase()}]* ${a.metric}: ${a.value}% (seuil: ${a.threshold}%)`
+      (a: any) => `• *[${a.severity.toUpperCase()}]* ${a.metric}: ${a.value}% (seuil: ${a.threshold}%)`
     );
     return `🚨 *Alertes SLA — Projet ${projectId}*\n${lines.join('\n')}`;
   }
 
-  _formatTeamsCard(projectId, alerts) {
-    const facts = alerts.map((a) => ({
+  _formatTeamsCard(projectId: any, alerts: any) {
+    const facts = alerts.map((a: any) => ({
       name: `${a.severity.toUpperCase()} — ${a.metric}`,
       value: `${a.value}% (seuil: ${a.threshold}%)`,
     }));
@@ -51,24 +51,24 @@ class AlertService {
     };
   }
 
-  async _sendSlack(text, customUrl?) {
+  async _sendSlack(text: any, customUrl?: any) {
     const url = customUrl || this.slackWebhookUrl;
     if (!url) return;
     try {
       await axios.post(url, { text }, { timeout: 5000 });
       logger.info('[AlertService] Slack alert sent');
-    } catch (err) {
+    } catch (err: any) {
       logger.warn('[AlertService] Slack webhook failed:', err.message);
     }
   }
 
-  async _sendTeams(card, customUrl?) {
+  async _sendTeams(card: any, customUrl?: any) {
     const url = customUrl || this.teamsWebhookUrl;
     if (!url) return;
     try {
       await axios.post(url, card, { timeout: 5000 });
       logger.info('[AlertService] Teams alert sent');
-    } catch (err) {
+    } catch (err: any) {
       logger.warn('[AlertService] Teams webhook failed:', err.message);
     }
   }

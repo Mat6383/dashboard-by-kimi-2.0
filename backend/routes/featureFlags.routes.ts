@@ -167,7 +167,7 @@ router.delete(
 router.get('/:key', (req, res) => {
   const { key } = req.params;
   const { userId } = req.query;
-  const enabled = featureFlagsService.isEnabled(key, false, userId || null);
+  const enabled = featureFlagsService.isEnabled(key, false, (userId as any) || null);
   const details = featureFlagsService.getByKey(key);
   const rolloutPercentage = details ? details.rolloutPercentage : 100;
   res.json({ success: true, data: { key, enabled, rolloutPercentage }, timestamp: new Date().toISOString() });

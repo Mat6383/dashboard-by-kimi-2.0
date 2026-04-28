@@ -1,3 +1,4 @@
+import service from '../services/metricSnapshots.service';
 /**
  * Tests du service MetricSnapshots
  */
@@ -19,7 +20,6 @@ describe('MetricSnapshotsService', () => {
   });
 
   it('saves and retrieves snapshots', () => {
-    const service = require('../services/metricSnapshots.service');
     service.init();
 
     service.saveSnapshot(1, {
@@ -37,7 +37,6 @@ describe('MetricSnapshotsService', () => {
   });
 
   it('updates snapshot for the same day', () => {
-    const service = require('../services/metricSnapshots.service');
     service.init();
 
     service.saveSnapshot(1, { passRate: 80 });
@@ -49,7 +48,6 @@ describe('MetricSnapshotsService', () => {
   });
 
   it('returns trends grouped by week', () => {
-    const service = require('../services/metricSnapshots.service');
     service.init();
 
     service.saveSnapshot(1, { passRate: 80 });
@@ -59,7 +57,6 @@ describe('MetricSnapshotsService', () => {
   });
 
   it('returns trends grouped by month', () => {
-    const service = require('../services/metricSnapshots.service');
     service.init();
 
     service.saveSnapshot(1, { passRate: 80 });
@@ -69,7 +66,6 @@ describe('MetricSnapshotsService', () => {
   });
 
   it('purges old snapshots', () => {
-    const service = require('../services/metricSnapshots.service');
     service.init();
 
     // Insert old snapshot manually

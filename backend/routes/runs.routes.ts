@@ -33,7 +33,7 @@ router.get('/:runId/results', validateParams(runIdParam), validateQuery(runResul
     const runId = parseInt(req.params.runId);
     const statusFilter = req.query.status; // Ex: '3,5' pour Failed+Blocked
 
-    const results = await testmoService.getRunResults(runId, statusFilter);
+    const results = await testmoService.getRunResults(runId, (statusFilter as string) || undefined);
 
     res.json({
       success: true,

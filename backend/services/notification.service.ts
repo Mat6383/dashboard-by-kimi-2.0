@@ -25,7 +25,7 @@ class NotificationService {
   /**
    * Dispatch une alerte SLA vers tous les canaux configurés
    */
-  async dispatch(projectId, alerts) {
+  async dispatch(projectId: any, alerts: any) {
     if (!alerts || alerts.length === 0) return;
 
     const settings = this.getSettings(projectId);
@@ -55,7 +55,7 @@ class NotificationService {
             alerts,
             dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/?project=${projectId}`,
           })
-          .then((r) => {
+          .then((r: any) => {
             if (r.sent) this._logAlert(projectId, 'email');
           })
       );
@@ -85,7 +85,7 @@ class NotificationService {
     await Promise.all(promises);
   }
 
-  getSettings(projectId) {
+  getSettings(projectId: any) {
     if (projectId === null || projectId === undefined) {
       const stmt = this.db.prepare('SELECT * FROM notification_settings WHERE project_id IS NULL');
       return stmt.get() || null;
@@ -94,7 +94,7 @@ class NotificationService {
     return stmt.get(projectId) || null;
   }
 
-  upsertSettings({ projectId, email, slackWebhook, teamsWebhook, enabledSlaEmail, enabledSlaSlack, enabledSlaTeams }) {
+  upsertSettings({ projectId, email, slackWebhook, teamsWebhook, enabledSlaEmail, enabledSlaSlack, enabledSlaTeams }: any) {
     const existing = this.getSettings(projectId || null);
     if (existing) {
       this.db
@@ -141,7 +141,7 @@ class NotificationService {
     return this.getSettings(projectId || null);
   }
 
-  async testWebhook(channel, url) {
+  async testWebhook(channel: any, url: any) {
     if (channel === 'slack') {
       await alertService._sendSlack('✅ Test de connexion — QA Dashboard Slack', url);
       return { ok: true };
@@ -162,13 +162,13 @@ class NotificationService {
     return { ok: false, error: 'Canal inconnu' };
   }
 
-  _mergeSettings(specific, fallback) {
+  _mergeSettings(specific: any, fallback: any) {
     if (specific) return specific;
     if (fallback) return fallback;
     return null;
   }
 
-  _isRateLimited(projectId) {
+  _isRateLimited(projectId: any) {
     const row = this.db
       .prepare(
         "SELECT COUNT(*) as count FROM alert_log WHERE project_id = ? AND sent_at > datetime('now', '-15 minutes')"
@@ -177,7 +177,7 @@ class NotificationService {
     return (row?.count || 0) > 0;
   }
 
-  _logAlert(projectId, channel) {
+  _logAlert(projectId: any, channel: any) {
     this.db.prepare('INSERT INTO alert_log (project_id, channel) VALUES (?, ?)').run(projectId, channel);
   }
 }

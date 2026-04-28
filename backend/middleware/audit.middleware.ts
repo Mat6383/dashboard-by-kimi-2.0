@@ -7,10 +7,10 @@ import auditService from '../services/audit.service';
  * @param {boolean} options.captureBody - Inclure le body de la requête dans details (défaut: false)
  * @param {boolean} options.captureParams - Inclure req.params dans details (défaut: false)
  */
-function auditAction(action, options: any = {}) {
+function auditAction(action: any, options: any = {}) {
   const { captureBody = false, captureParams = false } = options;
 
-  return (req, res, next) => {
+  return (req: any, res: any, next: any) => {
     res.on('finish', () => {
       const user = req.user || null;
       const details: any = {};

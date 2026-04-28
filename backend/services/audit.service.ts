@@ -30,7 +30,7 @@ class AuditService {
 
       this._initialized = true;
       logger.info('AuditService: Base SQLite initialisée → ' + DB_PATH);
-    } catch (err) {
+    } catch (err: any) {
       logger.error("AuditService: Impossible d'initialiser SQLite:", err.message);
     }
   }
@@ -68,7 +68,7 @@ class AuditService {
         details,
         params.success !== undefined ? (params.success ? 1 : 0) : 1
       );
-    } catch (err) {
+    } catch (err: any) {
       logger.error("AuditService: Erreur lors de l'insertion:", err.message);
     }
   }
@@ -114,7 +114,7 @@ class AuditService {
       ORDER BY timestamp DESC
       LIMIT ? OFFSET ?
     `);
-    const data = dataStmt.all(...values, limit, offset).map((row) => ({
+    const data = dataStmt.all(...values, limit, offset).map((row: any) => ({
       ...row,
       details: row.details ? JSON.parse(row.details) : null,
       success: row.success === 1,
@@ -140,7 +140,7 @@ class AuditService {
       if (result.changes > 0) {
         logger.info(`AuditService: ${result.changes} entrées supprimées (rétention ${retentionDays} jours)`);
       }
-    } catch (err) {
+    } catch (err: any) {
       logger.error('AuditService: Erreur lors du pruning:', err.message);
     }
   }

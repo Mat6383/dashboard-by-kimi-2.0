@@ -1,3 +1,4 @@
+
 /**
  * ================================================
  * TESTS — Gardes d'intégrité des composants

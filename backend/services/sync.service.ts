@@ -1,6 +1,7 @@
 import logger from './logger.service';
 import testmoService from './testmo.service';
 import gitlabService from './gitlab.service';
+// @ts-ignore
 import { marked } from 'marked';
 
 class SyncService {
@@ -13,13 +14,13 @@ class SyncService {
   _locks: any;
 
   constructor() {
-    this.projectId = parseInt(process.env.TESTMO_PROJECT_ID) || 1;
-    this.rootGroupId = parseInt(process.env.TESTMO_ROOT_GROUP_ID) || null;
+    this.projectId = parseInt(process.env.TESTMO_PROJECT_ID || '') || 1;
+    this.rootGroupId = parseInt(process.env.TESTMO_ROOT_GROUP_ID || '') || null;
     this.gitlabLabel = process.env.GITLAB_LABEL || 'test::TODO';
     this.apiDelay = 300;
     // Testmo GitLab integration IDs (discovered via API probing)
-    this.gitlabIntegrationId = parseInt(process.env.TESTMO_GITLAB_INTEGRATION_ID) || 1;
-    this.gitlabConnectionProjectId = parseInt(process.env.TESTMO_GITLAB_CONNECTION_PROJECT_ID) || 10684795;
+    this.gitlabIntegrationId = parseInt(process.env.TESTMO_GITLAB_INTEGRATION_ID || '') || 1;
+    this.gitlabConnectionProjectId = parseInt(process.env.TESTMO_GITLAB_CONNECTION_PROJECT_ID || '') || 10684795;
     // Verrouillage anti-concurrence par itération (LEAN — évite les doublons)
     this._locks = new Map();
   }
@@ -32,7 +33,7 @@ class SyncService {
    * @param {Object} projectConfig - Entrée de projects.config.js
    * @returns {Object} Proxy avec config surchargée
    */
-  _withProjectConfig(projectConfig) {
+  _withProjectConfig(projectConfig: any) {
     const testmo = projectConfig.testmo || {};
     const gitlab = projectConfig.gitlab || {};
 
@@ -46,12 +47,12 @@ class SyncService {
       apiDelay: this.apiDelay,
       _delay: this._delay.bind(this),
       parseIterationName: this.parseIterationName.bind(this),
-      buildCasePayload: (issue, folderId, iterationName) =>
+      buildCasePayload: (issue: any, folderId: any, iterationName: any) =>
         this._buildCasePayloadWith(issue, folderId, iterationName, {
           gitlabIntegrationId: testmo.gitlabIntegrationId || this.gitlabIntegrationId,
           gitlabConnectionProjectId: testmo.gitlabConnectionProjectId || this.gitlabConnectionProjectId,
         }),
-      ensureFolderHierarchy: (iterationName, isTest) =>
+      ensureFolderHierarchy: (iterationName: any, isTest: any) =>
         this._ensureFolderHierarchyWith(
           iterationName,
           isTest,
@@ -65,7 +66,7 @@ class SyncService {
   /**
    * Version paramétrée de buildCasePayload (évite de muter this)
    */
-  _buildCasePayloadWith(issue, folderId, iterationName, integrationConfig) {
+  _buildCasePayloadWith(issue: any, folderId: any, iterationName: any, integrationConfig: any) {
     const iid = issue.iid;
     const title = issue.title || '';
     const description = issue.description || '';
@@ -97,7 +98,7 @@ class SyncService {
   /**
    * Version paramétrée de ensureFolderHierarchy
    */
-  async _ensureFolderHierarchyWith(iterationName, isTest = false, projectId, rootGroupId) {
+  async _ensureFolderHierarchyWith(iterationName: any, isTest = false, projectId: any, rootGroupId: any) {
     const { parent, child } = this.parseIterationName(iterationName);
     const parentName = isTest ? `[TEST-API] ${parent}` : parent;
 
@@ -132,17 +133,17 @@ class SyncService {
    * @param {Array} notes - Commentaires GitLab (filtrés, sans notes système)
    * @returns {Array} Steps Testmo [{ step: string, expected: string }] ou []
    */
-  _extractStepsFromNotes(notes) {
+  _extractStepsFromNotes(notes: any) {
     // (?!\() exclut les liens markdown [texte](url) — seuls les [LABEL] sans parenthèse après
     const SECTION_HEADER_RE = /\[([^\]]+)\](?!\()/g;
     const TEST_RE = /^tests?$/i;
 
-    const structured = notes.filter((n) => n.body && /\[[^\]]+\](?!\()/.test(n.body));
+    const structured = notes.filter((n: any) => n.body && /\[[^\]]+\](?!\()/.test(n.body));
     if (structured.length === 0) return [];
 
     // Extrait les sections { label, content } d'un body
-    const parseSections = (body) => {
-      const headers = [];
+    const parseSections = (body: any) => {
+      const headers: any[] = [];
       let m;
       const re = new RegExp(SECTION_HEADER_RE.source, 'g');
       while ((m = re.exec(body)) !== null) {
@@ -157,18 +158,18 @@ class SyncService {
     };
 
     // Sections non-TEST : depuis le commentaire le plus complet (le plus long)
-    const best = structured.reduce((a, b) => (b.body.length > a.body.length ? b : a));
-    const otherSections = parseSections(best.body).filter((s) => !TEST_RE.test(s.label));
+    const best = structured.reduce((a: any, b: any) => (b.body.length > a.body.length ? b : a));
+    const otherSections = parseSections(best.body).filter((s: any) => !TEST_RE.test(s.label));
 
     // Sections [TEST]/[TESTS] : collectées depuis TOUTES les notes dans l'ordre chronologique
     // (structured conserve l'ordre d'arrivée = ordre chronologique de getIssueNotes sort:asc)
-    const allTestSections = structured.flatMap((note) => parseSections(note.body).filter((s) => TEST_RE.test(s.label)));
+    const allTestSections = structured.flatMap((note: any) => parseSections(note.body).filter((s: any) => TEST_RE.test(s.label)));
 
     if (otherSections.length === 0 && allTestSections.length === 0) return [];
 
     const EXPECTED = '<p>Conforme aux specs fonctionnelles</p>';
 
-    const steps = [...otherSections, ...allTestSections].map((s, i) => ({
+    const steps = [...otherSections, ...allTestSections].map((s: any, i: any) => ({
       text1: marked.parse(`**[${s.label}]**\n\n${s.content}`),
       text3: EXPECTED,
       display_order: i + 1,
@@ -187,7 +188,7 @@ class SyncService {
    * @param {string} iterationName - Nom brut de l'itération
    * @returns {{ parent: string, child: string }}
    */
-  parseIterationName(iterationName) {
+  parseIterationName(iterationName: any) {
     // Cas cadences auto GitLab : "Itération #N (date → date)"
     const generatedMatch =
       iterationName.match(/#(\d+)/) && /it.ration/i.test(iterationName) ? iterationName.match(/#(\d+)/) : null;
@@ -218,7 +219,7 @@ class SyncService {
    * @param {boolean} isTest - Si true, préfixe [TEST-API]
    * @returns {{ parentFolder: Object, childFolder: Object }}
    */
-  async ensureFolderHierarchy(iterationName, isTest = false) {
+  async ensureFolderHierarchy(iterationName: any, isTest = false) {
     return this._ensureFolderHierarchyWith(iterationName, isTest, this.projectId, this.rootGroupId);
   }
 
@@ -230,7 +231,7 @@ class SyncService {
    * @param {string} iterationName - Nom de l'itération (pour le tag)
    * @returns {Object} Payload Testmo
    */
-  buildCasePayload(issue, folderId, iterationName) {
+  buildCasePayload(issue: any, folderId: any, iterationName: any) {
     return this._buildCasePayloadWith(issue, folderId, iterationName, {
       gitlabIntegrationId: this.gitlabIntegrationId,
       gitlabConnectionProjectId: this.gitlabConnectionProjectId,
@@ -249,7 +250,7 @@ class SyncService {
    * @param {Function} onEvent                - Callback (type, data) pour les événements SSE
    * @returns {Object} Rapport de synchronisation
    */
-  async syncIteration(iterationName, options: any = {}, onEvent: any = null) {
+  async syncIteration(iterationName: any, options: any = {}, onEvent: any = null) {
     const { isTest = false, dryRun = false, projectConfig = null } = options;
     const stats = { created: 0, updated: 0, skipped: 0, enriched: 0, errors: 0, total: 0 };
 
@@ -263,7 +264,7 @@ class SyncService {
     }
     this._locks.set(lockKey, true);
 
-    const emit = (type, data = {}) => {
+    const emit = (type: any, data = {}) => {
       if (typeof onEvent === 'function') {
         onEvent(type, data);
       }
@@ -417,7 +418,7 @@ class SyncService {
           }
 
           await this._delay();
-        } catch (err) {
+        } catch (err: any) {
           logger.error(`Sync: Erreur sur ticket #${issue.iid} "${issue.title}":`, err.message);
           stats.errors++;
           emit('case_error', { name: issue.title, gitlabIid: issue.iid, message: err.message });
@@ -436,7 +437,7 @@ class SyncService {
 
       emit('done', { ...stats });
       return stats;
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Sync: Erreur fatale:', error.message);
       emit('error', { message: error.message });
       return { ...stats, error: error.message };
@@ -448,7 +449,7 @@ class SyncService {
   /**
    * Construit l'URL d'un case Testmo
    */
-  _buildTestmoUrl(projectId, caseId) {
+  _buildTestmoUrl(projectId: any, caseId: any) {
     if (!process.env.TESTMO_URL || !caseId) return null;
     return `${process.env.TESTMO_URL}/projects/${projectId}/repository/cases/${caseId}`;
   }
@@ -460,7 +461,7 @@ class SyncService {
    * @param {Object} projectConfig  - Entrée de projects.config.js
    * @returns {Object} { iteration, folder, issues, summary }
    */
-  async previewIteration(iterationName, projectConfig) {
+  async previewIteration(iterationName: any, projectConfig: any) {
     const cfg = this._withProjectConfig(projectConfig);
 
     logger.info(`Preview: Début pour "${iterationName}" (projet: ${projectConfig.label})`);
@@ -473,7 +474,7 @@ class SyncService {
       } else {
         iteration = await gitlabService.findIteration(iterationName);
       }
-    } catch (err) {
+    } catch (err: any) {
       throw new Error(`Erreur recherche itération: ${err.message}`);
     }
 
@@ -494,7 +495,7 @@ class SyncService {
       } else {
         issues = await gitlabService.getIssuesByLabelAndIteration(cfg.gitlabLabel, iteration.id);
       }
-    } catch (err) {
+    } catch (err: any) {
       throw new Error(`Erreur récupération tickets: ${err.message}`);
     }
     await this._delay();
@@ -573,7 +574,7 @@ class SyncService {
    * @returns {Object} Résultat du test
    */
   async testTestmoApi() {
-    const results = { folders: null, cases: null, cleanup: null };
+    const results: any = { folders: null, cases: null, cleanup: null };
 
     try {
       logger.info('='.repeat(60));
@@ -584,7 +585,7 @@ class SyncService {
       logger.info('[1/5] Listage des folders sous group_id=' + this.rootGroupId);
       const existingFolders = await testmoService.getFolders(this.projectId, this.rootGroupId);
       logger.info(`  → ${existingFolders.length} folder(s) trouvé(s)`);
-      results.folders = { existing: existingFolders.map((f) => ({ id: f.id, name: f.name })) };
+      results.folders = { existing: existingFolders.map((f: any) => ({ id: f.id, name: f.name })) };
       await this._delay();
 
       // 2. Créer un folder de test
@@ -628,7 +629,7 @@ class SyncService {
       logger.info('='.repeat(60));
 
       return { success: true, results };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('TEST API TESTMO — ERREUR:', error.message);
       return { success: false, error: error.message, results };
     }
@@ -646,7 +647,7 @@ class SyncService {
         return { success: true, deleted: testFolder.id };
       }
       return { success: true, message: 'Dossier non trouvé, rien à supprimer' };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Cleanup error:', error.message);
       return { success: false, error: error.message };
     }

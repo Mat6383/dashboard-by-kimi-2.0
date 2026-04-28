@@ -3,14 +3,14 @@ import logger from './logger.service';
 const MAX_SAMPLES = 100;
 const stats = new Map(); // name → { times: number[], totalCalls, errors }
 
-function _ensureStats(name) {
+function _ensureStats(name: any) {
   if (!stats.has(name)) {
     stats.set(name, { times: [], totalCalls: 0, errors: 0 });
   }
   return stats.get(name);
 }
 
-function _recordTime(name, durationMs, error = false) {
+function _recordTime(name: any, durationMs: any, error = false) {
   const s = _ensureStats(name);
   s.totalCalls += 1;
   if (error) {
@@ -21,14 +21,14 @@ function _recordTime(name, durationMs, error = false) {
   }
 }
 
-function _avg(arr) {
+function _avg(arr: any) {
   if (!arr.length) return 0;
-  return Math.round(arr.reduce((a, b) => a + b, 0) / arr.length);
+  return Math.round(arr.reduce((a: any, b: any) => a + b, 0) / arr.length);
 }
 
-function _p95(arr) {
+function _p95(arr: any) {
   if (!arr.length) return 0;
-  const sorted = [...arr].sort((a, b) => a - b);
+  const sorted = [...arr].sort((a: any, b: any) => a - b);
   const idx = Math.ceil(sorted.length * 0.95) - 1;
   return sorted[Math.max(0, idx)];
 }
@@ -39,14 +39,14 @@ function _p95(arr) {
  * @param {import('axios').AxiosInstance} client
  * @param {string} name - Nom de l'API ('testmo' | 'gitlab')
  */
-function instrumentAxios(client, name) {
-  client.interceptors.request.use((config) => {
+function instrumentAxios(client: any, name: any) {
+  client.interceptors.request.use((config: any) => {
     config._startTime = Date.now();
     return config;
   });
 
   client.interceptors.response.use(
-    (response) => {
+    (response: any) => {
       const start = response.config._startTime;
       if (start) {
         const duration = Date.now() - start;
@@ -60,7 +60,7 @@ function instrumentAxios(client, name) {
       }
       return response;
     },
-    (error) => {
+    (error: any) => {
       const config = error.config;
       if (config && config._startTime) {
         const duration = Date.now() - config._startTime;
@@ -78,7 +78,7 @@ function instrumentAxios(client, name) {
  * Retourne les statistiques actuelles de temps de réponse.
  */
 function getStats() {
-  const result = {};
+  const result: any = {};
   for (const [name, s] of stats) {
     result[name] = {
       totalCalls: s.totalCalls,

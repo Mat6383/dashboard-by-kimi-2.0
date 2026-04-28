@@ -117,7 +117,7 @@ app.use((req, res) => {
 const { errorHandler: sentryErrorHandler } = sentryService.getMiddlewares();
 app.use(sentryErrorHandler);
 
-app.use((err, req, res, _next) => {
+app.use((err: any, req: any, res: any, _next: any) => {
   logger.error('Erreur non gérée:', {
     message: err.message,
     stack: err.stack,

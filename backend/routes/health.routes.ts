@@ -37,7 +37,7 @@ function checkDb(dbService: any, label: any) {
       status: row?.ok === 1 ? 'OK' : 'FAIL',
       responseTimeMs: Date.now() - start,
     };
-  } catch (err) {
+  } catch (err: any) {
     return { status: 'FAIL', error: err.message, responseTimeMs: Date.now() - start };
   }
 }
@@ -59,7 +59,7 @@ function checkDisk(): any {
       totalBytes,
       usagePercent,
     };
-  } catch (err) {
+  } catch (err: any) {
     return { status: 'FAIL', error: err.message };
   }
 }

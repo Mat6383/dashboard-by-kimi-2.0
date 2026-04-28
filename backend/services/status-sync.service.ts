@@ -55,18 +55,18 @@ const STATUS_TO_GITLAB_STATUS = {
 
 // ─── Standalone helpers (exportés pour tests) ────────────────────────────────
 
-function buildCommentText(runName, statusId) {
-  const statusName = STATUS_ID_TO_NAME[statusId] || String(statusId);
+function buildCommentText(runName: any, statusId: any) {
+  const statusName = (STATUS_ID_TO_NAME as any)[statusId] || String(statusId);
   return `Commentaire ajouté automatiquement - Test sur le run: ${runName} - Status ${statusName}`;
 }
 
-function isCommentDuplicate(existingNotes, commentText) {
-  return existingNotes.some((n) => n.body === commentText);
+function isCommentDuplicate(existingNotes: any, commentText: any) {
+  return existingNotes.some((n: any) => n.body === commentText);
 }
 
-function computeLabelChanges(currentLabels, newLabel) {
+function computeLabelChanges(currentLabels: any, newLabel: any) {
   if (!newLabel) return { addLabel: null, removeLabels: [], action: 'skip' };
-  const labelsToRemove = currentLabels.filter((l) => ALL_TEST_LABELS.includes(l) && l !== newLabel);
+  const labelsToRemove = currentLabels.filter((l: any) => ALL_TEST_LABELS.includes(l) && l !== newLabel);
   const alreadyHasLabel = currentLabels.includes(newLabel);
   if (alreadyHasLabel && labelsToRemove.length === 0) {
     return { addLabel: newLabel, removeLabels: [], action: 'noop' };
@@ -74,7 +74,7 @@ function computeLabelChanges(currentLabels, newLabel) {
   return { addLabel: newLabel, removeLabels: labelsToRemove, action: 'update' };
 }
 
-function computeStatusChange(currentStatus, newStatus) {
+function computeStatusChange(currentStatus: any, newStatus: any) {
   if (!newStatus) return { newStatus: null, action: 'skip' };
   if (currentStatus === newStatus) return { newStatus, action: 'noop' };
   return { newStatus, action: 'update' };
@@ -93,7 +93,7 @@ class StatusSyncService {
   constructor() {
     this.baseURL = process.env.TESTMO_URL;
     this.token = process.env.TESTMO_TOKEN;
-    this.timeout = parseInt(process.env.API_TIMEOUT) || 30000;
+    this.timeout = parseInt(process.env.API_TIMEOUT || '') || 30000;
 
     this.client = axios.create({
       baseURL: `${this.baseURL}/api/v1`,
@@ -120,7 +120,7 @@ class StatusSyncService {
    * @param {number} runId
    * @returns {Object} { id, name, ... }
    */
-  async _getRunInfo(runId) {
+  async _getRunInfo(runId: any) {
     const resp = await this.client.get(`/runs/${runId}`);
     return resp.data?.result || resp.data || {};
   }
@@ -131,7 +131,7 @@ class StatusSyncService {
    * @param {number} runId
    * @returns {Array} [{ case_id, case_name, status_id, is_latest, ... }]
    */
-  async _getRunResults(runId) {
+  async _getRunResults(runId: any) {
     const all = [];
     let page = 1;
 
@@ -162,7 +162,7 @@ class StatusSyncService {
    * @param {number[]} neededIds  - Liste des case_ids à résoudre
    * @returns {Map<number, string>}
    */
-  async _getCaseNames(neededIds) {
+  async _getCaseNames(neededIds: any) {
     const projectId = process.env.TESTMO_PROJECT_ID || 1;
     const map = new Map();
     const remaining = new Set(neededIds);
@@ -202,8 +202,8 @@ class StatusSyncService {
    * @param {number} statusId   - ID du statut Testmo
    * @returns {string} Texte du commentaire
    */
-  _buildCommentText(runName, statusId) {
-    const statusName = STATUS_ID_TO_NAME[statusId] || String(statusId);
+  _buildCommentText(runName: any, statusId: any) {
+    const statusName = (STATUS_ID_TO_NAME as any)[statusId] || String(statusId);
     return `Commentaire ajouté automatiquement - Test sur le run: ${runName} - Status ${statusName}`;
   }
 
@@ -217,7 +217,7 @@ class StatusSyncService {
    * @param {string}        runName   - Nom du run Testmo
    * @param {number}        statusId  - ID du statut Testmo
    */
-  async _postCommentIfNeeded(projectId, issueIid, caseName, runName, statusId) {
+  async _postCommentIfNeeded(projectId: any, issueIid: any, caseName: any, runName: any, statusId: any) {
     const commentText = this._buildCommentText(runName, statusId);
 
     try {
@@ -234,7 +234,7 @@ class StatusSyncService {
 
       await gitlabService.addIssueComment(projectId, issueIid, commentText);
       logger.info(`[StatusSync] Commentaire ajouté sur #${issueIid} "${caseName}" : "${commentText}"`);
-    } catch (err) {
+    } catch (err: any) {
       // Non-bloquant : une erreur sur le commentaire ne doit pas annuler la sync
       logger.error(`[StatusSync] Erreur commentaire #${issueIid} "${caseName}": ${err.message}`);
     }
@@ -262,9 +262,9 @@ class StatusSyncService {
    * @returns {Object} { updated, skipped, errors, total }
    */
   async syncRunStatusToGitLab(
-    runId,
-    iterationName,
-    gitlabProjectId,
+    runId: any,
+    iterationName: any,
+    gitlabProjectId: any,
     onEvent: any = () => {},
     dryRun = false,
     version = null
@@ -283,7 +283,7 @@ class StatusSyncService {
       const runInfo = await this._getRunInfo(runId);
       runName = runInfo.name || runName;
       onEvent('info', { message: `Run Testmo : "${runName}"` });
-    } catch (err) {
+    } catch (err: any) {
       logger.warn(`[StatusSync] Impossible de récupérer le nom du run ${runId}: ${err.message}`);
     }
 
@@ -331,7 +331,7 @@ class StatusSyncService {
     }
 
     // Index issues par titre (titre normalisé → issue)
-    const normalize = (s) => (s || '').toLowerCase().trim();
+    const normalize = (s: any) => (s || '').toLowerCase().trim();
     const issueByTitle = new Map();
     for (const issue of issues) {
       issueByTitle.set(normalize(issue.title), issue);
@@ -343,7 +343,7 @@ class StatusSyncService {
 
     for (const result of results) {
       const statusId = result.status_id;
-      const newStatus = STATUS_TO_GITLAB_STATUS[statusId]; // undefined si Untested
+      const newStatus = (STATUS_TO_GITLAB_STATUS as any)[statusId]; // undefined si Untested
 
       const caseName = result.case_name || caseNames.get(result.case_id);
       if (!caseName) {
@@ -385,7 +385,7 @@ class StatusSyncService {
         logger.info(`[StatusSync] #${issue.iid} "${caseName}" → status:${newStatus}`);
 
         await this._postCommentIfNeeded(gitlabProjectId, issue.iid, caseName, runName, statusId);
-      } catch (err) {
+      } catch (err: any) {
         stats.errors++;
         onEvent('error', { caseName, issueIid: issue.iid, error: err.message });
         logger.error(`[StatusSync] Erreur #${issue.iid} "${caseName}":`, err.message);
@@ -409,9 +409,9 @@ import { withResilience } from '../utils/withResilience';
 
 const statusSyncBreaker = new CircuitBreaker({ name: 'statusSync', failureThreshold: 3, resetTimeoutMs: 60000 });
 
-function wrapMethod(service, methodName, breaker, options) {
+function wrapMethod(service: any, methodName: any, breaker: any, options: any) {
   const original = service[methodName].bind(service);
-  service[methodName] = (...args) => withResilience(() => original(...args), breaker, options);
+  service[methodName] = (...args: any[]) => withResilience(() => original(...args), breaker, options);
 }
 
 wrapMethod(statusSyncService, 'syncRunStatusToGitLab', statusSyncBreaker, {

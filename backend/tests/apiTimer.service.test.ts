@@ -1,8 +1,8 @@
+import { instrumentAxios, getStats } from '../services/apiTimer.service';
 /**
  * Tests unitaires — ApiTimer Service
  */
 
-const { instrumentAxios, getStats } = require('../services/apiTimer.service');
 
 describe('ApiTimer Service', () => {
   let mockClient;

@@ -4,6 +4,7 @@
  * ================================================
  */
 
+// @ts-ignore
 import { Strategy as GitLabStrategy } from 'passport-gitlab2';
 import usersService from '../users.service';
 import logger from '../logger.service';
@@ -25,11 +26,11 @@ function createStrategy() {
       callbackURL: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/auth/gitlab/callback`,
       baseURL: GITLAB_URL,
     },
-    async (_accessToken, _refreshToken, profile, done) => {
+    async (_accessToken: any, _refreshToken: any, profile: any, done: any) => {
       try {
         const user = usersService.upsertFromGitLab(profile);
         return done(null, user);
-      } catch (err) {
+      } catch (err: any) {
         logger.error('[GitLabStrategy] Erreur upsert user:', err.message);
         return done(err, null);
       }

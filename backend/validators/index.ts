@@ -142,12 +142,12 @@ const webhookUpdateBody = z.object({
 });
 
 // ─── Middleware ────────────────────────────────────────────────────────────
-function validate(schema) {
-  return (req, res, next) => {
+function validate(schema: any) {
+  return (req: any, res: any, next: any) => {
     try {
       schema.parse(req);
       next();
-    } catch (err) {
+    } catch (err: any) {
       const message = err.errors?.[0]?.message || err.message;
       return res.status(400).json({
         success: false,
@@ -158,12 +158,12 @@ function validate(schema) {
   };
 }
 
-function validateParams(schema) {
-  return (req, res, next) => {
+function validateParams(schema: any) {
+  return (req: any, res: any, next: any) => {
     try {
       schema.parse(req.params);
       next();
-    } catch (err) {
+    } catch (err: any) {
       const message = err.errors?.[0]?.message || err.message;
       return res.status(400).json({
         success: false,
@@ -174,12 +174,12 @@ function validateParams(schema) {
   };
 }
 
-function validateBody(schema) {
-  return (req, res, next) => {
+function validateBody(schema: any) {
+  return (req: any, res: any, next: any) => {
     try {
       schema.parse(req.body);
       next();
-    } catch (err) {
+    } catch (err: any) {
       const message = err.errors?.[0]?.message || err.message;
       return res.status(400).json({
         success: false,
@@ -190,12 +190,12 @@ function validateBody(schema) {
   };
 }
 
-function validateQuery(schema) {
-  return (req, res, next) => {
+function validateQuery(schema: any) {
+  return (req: any, res: any, next: any) => {
     try {
       schema.parse(req.query);
       next();
-    } catch (err) {
+    } catch (err: any) {
       const message = err.errors?.[0]?.message || err.message;
       return res.status(400).json({
         success: false,

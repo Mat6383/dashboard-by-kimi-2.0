@@ -1,9 +1,9 @@
+import { detectAnomalies, calculateStats, METRIC_KEYS } from '../../services/anomaly.service';
+import metricSnapshotsService from '../../services/metricSnapshots.service';
 /**
  * Tests unitaires du service de détection d'anomalies
  */
 
-const { detectAnomalies, calculateStats, METRIC_KEYS } = require('../../services/anomaly.service');
-const metricSnapshotsService = require('../../services/metricSnapshots.service');
 
 jest.mock('../../services/logger.service', () => ({
   info: jest.fn(),

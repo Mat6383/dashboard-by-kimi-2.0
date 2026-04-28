@@ -1,3 +1,6 @@
+import notificationService from '../services/notification.service';
+import emailService from '../services/email.service';
+import alertService from '../services/alert.service';
 /**
  * Tests du service de notification
  */
@@ -32,7 +35,6 @@ describe('NotificationService', () => {
   });
 
   it('dispatches email and webhook when configured', async () => {
-    const notificationService = require('../services/notification.service');
     notificationService._init();
     notificationService.upsertSettings({
       projectId: 1,
@@ -44,8 +46,6 @@ describe('NotificationService', () => {
       enabledSlaTeams: true,
     });
 
-    const emailService = require('../services/email.service');
-    const alertService = require('../services/alert.service');
 
     await notificationService.dispatch(1, [{ severity: 'critical', metric: 'Pass Rate', value: 80, threshold: 85 }]);
 
@@ -55,9 +55,7 @@ describe('NotificationService', () => {
   });
 
   it('falls back to legacy alertService when no DB settings', async () => {
-    const notificationService = require('../services/notification.service');
     notificationService._init();
-    const alertService = require('../services/alert.service');
 
     await notificationService.dispatch(1, [{ severity: 'critical', metric: 'Pass Rate', value: 80, threshold: 85 }]);
 
@@ -65,7 +63,6 @@ describe('NotificationService', () => {
   });
 
   it('rate-limits alerts per project', async () => {
-    const notificationService = require('../services/notification.service');
     notificationService._init();
     notificationService.upsertSettings({
       projectId: 2,
@@ -73,7 +70,6 @@ describe('NotificationService', () => {
       enabledSlaEmail: true,
     });
 
-    const emailService = require('../services/email.service');
 
     await notificationService.dispatch(2, [{ severity: 'critical', metric: 'X', value: 1, threshold: 2 }]);
     await notificationService.dispatch(2, [{ severity: 'critical', metric: 'Y', value: 1, threshold: 2 }]);
@@ -83,9 +79,7 @@ describe('NotificationService', () => {
   });
 
   it('tests webhook connection', async () => {
-    const notificationService = require('../services/notification.service');
     notificationService._init();
-    const alertService = require('../services/alert.service');
 
     const result = await notificationService.testWebhook('slack', 'https://hooks.slack.com/test');
     expect(result.ok).toBe(true);
@@ -96,7 +90,6 @@ describe('NotificationService', () => {
   });
 
   it('returns error for unknown webhook channel', async () => {
-    const notificationService = require('../services/notification.service');
     notificationService._init();
     const result = await notificationService.testWebhook('discord', 'https://discord.com/test');
     expect(result.ok).toBe(false);

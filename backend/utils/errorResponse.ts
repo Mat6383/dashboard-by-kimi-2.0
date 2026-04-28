@@ -8,7 +8,7 @@ import logger from '../services/logger.service';
  * @param {string} [context] - Contexte (nom de la route) pour les logs
  * @returns {{ success: false, error: string, timestamp: string }}
  */
-function safeErrorResponse(error, context = 'unknown') {
+function safeErrorResponse(error: any, context = 'unknown') {
   logger.error(`[${context}] Erreur interne:`, {
     message: error.message,
     stack: error.stack,

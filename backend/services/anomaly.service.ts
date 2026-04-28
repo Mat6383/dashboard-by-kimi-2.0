@@ -14,12 +14,12 @@ const WINDOW_SIZE = 30;
 /**
  * Calcule la moyenne et l'écart-type d'un tableau de nombres
  */
-function calculateStats(values) {
+function calculateStats(values: any) {
   const n = values.length;
   if (n === 0) return { mean: 0, stdDev: 0 };
-  const mean = values.reduce((a, b) => a + b, 0) / n;
+  const mean = values.reduce((a: any, b: any) => a + b, 0) / n;
   if (n === 1) return { mean, stdDev: 0 };
-  const variance = values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / (n - 1);
+  const variance = values.reduce((sum: any, v: any) => sum + Math.pow(v - mean, 2), 0) / (n - 1);
   const stdDev = Math.sqrt(variance);
   return { mean, stdDev };
 }
@@ -29,7 +29,7 @@ function calculateStats(values) {
  * @param {number} projectId
  * @returns {Array<{ metric: string, label: string, currentValue: number, mean: number, stdDev: number, zScore: number, severity: string, direction: string }>}
  */
-function detectAnomalies(projectId) {
+function detectAnomalies(projectId: any) {
   if (!metricSnapshotsService.db) {
     metricSnapshotsService.init();
   }
@@ -52,8 +52,8 @@ function detectAnomalies(projectId) {
   const chronological = rows;
   const anomalies = [];
 
-  for (const { key, label, inverse } of METRIC_KEYS) {
-    const values = chronological.map((r) => r[key]).filter((v) => v !== null && v !== undefined);
+  for (const { key, label, inverse } of METRIC_KEYS as any) {
+    const values = chronological.map((r: any) => r[key]).filter((v: any) => v !== null && v !== undefined);
 
     if (values.length < 3) continue;
 

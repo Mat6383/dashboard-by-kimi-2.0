@@ -1,6 +1,6 @@
 import logger from '../services/logger.service';
 
-function requireAdminAuth(req, res, next) {
+function requireAdminAuth(req: any, res: any, next: any) {
   const adminToken = process.env.ADMIN_API_TOKEN;
   if (!adminToken) {
     logger.warn('[AdminAuth] ADMIN_API_TOKEN non configuré — accès admin refusé');

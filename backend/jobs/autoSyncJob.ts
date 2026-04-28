@@ -20,7 +20,7 @@ async function runAutoSync() {
       runId,
       iterationName,
       gitlabProjectId,
-      (type, data) => {
+      (type: any, data: any) => {
         if (type === 'updated') logger.info(`[AutoSync] ✓ #${data.issueIid} "${data.caseName}" → ${data.label}`);
         else if (type === 'error') logger.error(`[AutoSync] ✗ #${data.issueIid} "${data.caseName}": ${data.error}`);
         else if (type === 'done')
@@ -32,7 +32,7 @@ async function runAutoSync() {
     logger.info(
       `[AutoSync] Stats: updated=${stats.updated} skipped=${stats.skipped} errors=${stats.errors} total=${stats.total}`
     );
-  } catch (err) {
+  } catch (err: any) {
     logger.error(`[AutoSync] Erreur critique: ${err.message}`);
   }
 }

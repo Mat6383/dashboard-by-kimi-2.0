@@ -33,7 +33,7 @@ class SyncHistoryService {
 
       this._initialized = true;
       logger.info('SyncHistory: Base SQLite initialisée → ' + DB_PATH);
-    } catch (err) {
+    } catch (err: any) {
       logger.error('SyncHistory: Impossible d\'initialiser SQLite:', err.message);
     }
   }
@@ -47,7 +47,7 @@ class SyncHistoryService {
    * @param {Object} results       - { created, updated, skipped, enriched, errors, total }
    * @returns {number|null} ID de la ligne insérée, ou null en cas d'erreur
    */
-  addRun(projectName, iterationName, mode, results: any = {}) {
+  addRun(projectName: any, iterationName: any, mode: any, results: any = {}) {
     if (!this._initialized) this.initDb();
     if (!this.db) return null;
 
@@ -74,7 +74,7 @@ class SyncHistoryService {
 
       logger.info(`SyncHistory: run ${info.lastInsertRowid} enregistré (${projectName} / ${iterationName} / ${mode})`);
       return info.lastInsertRowid;
-    } catch (err) {
+    } catch (err: any) {
       logger.error('SyncHistory: Erreur insertion:', err.message);
       return null;
     }
@@ -95,7 +95,7 @@ class SyncHistoryService {
         .prepare('SELECT * FROM sync_runs ORDER BY id DESC LIMIT ?')
         .all(limit);
       return rows;
-    } catch (err) {
+    } catch (err: any) {
       logger.error('SyncHistory: Erreur lecture historique:', err.message);
       return [];
     }

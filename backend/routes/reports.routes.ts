@@ -26,7 +26,7 @@ router.post('/generate', validateBody(reportsGenerateBody), auditAction('report.
       if (milestoneId) {
         logger.info(`runIds absent, fallback sur milestoneId=${milestoneId}`);
         const allRuns = await testmoService.apiGet(`/projects/${projectId}/runs?limit=50`);
-        resolvedRunIds = (allRuns.result || []).filter((r) => r.milestone_id === milestoneId).map((r) => r.id);
+        resolvedRunIds = (allRuns.result || []).filter((r: any) => r.milestone_id === milestoneId).map((r: any) => r.id);
         if (resolvedRunIds.length === 0) {
           return res.status(400).json({ success: false, error: `Aucun run trouvé pour le milestone ${milestoneId}` });
         }

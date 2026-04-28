@@ -1,9 +1,9 @@
+import { withResilience, isRetryable } from '../../utils/withResilience';
+import { CircuitBreaker } from '../../utils/circuitBreaker';
 /**
  * Tests unitaires de withResilience
  */
 
-const { withResilience, isRetryable } = require('../../utils/withResilience');
-const { CircuitBreaker } = require('../../utils/circuitBreaker');
 
 describe('withResilience', () => {
   it('retourne le résultat en cas de succès', async () => {

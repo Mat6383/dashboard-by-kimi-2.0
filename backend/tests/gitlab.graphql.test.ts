@@ -1,3 +1,5 @@
+import { GITLAB_STATUS_OK, GITLAB_STATUS_KO, GITLAB_STATUS_WIP, GITLAB_STATUS_RETEST, GITLAB_STATUS_TODO, STATUS_TO_GITLAB_STATUS, VERSION_FIELD_KEY } from '../services/status-sync.service';
+import gitlabService from '../services/gitlab.service';
 /**
  * ================================================
  * TESTS — GitLab GraphQL Work Item API
@@ -258,14 +260,6 @@ describe('buildVersionProdMap — construction du Map GID → valeur version', (
 // ─── 5. Format GID des constantes STATUS ─────────────────────────────────────
 // Les constantes doivent être des GIDs GitLab valides, pas des strings arbitraires.
 
-const {
-  GITLAB_STATUS_OK,
-  GITLAB_STATUS_KO,
-  GITLAB_STATUS_WIP,
-  GITLAB_STATUS_RETEST,
-  GITLAB_STATUS_TODO,
-  STATUS_TO_GITLAB_STATUS,
-} = require('../services/status-sync.service');
 
 const GITLAB_STATUS_GID_PATTERN = /^gid:\/\/gitlab\/WorkItems::Statuses::Custom::Status\/\d+$/;
 
@@ -324,7 +318,6 @@ describe('GITLAB_STATUS_* — format GID Work Item valide', () => {
 });
 
 // ─── 6. VERSION_FIELD_KEY — GID du champ custom Version Prod ─────────────────
-const { VERSION_FIELD_KEY } = require('../services/status-sync.service');
 
 describe('VERSION_FIELD_KEY — GID du champ custom Version Prod', () => {
   test('est un GID Issuables::CustomField valide', () => {
@@ -338,7 +331,7 @@ describe('VERSION_FIELD_KEY — GID du champ custom Version Prod', () => {
 
 // ─── 7. updateWorkItemStatus — mutation GraphQL avec axios mocké ──────────────
 // Vérifie que la méthode appelle /api/graphql avec les bons paramètres.
-// Le mock jest.mock est hoisted — les deux require('axios') (test + service)
+// Le mock jest.mock est hoisted — les deux import 'axios'; (test + service)
 // reçoivent la MÊME instance mock, ce qui garantit que mockResolvedValue fonctionne.
 
 jest.mock('axios', () => ({
@@ -358,7 +351,6 @@ process.env.GITLAB_TOKEN = 'test-token';
 process.env.GITLAB_WRITE_TOKEN = 'test-write-token';
 process.env.GITLAB_VERIFY_SSL = 'false';
 
-const gitlabService = require('../services/gitlab.service');
 
 const WORK_ITEM_GID = 'gid://gitlab/WorkItem/19796';
 const STATUS_GID = 'gid://gitlab/WorkItems::Statuses::Custom::Status/18';

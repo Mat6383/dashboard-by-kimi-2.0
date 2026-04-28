@@ -50,7 +50,7 @@ router.get(
     );
   },
   (req, res) => {
-    const user = req.user;
+    const user = req.user as any;
     const accessToken = jwtService.signPayload({ sub: user.id, email: user.email, role: user.role });
     const refreshToken = jwtService.signRefresh({ sub: user.id });
 
@@ -115,14 +115,15 @@ router.post('/logout', (req, res) => {
 });
 
 router.get('/me', requireAuth, (req, res) => {
+  const user = req.user as any;
   res.json({
     success: true,
     data: {
-      id: req.user.id,
-      email: req.user.email,
-      name: req.user.name,
-      avatar: req.user.avatar,
-      role: req.user.role,
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar,
+      role: user.role,
     },
   });
 });

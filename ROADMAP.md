@@ -235,9 +235,39 @@
 - [x] **P16#6 Build & assets** — `tsc` + `copy-assets` (`docs/`, `db/migrations/`, `data/`) vers `dist/`, `npm start` sur `dist/server.js`
 - [x] **P16#7 Validation** — `typecheck` 0 erreur, tests 489/491, lint 0 erreur, serveur démarre
 
-## 🚧 Prochaine session
+## 🚀 P17 — Qualité TypeScript & Tests (Prochaine session)
 
-À définir — toutes les sessions P0→P16 sont livrées.
+### Option A — Strict Mode + Tests backend `.ts` (Recommandé) ✅ Livré
+
+- [x] **P17#1** Migrer 15 fichiers de test unitaires `.js → .ts` (services, middleware, utils) — tests d'intégration conservés en `.js` (compatibilité `jest.resetModules()`)
+- [x] **P17#2** Activer `"strict": true` dans `tsconfig.json` backend
+- [x] **P17#3** Typer les paramètres implicites `: any`, `catch (err: any)`, destructurations, index signatures
+- [x] **P17#4** Éliminer 689 erreurs strict mode (TS7006, TS18046, TS7053, TS2345, TS7031)
+- [x] **P17#5** Typer `req.query`, `req.params`, `req.body` avec casts `as string` et types précis
+- [x] **P17#6** Valider : `typecheck` 0 erreur, tests 489/491, build OK, lint 0 erreur
+
+### Option B — Tests de charge & Performance
+
+- [ ] Scénarios k6/Artillery : 50 users simultanés sur `/api/dashboard`, `/api/health`, exports PDF/Excel
+- [ ] Mesurer p95/p99 temps de réponse, mémoire SQLite, pool Puppeteer
+- [ ] Identifier et corriger les goulots d'étranglement (N+1 queries, blocages browser)
+
+### Option C — Docker & Déploiement conteneurisé
+
+- [ ] `Dockerfile` backend multi-stage (Node + Chromium pour Puppeteer)
+- [ ] `Dockerfile` frontend (build Vite + Nginx static)
+- [ ] `docker-compose.yml` avec volume SQLite persistant
+- [ ] Mise à jour `docs/DEPLOYMENT.md` pour le déploiement Docker
+
+---
+
+## 🚧 Sessions futures (P18+)
+
+- **P18** — Internationalisation (i18n) FR/EN : UI, emails, templates de rapport
+- **P19** — Pool Puppeteer optimisé : gestion mémoire, rotation de pages, mesures temps de génération
+- **P20** — WebSocket temps réel : remplacer/améliorer SSE par WebSocket natif pour le dashboard
+- **P21** — Backup automatisé SQLite : cron de dump + rotation + upload S3/rsync
+- **P22** — tRPC ou GraphQL : couche API typée côté backend pour consommation frontend sûre
 
 ## 📝 Notes
 

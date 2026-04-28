@@ -141,7 +141,7 @@ router.post('/execute', validateBody(syncExecuteBody), auditAction('sync.execute
   res.setHeader('X-Accel-Buffering', 'no'); // désactive le buffering nginx si présent
   res.flushHeaders();
 
-  const send = (type, data = {}) => {
+  const send = (type: any, data = {}) => {
     const payload = JSON.stringify({ type, ...data });
     res.write(`data: ${payload}\n\n`);
     if (typeof res.flush === 'function') res.flush();
@@ -155,7 +155,7 @@ router.post('/execute', validateBody(syncExecuteBody), auditAction('sync.execute
   try {
     logger.info(`Execute: ${project.label} / "${iterationName}"`);
 
-    const stats = await syncService.syncIteration(iterationName, { projectConfig: project }, (type, data) =>
+    const stats = await syncService.syncIteration(iterationName, { projectConfig: project }, (type: any, data: any) =>
       send(type, data)
     );
 
@@ -237,7 +237,7 @@ router.post('/status-to-gitlab', validateBody(syncStatusToGitlabBody), async (re
   res.setHeader('X-Accel-Buffering', 'no');
   res.flushHeaders();
 
-  const send = (type, data = {}) => {
+  const send = (type: any, data = {}) => {
     const payload = JSON.stringify({ type, ...data });
     res.write(`data: ${payload}\n\n`);
     if (typeof res.flush === 'function') res.flush();
@@ -254,7 +254,7 @@ router.post('/status-to-gitlab', validateBody(syncStatusToGitlabBody), async (re
       runId,
       iterationName,
       gitlabProjectId,
-      (type, data) => send(type, data),
+      (type: any, data: any) => send(type, data),
       Boolean(dryRun),
       version || null
     );

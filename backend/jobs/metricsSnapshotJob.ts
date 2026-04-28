@@ -3,7 +3,7 @@ import logger from '../services/logger.service';
 import testmoService from '../services/testmo.service';
 import metricSnapshotsService from '../services/metricSnapshots.service';
 
-let task = null;
+let task: any = null;
 
 function start() {
   if (task) return;
@@ -19,14 +19,14 @@ function start() {
         try {
           const metrics = await testmoService.getProjectMetrics(project.id);
           metricSnapshotsService.saveSnapshot(project.id, metrics);
-        } catch (err) {
+        } catch (err: any) {
           logger.warn(`[MetricsSnapshotJob] Échec snapshot projet ${project.id}:`, err.message);
         }
       }
 
       metricSnapshotsService.purgeOld();
       logger.info('[MetricsSnapshotJob] Snapshots terminés');
-    } catch (err) {
+    } catch (err: any) {
       logger.error('[MetricsSnapshotJob] Erreur globale:', err.message);
     }
   });

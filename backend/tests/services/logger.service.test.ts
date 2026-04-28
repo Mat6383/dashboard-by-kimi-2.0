@@ -1,8 +1,8 @@
+import { redactSensitive } from '../../services/logger.service';
 /**
  * Tests unitaires du Logger Service
  */
 
-const { redactSensitive } = require('../../services/logger.service');
 
 describe('Logger Service', () => {
   describe('redactSensitive', () => {

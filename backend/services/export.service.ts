@@ -6,11 +6,11 @@ import logger from './logger.service';
  * @param {Array<Array>} aoa
  * @returns {string}
  */
-function aoaToCsv(aoa) {
+function aoaToCsv(aoa: any) {
   return aoa
-    .map((row) =>
+    .map((row: any) =>
       row
-        .map((cell) => {
+        .map((cell: any) => {
           const str = String(cell ?? '');
           if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
             return `"${str.replace(/"/g, '""')}"`;
@@ -29,7 +29,7 @@ class ExportService {
    * @param {string} projectName — Nom du projet
    * @returns {Buffer}
    */
-  generateCSV(metrics, projectName) {
+  generateCSV(metrics: any, projectName: any) {
     const lines = [];
     const m = metrics || {};
     const raw = m.raw || {};
@@ -155,7 +155,7 @@ class ExportService {
    * @param {string} projectName — Nom du projet
    * @returns {Buffer}
    */
-  async generateExcel(metrics, projectName) {
+  async generateExcel(metrics: any, projectName: any) {
     const m = metrics || {};
     const raw = m.raw || {};
     const itil = m.itil || {};

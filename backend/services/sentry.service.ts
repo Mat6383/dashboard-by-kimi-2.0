@@ -18,7 +18,7 @@ function init(app: any) {
       new (Sentry as any).Integrations.Http({ tracing: true }),
       new (Sentry as any).Integrations.Express({ app }),
     ],
-    tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE) || 0.1,
+    tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE as string) || 0.1,
   });
 
   initialized = true;

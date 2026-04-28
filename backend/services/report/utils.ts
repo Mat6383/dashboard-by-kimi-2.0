@@ -1,7 +1,7 @@
 /**
  * Échappement HTML basique
  */
-function esc(str) {
+function esc(str: any) {
   if (!str) return '';
   return String(str)
     .replace(/&/g, '&amp;')

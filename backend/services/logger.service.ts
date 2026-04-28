@@ -30,12 +30,12 @@ const SENSITIVE_KEYS = [
 /**
  * Masque récursivement les valeurs sensibles dans un objet.
  */
-function redactSensitive(obj) {
+function redactSensitive(obj: any) {
   if (typeof obj !== 'object' || obj === null) return obj;
   if (obj instanceof Date) return obj.toISOString();
   if (obj instanceof Error) return { message: obj.message, name: obj.name };
 
-  const result = Array.isArray(obj) ? [] : {};
+  const result: any = Array.isArray(obj) ? [] : {};
   for (const [key, value] of Object.entries(obj)) {
     const lowerKey = key.toLowerCase();
     if (SENSITIVE_KEYS.some((sk) => lowerKey.includes(sk))) {
@@ -59,11 +59,11 @@ const customFormat = winston.format.combine(
     // Ajouter les métadonnées si présentes
     if (Object.keys(info).length > 5) {
       const metadata = { ...info };
-      delete metadata.timestamp;
-      delete metadata.level;
-      delete metadata.message;
-      delete metadata[Symbol.for('level')];
-      delete metadata[Symbol.for('splat')];
+      delete (metadata as any).timestamp;
+      delete (metadata as any).level;
+      delete (metadata as any).message;
+      delete (metadata as any)[Symbol.for('level')];
+      delete (metadata as any)[Symbol.for('splat')];
 
       if (Object.keys(metadata).length > 0) {
         try {

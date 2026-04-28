@@ -1,5 +1,6 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
+  preset: 'ts-jest',
   testEnvironment: 'node',
   roots: ['<rootDir>'],
   testMatch: ['**/tests/**/*.test.(js|ts)'],
@@ -8,7 +9,6 @@ module.exports = {
       'ts-jest',
       {
         tsconfig: '<rootDir>/tsconfig.json',
-        useESM: false,
         isolatedModules: true,
         diagnostics: { ignoreCodes: [151001] },
       },

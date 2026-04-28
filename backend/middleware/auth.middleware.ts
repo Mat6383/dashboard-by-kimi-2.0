@@ -3,7 +3,7 @@ import usersService from '../services/users.service';
 import logger from '../services/logger.service';
 import auditService from '../services/audit.service';
 
-function extractToken(req) {
+function extractToken(req: any) {
   if (req.headers.authorization?.startsWith('Bearer ')) {
     return req.headers.authorization.slice(7);
   }
@@ -13,7 +13,7 @@ function extractToken(req) {
   return null;
 }
 
-function requireAuth(req, res, next) {
+function requireAuth(req: any, res: any, next: any) {
   const token = extractToken(req);
   if (!token) {
     return res.status(401).json({
@@ -45,8 +45,8 @@ function requireAuth(req, res, next) {
   next();
 }
 
-function requireRole(...allowedRoles) {
-  return (req, res, next) => {
+function requireRole(...allowedRoles: any[]) {
+  return (req: any, res: any, next: any) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,

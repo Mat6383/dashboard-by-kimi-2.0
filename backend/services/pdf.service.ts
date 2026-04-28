@@ -1,9 +1,9 @@
 import puppeteer from 'puppeteer';
 import logger from './logger.service';
 
-const _getMaxGenerations = () => parseInt(process.env.PDF_MAX_GENERATIONS, 10) || 50;
-const IDLE_TIMEOUT_MS = parseInt(process.env.PDF_IDLE_TIMEOUT_MS, 10) || 10 * 60 * 1000; // 10 min
-const PAGE_TIMEOUT_MS = parseInt(process.env.PDF_PAGE_TIMEOUT_MS, 10) || 30_000; // 30s
+const _getMaxGenerations = () => parseInt(process.env.PDF_MAX_GENERATIONS || '', 10) || 50;
+const IDLE_TIMEOUT_MS = parseInt(process.env.PDF_IDLE_TIMEOUT_MS || '', 10) || 10 * 60 * 1000; // 10 min
+const PAGE_TIMEOUT_MS = parseInt(process.env.PDF_PAGE_TIMEOUT_MS || '', 10) || 30_000; // 30s
 
 class PdfService {
   browser: any;
@@ -54,7 +54,7 @@ class PdfService {
     }
     this.idleTimer = setTimeout(() => {
       logger.info(`[PdfService] Fermeture idle après ${IDLE_TIMEOUT_MS}ms d'inactivité`);
-      this.close().catch((err) => logger.error('[PdfService] Erreur fermeture idle:', err.message));
+      this.close().catch((err: any) => logger.error('[PdfService] Erreur fermeture idle:', err.message));
     }, IDLE_TIMEOUT_MS);
   }
 
@@ -77,7 +77,7 @@ class PdfService {
    * @param {object} options — { format: 'A4'|'A4-Landscape', margin }
    * @returns {Buffer} PDF
    */
-  async generateFromHTML(html, options: any = {}) {
+  async generateFromHTML(html: any, options: any = {}) {
     const browser = await this._getBrowser();
     const page = await browser.newPage();
 
@@ -117,7 +117,7 @@ class PdfService {
   /**
    * Génère un PDF de dashboard à partir des métriques
    */
-  async generateDashboardPDF(metrics, options = {}) {
+  async generateDashboardPDF(metrics: any, options = {}) {
     const html = this._buildDashboardHTML(metrics, options);
     return this.generateFromHTML(html, options);
   }
@@ -137,7 +137,7 @@ class PdfService {
       { label: 'Detection Rate', value: `${metrics?.detectionRate ?? '-'}%`, color: '#8B5CF6' },
     ]
       .map(
-        (m) => `
+        (m: any) => `
       <div style="background:${cardBg};border:1px solid ${border};border-radius:8px;padding:16px;text-align:center;flex:1;min-width:140px;">
         <div style="font-size:1.75rem;font-weight:700;color:${m.color};">${m.value}</div>
         <div style="font-size:0.875rem;color:${text};margin-top:4px;opacity:0.8;">${m.label}</div>
@@ -149,7 +149,7 @@ class PdfService {
     const slaHtml = sla?.ok
       ? `<div style="background:#10B98115;color:#10B981;padding:12px 16px;border-radius:6px;border:1px solid #10B98140;font-weight:500;">✅ Tous les SLA sont respectés</div>`
       : `<div style="background:#EF444415;color:#EF4444;padding:12px 16px;border-radius:6px;border:1px solid #EF444440;font-weight:500;">
-          ⚠️ Alertes SLA : ${(sla?.alerts || []).map((a) => `${a.metric} (${a.value}% / seuil ${a.threshold}%)`).join(', ')}
+          ⚠️ Alertes SLA : ${(sla?.alerts || []).map((a: any) => `${a.metric} (${a.value}% / seuil ${a.threshold}%)`).join(', ')}
          </div>`;
 
     return `<!DOCTYPE html>
@@ -189,7 +189,7 @@ class PdfService {
       <tbody>
         ${metrics.runs
           .map(
-            (r) => `
+            (r: any) => `
         <tr style="border-bottom:1px solid ${border};">
           <td style="padding:8px;">${r.name}</td>
           <td style="padding:8px;">${r.status}</td>
@@ -217,7 +217,7 @@ class PdfService {
       try {
         await this.browser.close();
         logger.info('[PdfService] Browser fermé');
-      } catch (err) {
+      } catch (err: any) {
         logger.warn('[PdfService] Erreur fermeture browser:', err.message);
       }
       this.browser = null;

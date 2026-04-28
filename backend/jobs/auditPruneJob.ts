@@ -1,15 +1,15 @@
 import logger from '../services/logger.service';
 import auditService from '../services/audit.service';
 
-const RETENTION_DAYS = parseInt(process.env.AUDIT_RETENTION_DAYS, 10) || 90;
+const RETENTION_DAYS = parseInt(process.env.AUDIT_RETENTION_DAYS || '90', 10) || 90;
 const INTERVAL_MS = 24 * 60 * 60 * 1000; // 24h
 
-let timer = null;
+let timer: any = null;
 
 function run() {
   try {
     auditService.prune(RETENTION_DAYS);
-  } catch (err) {
+  } catch (err: any) {
     logger.error('AuditPruneJob: Erreur lors du pruning:', err.message);
   }
 }

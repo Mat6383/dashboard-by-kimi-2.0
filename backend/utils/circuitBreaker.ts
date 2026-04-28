@@ -35,7 +35,7 @@ class CircuitBreaker {
     this.lastFailure = null;
   }
 
-  async execute(fn) {
+  async execute(fn: any) {
     if (this.state === 'OPEN') {
       if (Date.now() >= this.nextAttempt) {
         this.state = 'HALF_OPEN';
@@ -52,7 +52,7 @@ class CircuitBreaker {
       const result = await fn();
       this._onSuccess();
       return result;
-    } catch (err) {
+    } catch (err: any) {
       this._onFailure(err.message || String(err));
       throw err;
     }
@@ -69,7 +69,7 @@ class CircuitBreaker {
     }
   }
 
-  _onFailure(message) {
+  _onFailure(message: any) {
     this.failures += 1;
     this.lastFailure = message;
     if (this.state === 'HALF_OPEN') {

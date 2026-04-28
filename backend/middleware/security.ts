@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
 import logger from '../services/logger.service';
 import sentryService from '../services/sentry.service';
 
-function setupSecurity(app) {
+function setupSecurity(app: any) {
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -15,7 +15,7 @@ function setupSecurity(app) {
           scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           imgSrc: ["'self'", 'data:', 'blob:'],
-          connectSrc: ["'self'", process.env.TESTMO_URL].filter(Boolean),
+          connectSrc: ["'self'", process.env.TESTMO_URL].filter(Boolean) as string[],
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
           upgradeInsecureRequests: [],
@@ -59,7 +59,7 @@ function setupSecurity(app) {
   // Rate-limiting global (ITIL Availability Management — protection DoS)
   const apiLimiter = rateLimit({
     windowMs: 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_MAX) || 200,
+    max: parseInt(process.env.RATE_LIMIT_MAX || '200', 10) || 200,
     standardHeaders: true,
     legacyHeaders: false,
     message: {
@@ -71,7 +71,7 @@ function setupSecurity(app) {
 
   const heavyLimiter = rateLimit({
     windowMs: 60 * 1000,
-    max: parseInt(process.env.RATE_LIMIT_HEAVY_MAX) || 20,
+    max: parseInt(process.env.RATE_LIMIT_HEAVY_MAX || '20', 10) || 20,
     standardHeaders: true,
     legacyHeaders: false,
     message: {

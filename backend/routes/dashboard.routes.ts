@@ -16,7 +16,7 @@ router.get('/multi', async (req, res) => {
     const projectsRaw = await testmoService.getProjects();
     const projects = Array.isArray(projectsRaw) ? projectsRaw : projectsRaw?.result || [];
     const summaries = await Promise.all(
-      projects.map(async (project) => {
+      projects.map(async (project: any) => {
         try {
           const metrics = await testmoService.getProjectMetrics(project.id);
           return {
@@ -30,7 +30,7 @@ router.get('/multi', async (req, res) => {
             slaStatus: (metrics as any).slaStatus,
             timestamp: metrics.timestamp,
           };
-        } catch (err) {
+        } catch (err: any) {
           logger.warn(`[MultiProject] Échec metrics projet ${project.id}:`, err.message);
           return {
             projectId: project.id,
@@ -107,7 +107,7 @@ router.get(
       const prodMilestones = req.query.prodMilestones ? (req.query.prodMilestones as string).split(',').map(Number) : null;
 
       logger.info(`Récupération Quality Rates pour projet ${projectId}`);
-      const rates = await testmoService.getEscapeAndDetectionRates(projectId, preprodMilestones, prodMilestones);
+      const rates = await testmoService.getEscapeAndDetectionRates(projectId, preprodMilestones as any, prodMilestones as any);
 
       res.json({
         success: true,
@@ -186,7 +186,7 @@ router.get('/compare', async (req, res) => {
             detectionRate: (metrics as any).detectionRate ?? 0,
             blockedRate: metrics.blockedRate ?? 0,
           };
-        } catch (err) {
+        } catch (err: any) {
           logger.warn(`[Compare] Échec metrics projet ${id}:`, err.message);
           return {
             projectId: id,
@@ -223,20 +223,20 @@ router.get('/:projectId/stream', validateParams(projectIdParam), validateQuery(m
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
 
-    const send = (event, data) => {
+    const send = (event: any, data: any) => {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
       if (typeof res.flush === 'function') res.flush();
     };
 
-    let lastHash = null;
+    let lastHash: any = null;
     let closed = false;
 
     const fetchAndSend = async () => {
       if (closed) return;
       try {
         const [metrics, qualityRates] = await Promise.all([
-          testmoService.getProjectMetrics(projectId, preprodMilestones, prodMilestones),
-          testmoService.getEscapeAndDetectionRates(projectId, preprodMilestones, prodMilestones),
+          testmoService.getProjectMetrics(projectId, preprodMilestones as any, prodMilestones as any),
+          testmoService.getEscapeAndDetectionRates(projectId, preprodMilestones as any, prodMilestones as any),
         ]);
         const payload = { metrics, qualityRates, timestamp: new Date().toISOString() };
         const hash = JSON.stringify(payload);
@@ -244,7 +244,7 @@ router.get('/:projectId/stream', validateParams(projectIdParam), validateQuery(m
           lastHash = hash;
           send('metrics', payload);
         }
-      } catch (err) {
+      } catch (err: any) {
         if (!closed) {
           logger.warn(`[SSE Dashboard ${projectId}]`, err.message);
           send('error', { message: err.message });

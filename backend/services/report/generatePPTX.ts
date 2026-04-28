@@ -1,5 +1,5 @@
 import pptxgen from 'pptxgenjs';
-async function generatePPTX(data, recommendations, complement) {
+async function generatePPTX(data: any, recommendations: any, complement: any) {
   const { milestoneName, stats, functionalRuns, tnrRuns, failedTests, wipTests, passedWithTickets, verdict } = data;
 
   const C = {
@@ -236,7 +236,7 @@ async function generatePPTX(data, recommendations, complement) {
       { text: 'Ticket', options: tHdr },
     ],
   ];
-  failedTests.slice(0, 14).forEach((ft) => {
+  failedTests.slice(0, 14).forEach((ft: any) => {
     const runShort = ft.run.replace(/^.*- /, '');
     const ticket = ft.correctionTickets.length > 0 ? '#' + ft.correctionTickets.join(', #') : '—';
     ticketRows.push([
@@ -246,7 +246,7 @@ async function generatePPTX(data, recommendations, complement) {
       { text: ticket, options: { bold: true, fontSize: 7 } },
     ]);
   });
-  (wipTests || []).slice(0, 5).forEach((wt) => {
+  (wipTests || []).slice(0, 5).forEach((wt: any) => {
     const runShort = wt.run.replace(/^.*- /, '');
     ticketRows.push([
       runShort,
@@ -255,7 +255,7 @@ async function generatePPTX(data, recommendations, complement) {
       { text: '—', options: { fontSize: 7 } },
     ]);
   });
-  passedWithTickets.slice(0, 4).forEach((pt) => {
+  passedWithTickets.slice(0, 4).forEach((pt: any) => {
     const runShort = pt.run.replace(/^.*- /, '');
     ticketRows.push([
       runShort,
@@ -319,7 +319,7 @@ async function generatePPTX(data, recommendations, complement) {
         { text: 'Priorité', options: rHdr },
       ],
     ];
-    recommendations.forEach((r) => {
+    recommendations.forEach((r: any) => {
       const priColor = r.priority === 'Haute' ? C.red : r.priority === 'Faible' ? C.green : C.orange;
       recoTableRows.push([
         {

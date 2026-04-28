@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import logger from './logger.service';
 
 const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = parseInt(process.env.SMTP_PORT) || 587;
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '') || 587;
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_FROM = process.env.SMTP_FROM || 'qa-dashboard@neo-logix.local';
@@ -40,16 +40,16 @@ class EmailService {
       });
       logger.info('[EmailService] Email envoyé:', info.messageId);
       return { sent: true, messageId: info.messageId };
-    } catch (err) {
+    } catch (err: any) {
       logger.error('[EmailService] Échec envoi email:', err.message);
       return { sent: false, reason: err.message };
     }
   }
 
-  _buildHTML({ projectId, projectName, alerts, dashboardUrl }) {
+  _buildHTML({ projectId, projectName, alerts, dashboardUrl }: any) {
     const rows = alerts
       .map(
-        (a) => `
+        (a: any) => `
       <tr style="border-bottom:1px solid #e5e7eb;">
         <td style="padding:8px;"><strong style="color:${a.severity === 'critical' ? '#DC2626' : '#F59E0B'}">${a.severity.toUpperCase()}</strong></td>
         <td style="padding:8px;">${a.metric}</td>
@@ -83,9 +83,9 @@ class EmailService {
 </html>`;
   }
 
-  _buildText({ projectId, projectName, alerts, dashboardUrl }) {
+  _buildText({ projectId, projectName, alerts, dashboardUrl }: any) {
     const lines = alerts.map(
-      (a) => `- [${a.severity.toUpperCase()}] ${a.metric}: ${a.value}% (seuil: ${a.threshold}%)`
+      (a: any) => `- [${a.severity.toUpperCase()}] ${a.metric}: ${a.value}% (seuil: ${a.threshold}%)`
     );
     return `Alertes SLA — ${projectName || `Projet ${projectId}`}\n\n${lines.join('\n')}\n\n${dashboardUrl || ''}`;
   }

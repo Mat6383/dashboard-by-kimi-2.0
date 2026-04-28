@@ -23,7 +23,7 @@ class MetricSnapshotsService {
   /**
    * Enregistre un snapshot quotidien pour un projet
    */
-  saveSnapshot(projectId, metrics) {
+  saveSnapshot(projectId: any, metrics: any) {
     const today = new Date().toISOString().slice(0, 10);
     const stmt = this.db.prepare(`
       INSERT INTO metric_snapshots (project_id, date, pass_rate, completion_rate, escape_rate, detection_rate, blocked_rate, total_tests)
@@ -53,11 +53,11 @@ class MetricSnapshotsService {
   /**
    * Récupère les tendances sur une période
    */
-  getTrends(projectId, granularity = 'day', from, to) {
+  getTrends(projectId: any, granularity = 'day', from: any, to: any) {
     const fromDate = from || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const toDate = to || new Date().toISOString().slice(0, 10);
 
-    let groupBy, dateSelect;
+    let dateSelect, groupBy;
     if (granularity === 'week') {
       dateSelect = "strftime('%Y-W%W', date)";
       groupBy = "strftime('%Y-W%W', date)";

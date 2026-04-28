@@ -5,19 +5,19 @@ import generatePPTX from './report/generatePPTX';
 class ReportService {
   testmoService: any;
 
-  constructor(testmoService) {
+  constructor(testmoService: any) {
     this.testmoService = testmoService;
   }
 
-  async collectReportData(projectId, runIds) {
+  async collectReportData(projectId: any, runIds: any) {
     return collectReportData(this.testmoService, projectId, runIds);
   }
 
-  generateHTML(data, recommendations, complement) {
+  generateHTML(data: any, recommendations: any, complement: any) {
     return generateHTML(data, recommendations, complement);
   }
 
-  async generatePPTX(data, recommendations, complement) {
+  async generatePPTX(data: any, recommendations: any, complement: any) {
     return generatePPTX(data, recommendations, complement);
   }
 }

@@ -9,7 +9,7 @@ const RETRYABLE_ERRORS = new Set([
   'NETWORK_ERROR',
 ]);
 
-function isRetryable(error) {
+function isRetryable(error: any) {
   if (!error) return false;
   const status = error.response?.status;
   if (status === 429) return true;
@@ -20,11 +20,11 @@ function isRetryable(error) {
   return false;
 }
 
-async function sleep(ms) {
+async function sleep(ms: any) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function withResilience(fn, breaker, retryOptions: any = {}) {
+async function withResilience(fn: any, breaker: any, retryOptions: any = {}) {
   const { maxRetries = 3, baseDelayMs = 500, label = 'operation' } = retryOptions as any;
 
   return breaker.execute(async () => {
@@ -42,7 +42,7 @@ async function withResilience(fn, breaker, retryOptions: any = {}) {
         }
 
         const delay = baseDelayMs * Math.pow(2, attempt);
-        logger.warn(`[${label}] Retry ${attempt + 1}/${maxRetries} after ${delay}ms — ${err.message || err.code}`);
+        logger.warn(`[${label}] Retry ${attempt + 1}/${maxRetries} after ${delay}ms — ${(err as any).message || (err as any).code}`);
         await sleep(delay);
       }
     }

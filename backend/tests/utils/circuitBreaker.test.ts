@@ -1,8 +1,8 @@
+import { CircuitBreaker } from '../../utils/circuitBreaker';
 /**
  * Tests unitaires du Circuit Breaker
  */
 
-const { CircuitBreaker } = require('../../utils/circuitBreaker');
 
 describe('CircuitBreaker', () => {
   it('passe en OPEN après N échecs consécutifs', async () => {

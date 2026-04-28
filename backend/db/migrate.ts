@@ -7,7 +7,7 @@ import logger from '../services/logger.service';
  * @param {Database} db - Instance better-sqlite3
  * @param {string} namespace - Nom du dossier sous db/migrations/
  */
-function run(db, namespace) {
+function run(db: any, namespace: any) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS __migrations (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
