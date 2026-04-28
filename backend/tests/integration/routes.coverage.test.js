@@ -4,6 +4,20 @@
  */
 
 const request = require('supertest');
+const jwt = require('jsonwebtoken');
+
+jest.mock('better-sqlite3', () => {
+  const actual = jest.requireActual('better-sqlite3');
+  return jest.fn(() => new actual(':memory:'));
+});
+
+jest.mock('../../services/logger.service', () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+}));
+
+process.env.JWT_SECRET = 'test-secret';
 const app = require('../../server');
 
 jest.mock('../../services/testmo.service', () => ({
@@ -45,8 +59,37 @@ jest.mock('../../services/gitlab.service', () => ({
 
 jest.mock('../../services/featureFlags.service', () => ({
   getAll: jest.fn(() => ({ darkMode: true, betaFeature: false })),
+  getAllDetails: jest.fn(() => [
+    {
+      key: 'darkMode',
+      enabled: true,
+      description: 'Dark theme',
+      rolloutPercentage: 100,
+      updatedAt: '2024-01-01T00:00:00Z',
+      createdAt: '2024-01-01T00:00:00Z',
+    },
+    {
+      key: 'betaFeature',
+      enabled: false,
+      description: 'Beta',
+      rolloutPercentage: 0,
+      updatedAt: '2024-01-01T00:00:00Z',
+      createdAt: '2024-01-01T00:00:00Z',
+    },
+  ]),
+  getByKey: jest.fn((key) => ({
+    key,
+    enabled: key === 'darkMode',
+    description: 'Test',
+    rolloutPercentage: 100,
+    updatedAt: '2024-01-01T00:00:00Z',
+    createdAt: '2024-01-01T00:00:00Z',
+  })),
   isEnabled: jest.fn((key) => key === 'darkMode'),
   set: jest.fn(() => true),
+  create: jest.fn(() => true),
+  update: jest.fn(() => true),
+  delete: jest.fn(() => true),
 }));
 
 jest.mock('../../services/comments.service', () => ({
@@ -141,18 +184,40 @@ jest.mock('../../services/apiTimer.service', () => ({
 }));
 
 describe('Routes Coverage Integration Tests', () => {
+  let adminToken;
+  let viewerToken;
+
   beforeAll(() => {
     process.env.ADMIN_API_TOKEN = 'test-admin-token';
+    process.env.JWT_SECRET = 'test-secret';
+
+    const usersService = require('../../services/users.service');
+    usersService.init();
+    const admin = usersService.upsertFromGitLab({
+      id: '100',
+      emails: [{ value: 'admin@test.com' }],
+      displayName: 'Admin',
+      username: 'admin',
+    });
+    const viewer = usersService.upsertFromGitLab({
+      id: '101',
+      emails: [{ value: 'viewer@test.com' }],
+      displayName: 'Viewer',
+      username: 'viewer',
+    });
+    adminToken = `Bearer ${jwt.sign({ sub: admin.id, email: admin.email, role: 'admin' }, 'test-secret')}`;
+    viewerToken = `Bearer ${jwt.sign({ sub: viewer.id, email: viewer.email, role: 'viewer' }, 'test-secret')}`;
   });
 
   afterAll(() => {
     delete process.env.ADMIN_API_TOKEN;
+    delete process.env.JWT_SECRET;
   });
 
   // ─── Feature Flags ─────────────────────────────────────────────────────────
   describe('GET /api/feature-flags', () => {
-    it('returns all feature flags', async () => {
-      const res = await request(app).get('/api/feature-flags').set('X-Admin-Token', 'test-admin-token');
+    it('returns all feature flags (public)', async () => {
+      const res = await request(app).get('/api/feature-flags');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data).toHaveProperty('darkMode');
@@ -160,32 +225,113 @@ describe('Routes Coverage Integration Tests', () => {
   });
 
   describe('GET /api/feature-flags/:key', () => {
-    it('returns a specific flag state', async () => {
-      const res = await request(app).get('/api/feature-flags/darkMode').set('X-Admin-Token', 'test-admin-token');
+    it('returns a specific flag state (public)', async () => {
+      const res = await request(app).get('/api/feature-flags/darkMode');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data).toEqual({ key: 'darkMode', enabled: true });
     });
   });
 
-  describe('PUT /api/feature-flags/:key', () => {
-    it('updates a feature flag', async () => {
-      const res = await request(app)
-        .put('/api/feature-flags/darkMode')
-        .set('X-Admin-Token', 'test-admin-token')
-        .send({ enabled: false });
+  describe('GET /api/feature-flags/admin', () => {
+    it('returns detailed flags for admin', async () => {
+      const res = await request(app).get('/api/feature-flags/admin').set('Authorization', adminToken);
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.enabled).toBe(false);
+      expect(Array.isArray(res.body.data)).toBe(true);
     });
 
-    it('returns 400 when enabled is not a boolean', async () => {
+    it('returns 401 without token', async () => {
+      const res = await request(app).get('/api/feature-flags/admin');
+      expect(res.status).toBe(401);
+    });
+
+    it('returns 403 for viewer', async () => {
+      const res = await request(app).get('/api/feature-flags/admin').set('Authorization', viewerToken);
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe('POST /api/feature-flags/admin', () => {
+    it('creates a flag for admin', async () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      featureFlagsService.getByKey.mockReturnValueOnce(null);
       const res = await request(app)
-        .put('/api/feature-flags/darkMode')
-        .set('X-Admin-Token', 'test-admin-token')
-        .send({ enabled: 'yes' });
+        .post('/api/feature-flags/admin')
+        .set('Authorization', adminToken)
+        .send({ key: 'newFlag', enabled: true, description: 'Test', rolloutPercentage: 50 });
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+    });
+
+    it('returns 409 for duplicate key', async () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      featureFlagsService.getByKey.mockReturnValueOnce({ key: 'existing' });
+      const res = await request(app)
+        .post('/api/feature-flags/admin')
+        .set('Authorization', adminToken)
+        .send({ key: 'existing' });
+      expect(res.status).toBe(409);
+    });
+
+    it('returns 400 for invalid body', async () => {
+      const res = await request(app)
+        .post('/api/feature-flags/admin')
+        .set('Authorization', adminToken)
+        .send({ key: '' });
       expect(res.status).toBe(400);
-      expect(res.body.success).toBe(false);
+    });
+
+    it('returns 403 for viewer', async () => {
+      const res = await request(app)
+        .post('/api/feature-flags/admin')
+        .set('Authorization', viewerToken)
+        .send({ key: 'x' });
+      expect(res.status).toBe(403);
+    });
+  });
+
+  describe('PUT /api/feature-flags/admin/:key', () => {
+    it('updates a flag for admin', async () => {
+      const res = await request(app)
+        .put('/api/feature-flags/admin/darkMode')
+        .set('Authorization', adminToken)
+        .send({ enabled: false, description: 'Updated', rolloutPercentage: 75 });
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+    });
+
+    it('returns 404 for unknown flag', async () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      featureFlagsService.getByKey.mockReturnValueOnce(null);
+      const res = await request(app)
+        .put('/api/feature-flags/admin/ghost')
+        .set('Authorization', adminToken)
+        .send({ enabled: false });
+      expect(res.status).toBe(404);
+    });
+
+    it('returns 400 for invalid rollout', async () => {
+      const res = await request(app)
+        .put('/api/feature-flags/admin/darkMode')
+        .set('Authorization', adminToken)
+        .send({ rolloutPercentage: 150 });
+      expect(res.status).toBe(400);
+    });
+  });
+
+  describe('DELETE /api/feature-flags/admin/:key', () => {
+    it('deletes a flag for admin', async () => {
+      const res = await request(app).delete('/api/feature-flags/admin/darkMode').set('Authorization', adminToken);
+      expect(res.status).toBe(200);
+      expect(res.body.deleted).toBe(true);
+    });
+
+    it('returns 404 for unknown flag', async () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      featureFlagsService.getByKey.mockReturnValueOnce(null);
+      const res = await request(app).delete('/api/feature-flags/admin/ghost').set('Authorization', adminToken);
+      expect(res.status).toBe(404);
     });
   });
 

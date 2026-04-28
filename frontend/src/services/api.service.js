@@ -542,6 +542,44 @@ const apiService = {
     }
   },
 
+  // ---- Feature Flags Admin ------------------------------------------------
+
+  async getFeatureFlagsAdmin() {
+    try {
+      const response = await apiClient.get('/feature-flags/admin');
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Get Feature Flags Admin', error);
+    }
+  },
+
+  async createFeatureFlag(data) {
+    try {
+      const response = await apiClient.post('/feature-flags/admin', data);
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Create Feature Flag', error);
+    }
+  },
+
+  async updateFeatureFlag(key, data) {
+    try {
+      const response = await apiClient.put(`/feature-flags/admin/${key}`, data);
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Update Feature Flag', error);
+    }
+  },
+
+  async deleteFeatureFlag(key) {
+    try {
+      const response = await apiClient.delete(`/feature-flags/admin/${key}`);
+      return response.data;
+    } catch (error) {
+      throw this._handleError('Delete Feature Flag', error);
+    }
+  },
+
   // ---- Fin Dashboard 8 ---------------------------------------------------
 
   /**

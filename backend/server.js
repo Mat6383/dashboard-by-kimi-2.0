@@ -69,7 +69,7 @@ app.use('/api/notifications', require('./routes/notifications.routes'));
 app.use('/api/pdf', require('./routes/pdf.routes'));
 app.use('/api/export', require('./routes/export.routes'));
 app.use('/api/cache', requireAdminAuth, require('./routes/cache.routes'));
-app.use('/api/feature-flags', requireAdminAuth, require('./routes/featureFlags.routes'));
+app.use('/api/feature-flags', require('./routes/featureFlags.routes'));
 app.use('/api/audit', require('./routes/audit.routes'));
 app.use('/api/anomalies', require('./routes/anomalies.routes'));
 app.use('/api/docs', require('./routes/docs.routes'));

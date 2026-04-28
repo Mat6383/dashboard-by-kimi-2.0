@@ -150,13 +150,27 @@ describe('SQLite Services', () => {
   });
 
   describe('FeatureFlagsService', () => {
-    it('gets all flags', () => {
+    it('gets all flags as map', () => {
       const featureFlagsService = require('../../services/featureFlags.service');
       const syncHistoryService = require('../../services/syncHistory.service');
       syncHistoryService.initDb();
       featureFlagsService.set('flagA', true);
       const flags = featureFlagsService.getAll();
       expect(flags).toHaveProperty('flagA', true);
+    });
+
+    it('gets all flags with details', () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      featureFlagsService.create('detailFlag', { enabled: true, description: 'Test', rolloutPercentage: 50 });
+      const flags = featureFlagsService.getAllDetails();
+      expect(Array.isArray(flags)).toBe(true);
+      const found = flags.find((f) => f.key === 'detailFlag');
+      expect(found).toBeDefined();
+      expect(found.enabled).toBe(true);
+      expect(found.description).toBe('Test');
+      expect(found.rolloutPercentage).toBe(50);
     });
 
     it('checks if a flag is enabled', () => {
@@ -175,6 +189,51 @@ describe('SQLite Services', () => {
       syncHistoryService.initDb();
       expect(featureFlagsService.set('flagB', true)).toBe(true);
       expect(featureFlagsService.isEnabled('flagB')).toBe(true);
+    });
+
+    it('creates a flag', () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      expect(
+        featureFlagsService.create('newFlag', { enabled: false, description: 'Desc', rolloutPercentage: 75 })
+      ).toBe(true);
+      const found = featureFlagsService.getByKey('newFlag');
+      expect(found).toBeDefined();
+      expect(found.enabled).toBe(false);
+      expect(found.description).toBe('Desc');
+      expect(found.rolloutPercentage).toBe(75);
+    });
+
+    it('updates a flag', () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      featureFlagsService.create('updateFlag', { enabled: false });
+      expect(
+        featureFlagsService.update('updateFlag', { enabled: true, description: 'Updated', rolloutPercentage: 25 })
+      ).toBe(true);
+      const found = featureFlagsService.getByKey('updateFlag');
+      expect(found.enabled).toBe(true);
+      expect(found.description).toBe('Updated');
+      expect(found.rolloutPercentage).toBe(25);
+    });
+
+    it('returns false when updating non-existing flag', () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      expect(featureFlagsService.update('ghost', { enabled: true })).toBe(false);
+    });
+
+    it('deletes a flag', () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      featureFlagsService.create('delFlag');
+      expect(featureFlagsService.delete('delFlag')).toBe(true);
+      expect(featureFlagsService.getByKey('delFlag')).toBeNull();
+      expect(featureFlagsService.delete('delFlag')).toBe(false);
     });
 
     it('returns false when DB is unavailable during set', () => {
@@ -207,6 +266,18 @@ describe('SQLite Services', () => {
         throw new Error('DB locked');
       });
       expect(featureFlagsService.getAll()).toEqual({});
+      syncHistoryService.db.prepare = originalPrepare;
+    });
+
+    it('returns empty array when DB prepare throws during getAllDetails', () => {
+      const featureFlagsService = require('../../services/featureFlags.service');
+      const syncHistoryService = require('../../services/syncHistory.service');
+      syncHistoryService.initDb();
+      const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
+      syncHistoryService.db.prepare = jest.fn(() => {
+        throw new Error('DB locked');
+      });
+      expect(featureFlagsService.getAllDetails()).toEqual([]);
       syncHistoryService.db.prepare = originalPrepare;
     });
 

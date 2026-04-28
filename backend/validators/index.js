@@ -21,6 +21,10 @@ const iidParam = z.object({
   iid: z.coerce.number().int().positive('iid invalide'),
 });
 
+const featureFlagKeyParam = z.object({
+  key: z.string().min(1, 'Clé du flag requise'),
+});
+
 // ─── Query ─────────────────────────────────────────────────────────────────
 const milestonesQuery = z.object({
   preprodMilestones: z
@@ -107,6 +111,19 @@ const autoConfigBody = z
     error: 'Aucun champ valide fourni (enabled, runId, iterationName, gitlabProjectId, version)',
   });
 
+const featureFlagCreateBody = z.object({
+  key: z.string().min(1, 'La clé du flag est requise'),
+  enabled: z.boolean().optional(),
+  description: z.string().optional(),
+  rolloutPercentage: z.number().int().min(0).max(100).optional(),
+});
+
+const featureFlagUpdateBody = z.object({
+  enabled: z.boolean().optional(),
+  description: z.string().optional(),
+  rolloutPercentage: z.number().int().min(0).max(100).optional(),
+});
+
 // ─── Middleware ────────────────────────────────────────────────────────────
 function validate(schema) {
   return (req, res, next) => {
@@ -183,6 +200,9 @@ module.exports = {
   runIdParam,
   iterationIdParam,
   iidParam,
+  featureFlagKeyParam,
+  featureFlagCreateBody,
+  featureFlagUpdateBody,
   syncPreviewBody,
   syncExecuteBody,
   syncIterationBody,

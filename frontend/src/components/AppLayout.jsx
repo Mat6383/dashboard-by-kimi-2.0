@@ -34,6 +34,7 @@ function getDashboardRoutes(isAdmin) {
   if (isAdmin) {
     routes.push({ path: '/notifications', label: '🔔 Notifications' });
     routes.push({ path: '/admin/audit', label: '🛡️ Audit Logs' });
+    routes.push({ path: '/admin/feature-flags', label: '🎛️ Feature Flags' });
   }
   return routes;
 }

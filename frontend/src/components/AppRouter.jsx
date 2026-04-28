@@ -20,6 +20,7 @@ const GitLabToTestmoSync = lazy(() => import('./GitLabToTestmoSync'));
 const CrossTestDashboard = lazy(() => import('./CrossTestDashboard'));
 const AutoSyncDashboard = lazy(() => import('./AutoSyncDashboard'));
 const MultiProjectDashboard = lazy(() => import('./MultiProjectDashboard'));
+const FeatureFlagsAdmin = lazy(() => import('./FeatureFlagsAdmin'));
 
 function LoadingFallback() {
   return (
@@ -102,6 +103,7 @@ export default function AppRouter({
         <Route path="/historical-trends" element={<HistoricalTrends projectId={projectId} isDark={darkMode} />} />
         <Route path="/compare" element={<CompareDashboard isDark={darkMode} />} />
         <Route path="/admin/audit" element={<AuditLogViewer isDark={darkMode} />} />
+        <Route path="/admin/feature-flags" element={<FeatureFlagsAdmin isDark={darkMode} />} />
         <Route
           path="/configuration"
           element={

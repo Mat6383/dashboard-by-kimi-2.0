@@ -42,7 +42,10 @@ dist/
 build/
 
 # Runtime databases (SQLite — generated at startup)
-backend/db/
+backend/db/*.db
+backend/db/*.db-journal
+backend/db/*.db-shm
+backend/db/*.db-wal
 
 # Coverage reports
 coverage/
