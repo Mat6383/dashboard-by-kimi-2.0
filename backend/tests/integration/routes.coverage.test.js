@@ -229,7 +229,7 @@ describe('Routes Coverage Integration Tests', () => {
       const res = await request(app).get('/api/feature-flags/darkMode');
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
-      expect(res.body.data).toEqual({ key: 'darkMode', enabled: true });
+      expect(res.body.data).toEqual({ key: 'darkMode', enabled: true, rolloutPercentage: 100 });
     });
   });
 

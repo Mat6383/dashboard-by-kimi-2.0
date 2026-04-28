@@ -51,6 +51,7 @@ require('./services/comments.service').init();
 require('./services/metricSnapshots.service').init();
 require('./services/users.service').init();
 require('./services/audit.service').init();
+require('./services/webhooks.service'); // trigger init DB via lazy-load
 
 // ─── Passport & Cookies ─────────────────────────────────────────────────────
 app.use(cookieParser());
@@ -70,6 +71,7 @@ app.use('/api/pdf', require('./routes/pdf.routes'));
 app.use('/api/export', require('./routes/export.routes'));
 app.use('/api/cache', requireAdminAuth, require('./routes/cache.routes'));
 app.use('/api/feature-flags', require('./routes/featureFlags.routes'));
+app.use('/api/webhooks', require('./routes/webhooks.routes'));
 app.use('/api/audit', require('./routes/audit.routes'));
 app.use('/api/anomalies', require('./routes/anomalies.routes'));
 app.use('/api/docs', require('./routes/docs.routes'));

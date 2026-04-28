@@ -6,7 +6,9 @@
  * Permet d'activer/désactiver des fonctionnalités sans redémarrage.
  */
 
+const crypto = require('crypto');
 const syncHistoryService = require('./syncHistory.service');
+const webhooksService = require('./webhooks.service');
 const logger = require('./logger.service');
 
 class FeatureFlagsService {
@@ -16,16 +18,77 @@ class FeatureFlagsService {
   }
 
   /**
+   * Notifie les webhooks d'un changement de feature flag.
+   * @private
+   */
+  _notifyChange(key, action, extra = {}) {
+    try {
+      webhooksService.trigger('feature-flag.changed', { key, action, ...extra });
+    } catch (err) {
+      logger.error('FeatureFlags: webhook notify error', err.message);
+    }
+  }
+
+  /**
+   * Génère un hash déterministe entre 0 et 99 pour un couple (key, userId).
+   * Le résultat est sticky : même user → même résultat pour un flag donné.
+   * @private
+   */
+  _hashUserFlag(key, userId) {
+    const hash = crypto.createHash('sha256').update(`${key}:${userId}`).digest('hex');
+    return parseInt(hash.slice(0, 8), 16) % 100;
+  }
+
+  /**
+   * Détermine si un flag est actif pour un utilisateur donné en respectant le rollout %.
+   * @param {string} key
+   * @param {string} userId
+   * @param {boolean} defaultValue
+   * @returns {boolean}
+   */
+  isEnabledForUser(key, userId, defaultValue = false) {
+    const db = this._db();
+    if (!db) return defaultValue;
+    try {
+      const row = db.prepare('SELECT enabled, rollout_percentage FROM feature_flags WHERE key = ?').get(key);
+      if (!row) return defaultValue;
+      if (!row.enabled) return false;
+      const rollout = row.rollout_percentage ?? 100;
+      if (rollout >= 100) return true;
+      if (!userId) return false; // si rollout partiel mais pas d'userId → safe default
+      const userHash = this._hashUserFlag(key, userId);
+      return userHash < rollout;
+    } catch (err) {
+      logger.error(`FeatureFlags: isEnabledForUser(${key}, ${userId}) error`, err.message);
+      return defaultValue;
+    }
+  }
+
+  /**
    * Retourne tous les flags sous forme d'objet { [key]: boolean }.
    * Format rétrocompatible pour les consumers.
+   * @param {string} [userId] - Si fourni, applique le rollout progressif par utilisateur.
    */
-  getAll() {
+  getAll(userId) {
     const db = this._db();
     if (!db) return {};
     try {
-      const rows = db.prepare('SELECT key, enabled FROM feature_flags').all();
+      const rows = db.prepare('SELECT key, enabled, rollout_percentage FROM feature_flags').all();
       const result = {};
-      for (const row of rows) result[row.key] = Boolean(row.enabled);
+      for (const row of rows) {
+        if (!row.enabled) {
+          result[row.key] = false;
+          continue;
+        }
+        const rollout = row.rollout_percentage ?? 100;
+        if (rollout >= 100) {
+          result[row.key] = true;
+        } else if (userId) {
+          result[row.key] = this._hashUserFlag(row.key, userId) < rollout;
+        } else {
+          result[row.key] = false; // rollout partiel sans userId → safe default
+        }
+      }
       return result;
     } catch (err) {
       logger.error('FeatureFlags: getAll error', err.message);
@@ -62,10 +125,15 @@ class FeatureFlagsService {
 
   /**
    * Retourne l'état d'un flag spécifique.
+   * Rétrocompatible : sans userId, retourne le booléen brut (100% ou 0%).
    * @param {string} key
    * @param {boolean} defaultValue
+   * @param {string} [userId]
    */
-  isEnabled(key, defaultValue = false) {
+  isEnabled(key, defaultValue = false, userId = null) {
+    if (userId) {
+      return this.isEnabledForUser(key, userId, defaultValue);
+    }
     const db = this._db();
     if (!db) return defaultValue;
     try {
@@ -124,6 +192,7 @@ class FeatureFlagsService {
          VALUES (?, ?, ?, ?, ?, ?)`
       ).run(key, enabled ? 1 : 0, description, rolloutPercentage, now, now);
       logger.info(`FeatureFlags: created ${key} → enabled=${enabled}, rollout=${rolloutPercentage}%`);
+      this._notifyChange(key, 'created', { enabled, rolloutPercentage });
       return true;
     } catch (err) {
       logger.error(`FeatureFlags: create(${key}) error`, err.message);
@@ -165,6 +234,7 @@ class FeatureFlagsService {
       values.push(key);
       db.prepare(`UPDATE feature_flags SET ${sets.join(', ')} WHERE key = ?`).run(...values);
       logger.info(`FeatureFlags: updated ${key}`);
+      this._notifyChange(key, 'updated', { enabled, rolloutPercentage });
       return true;
     } catch (err) {
       logger.error(`FeatureFlags: update(${key}) error`, err.message);
@@ -182,7 +252,10 @@ class FeatureFlagsService {
     try {
       const result = db.prepare('DELETE FROM feature_flags WHERE key = ?').run(key);
       const success = result.changes > 0;
-      if (success) logger.info(`FeatureFlags: deleted ${key}`);
+      if (success) {
+        logger.info(`FeatureFlags: deleted ${key}`);
+        this._notifyChange(key, 'deleted');
+      }
       return success;
     } catch (err) {
       logger.error(`FeatureFlags: delete(${key}) error`, err.message);
@@ -210,6 +283,7 @@ class FeatureFlagsService {
       `
       ).run(key, enabled ? 1 : 0, new Date().toISOString());
       logger.info(`FeatureFlags: ${key} → ${enabled}`);
+      this._notifyChange(key, 'set', { enabled });
       return true;
     } catch (err) {
       logger.error(`FeatureFlags: set(${key}) error`, err.message);

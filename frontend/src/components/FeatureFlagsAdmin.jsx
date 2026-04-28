@@ -342,17 +342,39 @@ export default function FeatureFlagsAdmin({ isDark }) {
                 {flags.map((flag) => (
                   <tr key={flag.key}>
                     <td style={theme.td}>
-                      <code
-                        style={{
-                          backgroundColor: isDark ? '#111827' : '#f3f4f6',
-                          padding: '2px 8px',
-                          borderRadius: '4px',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {flag.key}
-                      </code>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <code
+                          style={{
+                            backgroundColor: isDark ? '#111827' : '#f3f4f6',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {flag.key}
+                        </code>
+                        {flag.enabled &&
+                          flag.rolloutPercentage != null &&
+                          flag.rolloutPercentage > 0 &&
+                          flag.rolloutPercentage < 100 && (
+                            <span
+                              title={`Rollout progressif : ${flag.rolloutPercentage}% des utilisateurs`}
+                              style={{
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                color: '#92400E',
+                                backgroundColor: '#FEF3C7',
+                                padding: '1px 6px',
+                                borderRadius: '999px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.03em',
+                              }}
+                            >
+                              Bêta / {flag.rolloutPercentage}%
+                            </span>
+                          )}
+                      </div>
                     </td>
                     <td style={theme.td}>{flag.description || '-'}</td>
                     <td style={theme.td}>
