@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import apiService from '../services/api.service';
+import React from 'react';
+import { useMultiProjectSummary } from '../hooks/queries';
 import { BarChart3, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import '../styles/MultiProjectDashboard.css';
 
@@ -23,28 +23,9 @@ function getCompletionRateClass(value) {
 }
 
 export default function MultiProjectDashboard({ isDark: _isDark }) {
-  const [summaries, setSummaries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data: summaries = [], isLoading, error, refetch } = useMultiProjectSummary();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await apiService.getMultiProjectSummary();
-      setSummaries(res.data || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="mpd-state">
         <Loader2 size={36} className="mpd-spinner" />
@@ -58,8 +39,8 @@ export default function MultiProjectDashboard({ isDark: _isDark }) {
       <div className="mpd-state mpd-state-error">
         <AlertTriangle size={36} />
         <p>Erreur de chargement</p>
-        <p className="mpd-state-desc">{error}</p>
-        <button className="mpd-btn" onClick={load}>
+        <p className="mpd-state-desc">{error.message}</p>
+        <button className="mpd-btn" onClick={() => refetch()}>
           Réessayer
         </button>
       </div>

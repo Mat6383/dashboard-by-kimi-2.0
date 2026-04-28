@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import MultiProjectDashboard from './MultiProjectDashboard';
 import apiService from '../services/api.service';
 
@@ -10,6 +11,18 @@ vi.mock('../services/api.service', () => ({
   },
 }));
 
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  });
+}
+
+function Wrapper({ children }) {
+  return <QueryClientProvider client={createTestQueryClient()}>{children}</QueryClientProvider>;
+}
+
 describe('MultiProjectDashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -17,7 +30,7 @@ describe('MultiProjectDashboard', () => {
 
   it('renders loading state initially', () => {
     apiService.getMultiProjectSummary.mockReturnValue(new Promise(() => {}));
-    render(<MultiProjectDashboard isDark={false} />);
+    render(<MultiProjectDashboard isDark={false} />, { wrapper: Wrapper });
     expect(screen.getByText(/Chargement/i)).toBeInTheDocument();
   });
 
@@ -47,7 +60,7 @@ describe('MultiProjectDashboard', () => {
       ],
     });
 
-    render(<MultiProjectDashboard isDark={false} />);
+    render(<MultiProjectDashboard isDark={false} />, { wrapper: Wrapper });
 
     await waitFor(() => expect(screen.getByText('Alpha')).toBeInTheDocument());
     expect(screen.getByText('Beta')).toBeInTheDocument();
@@ -57,7 +70,7 @@ describe('MultiProjectDashboard', () => {
 
   it('renders error state on failure', async () => {
     apiService.getMultiProjectSummary.mockRejectedValue(new Error('Network error'));
-    render(<MultiProjectDashboard isDark={false} />);
+    render(<MultiProjectDashboard isDark={false} />, { wrapper: Wrapper });
 
     await waitFor(() => expect(screen.getByText('Network error')).toBeInTheDocument());
   });
