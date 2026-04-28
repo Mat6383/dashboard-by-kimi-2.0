@@ -1,6 +1,12 @@
 import React from 'react';
+import type { Trend } from '../types/api.types';
 
-export default function TrendBadge({ trend, style = {} }) {
+interface TrendBadgeProps {
+  trend: Trend | null | undefined;
+  style?: React.CSSProperties;
+}
+
+export default function TrendBadge({ trend, style = {} }: TrendBadgeProps) {
   if (!trend) return null;
 
   const config = {
@@ -9,7 +15,7 @@ export default function TrendBadge({ trend, style = {} }) {
     stable: { symbol: '→', color: '#6B7280', bg: 'rgba(107,114,128,0.15)' },
   };
 
-  const { symbol, color, bg } = config[trend.direction] || config.stable;
+  const { symbol, color, bg } = config[(trend.direction as keyof typeof config) || 'stable'];
   const severityBorder = trend.severity === 'critical' ? `1.5px solid ${color}` : 'none';
 
   return (

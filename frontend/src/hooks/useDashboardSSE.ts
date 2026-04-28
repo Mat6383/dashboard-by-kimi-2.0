@@ -1,28 +1,47 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import type { DashboardMetrics, QualityRates } from '../types/api.types';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const MAX_RECONNECT_DELAY = 30000;
+
+export interface UseDashboardSSEOptions {
+  projectId: number;
+  preprodMilestones: number[];
+  prodMilestones: number[];
+  enabled: boolean;
+}
+
+export interface DashboardSSEData {
+  metrics: DashboardMetrics;
+  qualityRates: QualityRates | null;
+  timestamp: string;
+}
+
+export interface DashboardSSEState {
+  connected: boolean;
+  connecting: boolean;
+  error: string | null;
+  data: DashboardSSEData | null;
+}
 
 /**
  * Hook de connexion SSE temps réel pour le dashboard.
  * Utilise EventSource natif (GET endpoint).
  * Auto-reconnect avec backoff exponentiel.
- *
- * @param {Object} options
- * @param {number} options.projectId
- * @param {number[]} options.preprodMilestones
- * @param {number[]} options.prodMilestones
- * @param {boolean} options.enabled
- * @returns {{ connected: boolean, connecting: boolean, error: string|null, data: Object|null }}
  */
-export function useDashboardSSE({ projectId, preprodMilestones, prodMilestones, enabled }) {
+export function useDashboardSSE({
+  projectId,
+  preprodMilestones,
+  prodMilestones,
+  enabled,
+}: UseDashboardSSEOptions): DashboardSSEState {
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [error, setError] = useState(null);
-  const [data, setData] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<DashboardSSEData | null>(null);
 
-  const esRef = useRef(null);
-  const reconnectTimeoutRef = useRef(null);
+  const esRef = useRef<EventSource | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectAttemptsRef = useRef(0);
 
   const disconnect = useCallback(() => {
@@ -66,7 +85,7 @@ export function useDashboardSSE({ projectId, preprodMilestones, prodMilestones, 
 
     es.addEventListener('metrics', (event) => {
       try {
-        const payload = JSON.parse(event.data);
+        const payload = JSON.parse(event.data) as DashboardSSEData;
         setData(payload);
       } catch {
         /* ignore parse errors */
@@ -75,7 +94,7 @@ export function useDashboardSSE({ projectId, preprodMilestones, prodMilestones, 
 
     es.addEventListener('error', (event) => {
       try {
-        const payload = JSON.parse(event.data);
+        const payload = JSON.parse((event as MessageEvent).data) as { message?: string };
         setError(payload.message || 'Erreur SSE');
       } catch {
         setError('Erreur SSE');
@@ -88,7 +107,10 @@ export function useDashboardSSE({ projectId, preprodMilestones, prodMilestones, 
       es.close();
 
       reconnectAttemptsRef.current += 1;
-      const delay = Math.min(5000 * Math.pow(2, reconnectAttemptsRef.current - 1), MAX_RECONNECT_DELAY);
+      const delay = Math.min(
+        5000 * Math.pow(2, reconnectAttemptsRef.current - 1),
+        MAX_RECONNECT_DELAY
+      );
       reconnectTimeoutRef.current = setTimeout(connect, delay);
     };
   }, [enabled, projectId, preprodMilestones, prodMilestones, disconnect]);

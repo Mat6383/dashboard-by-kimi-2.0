@@ -76,7 +76,7 @@ export interface RawMetrics {
 }
 
 export interface Run {
-  id: number;
+  id: number | string;
   name: string;
   total: number;
   completed: number;
@@ -111,3 +111,154 @@ export interface ApiErrorResponse {
 }
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+/**
+ * Type guard pour vérifier si une réponse API est un succès.
+ */
+export function isApiSuccess<T>(res: ApiResponse<T>): res is ApiSuccessResponse<T> {
+  return res.success === true;
+}
+
+/**
+ * Déstructure une réponse API en vérifiant le succès.
+ * Lance une Error si la réponse est en échec.
+ */
+export function unwrapApiResponse<T>(res: ApiResponse<T>): T {
+  if (!isApiSuccess(res)) {
+    throw new Error(res.error);
+  }
+  return res.data;
+}
+
+// ─── Milestones ──────────────────────────────────────────────────────────────
+export interface Milestone {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface MilestoneListResponse {
+  result: Milestone[];
+}
+
+// ─── Sync ────────────────────────────────────────────────────────────────────
+export interface SyncProject {
+  id: string;
+  label: string;
+  configured: boolean;
+}
+
+export interface SyncIteration {
+  id: number;
+  title: string;
+  state: string;
+  web_url?: string;
+}
+
+export interface SyncPreviewResult {
+  iteration: SyncIteration;
+  folder: string | null;
+  issues: unknown[];
+  summary: string;
+}
+
+export interface SyncHistoryEntry {
+  id: number;
+  projectId: string;
+  iterationName: string;
+  status: string;
+  createdAt: string;
+}
+
+// ─── Crosstest ───────────────────────────────────────────────────────────────
+export interface CrosstestIssue {
+  iid: number;
+  title: string;
+  url: string;
+  state: string;
+  assignees: Array<{ name: string; avatar_url?: string }>;
+  labels: string[];
+}
+
+export interface CrosstestComment {
+  issue_iid: number;
+  comment: string;
+  milestone_context: string | null;
+  updated_at: string;
+}
+
+// ─── Auto-Sync Config ────────────────────────────────────────────────────────
+export interface AutoSyncConfig {
+  enabled: boolean;
+  runId: number | null;
+  iterationName: string | null;
+  gitlabProjectId: string | null;
+  updatedAt: string | null;
+}
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+export interface NotificationSettings {
+  projectId?: number;
+  slackWebhook?: string;
+  teamsWebhook?: string;
+  emailRecipients?: string[];
+  slaAlertsEnabled?: boolean;
+}
+
+// ─── Audit Logs ──────────────────────────────────────────────────────────────
+export interface AuditLog {
+  id: number;
+  action: string;
+  entity: string;
+  entityId: string;
+  userId: string | null;
+  details: string | null;
+  createdAt: string;
+}
+
+// ─── Circuit Breakers ────────────────────────────────────────────────────────
+export interface CircuitBreakerState {
+  name: string;
+  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  failures: number;
+  lastFailure: string | null;
+}
+
+// ─── Anomalies ───────────────────────────────────────────────────────────────
+export interface AnomalyItem {
+  metric: string;
+  value: number;
+  zScore: number;
+  severity: 'low' | 'medium' | 'high';
+  timestamp: string;
+}
+
+// ─── Multi-Project Summary ───────────────────────────────────────────────────
+export interface MultiProjectSummaryItem {
+  projectId: number;
+  projectName: string;
+  passRate: number | null;
+  completionRate: number | null;
+  blockedRate: number | null;
+  escapeRate: number | null;
+  detectionRate: number | null;
+  slaStatus: { ok: boolean; alerts: Array<{ severity: string; metric: string }> };
+}
+
+// ─── Feature Flags Admin ─────────────────────────────────────────────────────
+export interface MetricAlert {
+  severity: 'warning' | 'critical' | string;
+  message: string;
+}
+
+export interface Trend {
+  direction?: 'up' | 'down' | 'stable';
+  severity?: 'critical' | string;
+  zScore: number;
+  mean?: number;
+}
+
+export interface FeatureFlagAdminResponse {
+  flags: FeatureFlag[];
+}

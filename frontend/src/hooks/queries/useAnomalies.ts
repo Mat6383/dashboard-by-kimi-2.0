@@ -1,13 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import apiService from '../../services/api.service';
-
-export interface AnomalyItem {
-  metric: string;
-  value: number;
-  zScore: number;
-  severity: 'low' | 'medium' | 'high';
-  timestamp: string;
-}
+import type { AnomalyItem } from '../../types/api.types';
+import { unwrapApiResponse } from '../../types/api.types';
 
 /**
  * Hook React Query pour récupérer les anomalies d'un projet.
@@ -18,7 +12,7 @@ export function useAnomalies(projectId: number | null) {
     queryKey: ['anomalies', projectId],
     queryFn: async () => {
       const res = await apiService.getAnomalies(projectId!);
-      return res.data ?? [];
+      return unwrapApiResponse(res);
     },
     enabled: !!projectId,
     staleTime: 2 * 60 * 1000,

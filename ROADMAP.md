@@ -7,8 +7,8 @@
 ## Version actuelle
 
 **Branch :** `main`  
-**Commits récents :** P0→P12 livrés (avril 2026)  
-**Tests :** 491/491 backend ✅ | 156/156 frontend ✅ | Build ✅ | TypeCheck backend & frontend ✅
+**Commits récents :** P0→P13 livrés (avril 2026)  
+**Tests :** 491/491 backend ✅ | 162/162 frontend ✅ | Build ✅ | TypeCheck backend & frontend ✅
 
 ---
 
@@ -211,14 +211,14 @@
 - [x] **P12#3 Setup TS frontend** — `tsconfig.json` (`jsx: react-jsx`), `npm run typecheck` ✅
 - [x] **P12#4 Hooks queries typés** — Les 5 hooks renommés `.ts` avec types génériques (`Project[]`, `DashboardMetrics`…) ✅
 
+## 🚀 P13 — TypeScript approfondi (Session livrée)
+
+- [x] **P13#1** Renommer `api.service.js` → `api.service.ts` avec types retours ✅
+- [x] **P13#2** Typer `DashboardContext.jsx` → `DashboardContext.tsx` ✅
+- [x] **P13#3** Migrer composants feuilles en `.tsx` (MetricCard, PreprodSection, ProductionSection, TrendBadge) ✅
+- [x] **P13#4** Ajouter `useMutation` pour les actions POST/PUT/DELETE (reports, crosstest, sync, notifications, feature-flags, exports, cache) ✅
+
 ## 🚧 Prochaine session
-
-### P13 — TypeScript approfondi (suite migration)
-
-- [ ] **P13#1** Renommer `api.service.js` → `api.service.ts` avec types retours
-- [ ] **P13#2** Typer `DashboardContext.jsx` → `DashboardContext.tsx`
-- [ ] **P13#3** Migrer composants feuilles en `.tsx` (MetricCard, PreprodSection…)
-- [ ] **P13#4** Ajouter `useMutation` pour les actions POST/PUT/DELETE (reports, sync, comments)
 
 ### P14 — Performance & DX
 

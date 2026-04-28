@@ -11,8 +11,26 @@
 import React from 'react';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
 import TrendBadge from './TrendBadge';
+import type { AnomalyItem, QualityRates } from '../types/api.types';
 
-function getTrend(anomalies, metricKey) {
+interface ProductionRates extends QualityRates {
+  prodMilestone: string;
+  bugsInProd: number;
+  bugsInTest: number;
+}
+
+interface ProductionSectionProps {
+  rates: ProductionRates | null;
+  escapeOk: boolean;
+  ddpOk: boolean;
+  showProductionSection: boolean;
+  onToggleProductionSection?: (show: boolean) => void;
+  isDark: boolean;
+  useBusiness: boolean;
+  anomalies: AnomalyItem[];
+}
+
+function getTrend(anomalies: AnomalyItem[], metricKey: string) {
   return anomalies?.find((a) => a.metric === metricKey) || null;
 }
 
@@ -25,7 +43,9 @@ export default function ProductionSection({
   isDark,
   useBusiness,
   anomalies,
-}) {
+}: ProductionSectionProps) {
+  if (!rates) return null;
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>

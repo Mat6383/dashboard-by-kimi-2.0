@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import apiService from '../../services/api.service';
 import type { Project } from '../../types/api.types';
+import { unwrapApiResponse } from '../../types/api.types';
 
 export const PROJECTS_QUERY_KEY = ['projects'] as const;
 
@@ -13,7 +14,7 @@ export function useProjects() {
     queryKey: PROJECTS_QUERY_KEY,
     queryFn: async () => {
       const res = await apiService.getProjects();
-      return res.data?.result ?? [];
+      return unwrapApiResponse(res).result ?? [];
     },
     staleTime: 5 * 60 * 1000,
   });

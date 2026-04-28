@@ -10,9 +10,15 @@
  */
 
 import React from 'react';
+import type { MetricAlert, Trend } from '../types/api.types';
 import TrendBadge from './TrendBadge';
 
-function AlertItem({ alert, useBusiness }) {
+interface AlertItemProps {
+  alert: MetricAlert | null | undefined;
+  useBusiness?: boolean;
+}
+
+function AlertItem({ alert, useBusiness }: AlertItemProps) {
   if (!alert) return null;
   return (
     <div
@@ -56,6 +62,20 @@ function AlertItem({ alert, useBusiness }) {
   );
 }
 
+interface MetricCardProps {
+  title: string;
+  icon: React.ComponentType<{ size?: number; color?: string }>;
+  value: number;
+  color: string;
+  arrow: string;
+  badge: React.ReactNode;
+  label: string;
+  description?: string;
+  alert?: MetricAlert | null;
+  useBusiness?: boolean;
+  trend?: Trend | null;
+}
+
 export default function MetricCard({
   title,
   icon: Icon,
@@ -68,7 +88,7 @@ export default function MetricCard({
   alert,
   useBusiness,
   trend,
-}) {
+}: MetricCardProps) {
   return (
     <div
       className="metric-card"

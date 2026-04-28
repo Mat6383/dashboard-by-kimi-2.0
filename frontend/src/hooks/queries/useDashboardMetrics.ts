@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import apiService from '../../services/api.service';
 import type { DashboardMetrics } from '../../types/api.types';
+import { unwrapApiResponse } from '../../types/api.types';
 
 /**
  * Hook React Query pour les métriques ISTQB d'un projet.
@@ -21,9 +22,9 @@ export function useDashboardMetrics(
         apiService.getQualityRates(projectId!, preprodMilestones, prodMilestones, signal),
       ]);
       return {
-        ...metricsRes.data,
+        ...unwrapApiResponse(metricsRes),
         qualityRates: qualityRes.success ? qualityRes.data : null,
-      } as DashboardMetrics;
+      };
     },
     enabled: !!projectId,
     staleTime: 2 * 60 * 1000,

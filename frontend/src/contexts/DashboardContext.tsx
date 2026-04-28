@@ -2,24 +2,60 @@ import React, { createContext, useState, useCallback, useRef, useEffect, useMemo
 import apiService from '../services/api.service';
 import { useDashboardSSE } from '../hooks/useDashboardSSE';
 import { useProjects, useAnomalies, useCircuitBreakers } from '../hooks/queries';
+import type { DashboardMetrics, Project, AnomalyItem, CircuitBreakerState } from '../types/api.types';
+import { unwrapApiResponse } from '../types/api.types';
 
-export const DashboardContext = createContext(null);
+export interface DashboardContextValue {
+  projectId: number;
+  setProjectId: (id: number) => void;
+  projects: Project[];
+  metrics: DashboardMetrics | null;
+  loading: boolean;
+  error: string | null;
+  lastUpdate: Date | null;
+  backendStatus: 'checking' | 'ok' | 'error';
+  exportHandler: (() => void) | null;
+  setExportHandler: (handler: (() => void) | null) => void;
+  selectedPreprodMilestones: number[];
+  setSelectedPreprodMilestones: (milestones: number[]) => void;
+  selectedProdMilestones: number[];
+  setSelectedProdMilestones: (milestones: number[]) => void;
+  showProductionSection: boolean;
+  setShowProductionSection: (show: boolean) => void;
+  autoRefresh: boolean;
+  setAutoRefresh: (auto: boolean) => void;
+  liveConnected: boolean;
+  liveError: string | null;
+  anomalies: AnomalyItem[];
+  loadAnomalies: () => Promise<void>;
+  circuitBreakers: CircuitBreakerState[];
+  loadCircuitBreakers: () => Promise<void>;
+  checkBackendHealth: () => Promise<void>;
+  loadProjects: () => Promise<void>;
+  loadDashboardMetrics: (force?: boolean) => Promise<void>;
+  handleClearCache: () => Promise<void>;
+  isLoadingRef: React.MutableRefObject<boolean>;
+  lastRefreshRef: React.MutableRefObject<number>;
+  abortControllerRef: React.MutableRefObject<AbortController | null>;
+}
+
+export const DashboardContext = createContext<DashboardContextValue | null>(null);
 
 const REFRESH_COOLDOWN = 5000;
 
-export function DashboardProvider({ children }) {
-  const [projectId, setProjectId] = useState(() => parseInt(localStorage.getItem('testmo_projectId')) || 1);
-  const [metrics, setMetrics] = useState(null);
+export function DashboardProvider({ children }: { children: React.ReactNode }) {
+  const [projectId, setProjectId] = useState(() => parseInt(localStorage.getItem('testmo_projectId') || '1', 10));
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [lastUpdate, setLastUpdate] = useState(null);
-  const [backendStatus, setBackendStatus] = useState('checking');
-  const [exportHandler, setExportHandler] = useState(null);
-  const [selectedPreprodMilestones, setSelectedPreprodMilestones] = useState(() => {
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'ok' | 'error'>('checking');
+  const [exportHandler, setExportHandler] = useState<(() => void) | null>(null);
+  const [selectedPreprodMilestones, setSelectedPreprodMilestones] = useState<number[]>(() => {
     const saved = localStorage.getItem('testmo_selectedPreprodMilestones');
     return saved ? JSON.parse(saved) : [];
   });
-  const [selectedProdMilestones, setSelectedProdMilestones] = useState(() => {
+  const [selectedProdMilestones, setSelectedProdMilestones] = useState<number[]>(() => {
     const saved = localStorage.getItem('testmo_selectedProdMilestones');
     return saved ? JSON.parse(saved) : [];
   });
@@ -47,18 +83,18 @@ export function DashboardProvider({ children }) {
     enabled: autoRefresh,
   });
 
-  const abortControllerRef = useRef(null);
-  const lastRefreshRef = useRef(Date.now());
-  const isLoadingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const lastRefreshRef = useRef<number>(Date.now());
+  const isLoadingRef = useRef<boolean>(false);
 
   // Appliquer les données SSE temps réel
   useEffect(() => {
     if (sse.data) {
       setMetrics((prev) => ({
-        ...sse.data.metrics,
-        qualityRates: sse.data.qualityRates,
+        ...sse.data!.metrics,
+        qualityRates: sse.data!.qualityRates,
       }));
-      setLastUpdate(new Date(sse.data.timestamp));
+      setLastUpdate(new Date(sse.data!.timestamp));
       lastRefreshRef.current = Date.now();
     }
   }, [sse.data]);
@@ -82,7 +118,7 @@ export function DashboardProvider({ children }) {
     try {
       await apiService.clearCache();
     } catch (err) {
-      setError(err.message || 'Erreur nettoyage cache');
+      setError((err as Error).message || 'Erreur nettoyage cache');
     }
   }, []);
 
@@ -122,19 +158,22 @@ export function DashboardProvider({ children }) {
 
         if (controller.signal.aborted) return;
 
-        if (metricsResponse.success) {
-          setMetrics({
-            ...metricsResponse.data,
-            qualityRates: qualityResponse.success ? qualityResponse.data : null,
-          });
-          setLastUpdate(new Date());
-          lastRefreshRef.current = Date.now();
-        } else {
-          throw new Error(metricsResponse.error || 'Erreur inconnue');
-        }
+        const metricsData = unwrapApiResponse(metricsResponse);
+        setMetrics({
+          ...metricsData,
+          qualityRates: qualityResponse.success ? qualityResponse.data : null,
+        });
+        setLastUpdate(new Date());
+        lastRefreshRef.current = Date.now();
       } catch (err) {
-        if (err.name === 'AbortError' || err.name === 'CanceledError' || controller.signal.aborted) return;
-        setError(err.message);
+        if (
+          (err as Error).name === 'AbortError' ||
+          (err as Error).name === 'CanceledError' ||
+          controller.signal.aborted
+        ) {
+          return;
+        }
+        setError((err as Error).message);
         console.error('Erreur chargement métriques:', err);
       } finally {
         if (!controller.signal.aborted) {
@@ -148,11 +187,11 @@ export function DashboardProvider({ children }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem('testmo_projectId', projectId);
+      localStorage.setItem('testmo_projectId', String(projectId));
       localStorage.setItem('testmo_selectedPreprodMilestones', JSON.stringify(selectedPreprodMilestones));
       localStorage.setItem('testmo_selectedProdMilestones', JSON.stringify(selectedProdMilestones));
-      localStorage.setItem('testmo_showProductionSection', showProductionSection);
-      localStorage.setItem('testmo_autoRefresh', autoRefresh);
+      localStorage.setItem('testmo_showProductionSection', String(showProductionSection));
+      localStorage.setItem('testmo_autoRefresh', String(autoRefresh));
     } catch (err) {
       console.warn('localStorage quota exceeded:', err);
     }
@@ -160,9 +199,9 @@ export function DashboardProvider({ children }) {
 
   // Sync cross-onglets via événement storage
   useEffect(() => {
-    const handleStorage = (e) => {
+    const handleStorage = (e: StorageEvent) => {
       if (e.key === 'testmo_projectId') {
-        const id = parseInt(e.newValue);
+        const id = parseInt(e.newValue || '1', 10);
         if (!isNaN(id)) setProjectId(id);
       }
     };

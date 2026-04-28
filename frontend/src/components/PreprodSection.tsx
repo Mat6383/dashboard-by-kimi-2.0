@@ -11,15 +11,28 @@
 import React from 'react';
 import { Activity, CheckSquare, XCircle, TrendingUp, BarChart3, Database, Search } from 'lucide-react';
 import MetricCard from './MetricCard';
+import type { DashboardMetrics, RawMetrics, Run, AnomalyItem, MetricAlert } from '../types/api.types';
 
-export function getPassRateColor(passRate) {
+export function getPassRateColor(passRate: number): string {
   if (passRate >= 95) return '#10B981';
   if (passRate >= 90) return '#F59E0B';
   return '#EF4444';
 }
 
-function getTrend(anomalies, metricKey) {
+function getTrend(anomalies: AnomalyItem[], metricKey: string) {
   return anomalies?.find((a) => a.metric === metricKey) || null;
+}
+
+interface PreprodSectionProps {
+  metrics: DashboardMetrics;
+  raw: RawMetrics;
+  sortedRuns: Run[];
+  showAllRuns: boolean;
+  setShowAllRuns: (show: boolean) => void;
+  isDark: boolean;
+  useBusiness: boolean;
+  getAlertForMetric: (metric: string) => MetricAlert | undefined;
+  anomalies: AnomalyItem[];
 }
 
 export default function PreprodSection({
@@ -32,7 +45,7 @@ export default function PreprodSection({
   useBusiness,
   getAlertForMetric,
   anomalies,
-}) {
+}: PreprodSectionProps) {
   const d1 = metrics;
 
   return (
@@ -243,7 +256,7 @@ export default function PreprodSection({
               key={run.id}
               title={
                 run.isExploratory
-                  ? `${useBusiness ? 'Session' : 'Session'} #${run.id.replace('session-', '')}: ${run.name}`
+                  ? `${useBusiness ? 'Session' : 'Session'} #${String(run.id).replace('session-', '')}: ${run.name}`
                   : run.name
               }
               style={{
@@ -267,8 +280,8 @@ export default function PreprodSection({
                 cursor: run.isExploratory ? 'help' : 'default',
                 transform: 'scale(1)',
               }}
-              onMouseEnter={run.isExploratory ? (e) => (e.currentTarget.style.transform = 'scale(1.02)') : undefined}
-              onMouseLeave={run.isExploratory ? (e) => (e.currentTarget.style.transform = 'scale(1)') : undefined}
+              onMouseEnter={run.isExploratory ? (e) => { e.currentTarget.style.transform = 'scale(1.02)'; } : undefined}
+              onMouseLeave={run.isExploratory ? (e) => { e.currentTarget.style.transform = 'scale(1)'; } : undefined}
             >
               <div
                 style={{
@@ -350,42 +363,6 @@ export default function PreprodSection({
                   justifyContent: 'space-between',
                   fontSize: '0.95rem',
                   marginTop: run.isExploratory ? '0' : '0.4rem',
-                }}
-              >
-                <span style={{ color: 'var(--text-muted)' }}>Progression</span>
-                <span style={{ fontWeight: 700, color: 'var(--text-color)' }}>{run.completionRate}%</span>
-              </div>
-              <div
-                style={{
-                  width: '100%',
-                  height: '8px',
-                  backgroundColor: 'var(--border-color)',
-                  borderRadius: '4px',
-                  overflow: 'hidden',
-                }}
-              >
-                <div
-                  style={{
-                    width: `${run.completionRate}%`,
-                    height: '100%',
-                    backgroundColor: run.isExploratory
-                      ? '#8B5CF6'
-                      : run.completionRate >= 90
-                        ? '#10B981'
-                        : run.completionRate >= 80
-                          ? '#F59E0B'
-                          : '#3B82F6',
-                  }}
-                ></div>
-              </div>
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '0.95rem',
-                  marginTop: '0.2rem',
                 }}
               >
                 <span style={{ color: 'var(--text-muted)' }}>{useBusiness ? 'Taux de succès' : 'Pass Rate'}</span>

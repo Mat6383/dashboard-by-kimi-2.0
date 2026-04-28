@@ -1,23 +1,46 @@
 /**
  * ================================================
- * API SERVICE - Frontend
+ * API SERVICE - Frontend (TypeScript)
  * ================================================
  * Service pour communiquer avec le backend Express
  *
  * @author Matou - Neo-Logix QA Lead
  */
 
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import type {
+  Project,
+  DashboardMetrics,
+  QualityRates,
+  MilestoneListResponse,
+  SyncProject,
+  SyncIteration,
+  SyncPreviewResult,
+  SyncHistoryEntry,
+  CrosstestIssue,
+  CrosstestComment,
+  AutoSyncConfig,
+  NotificationSettings,
+  AuditLog,
+  CircuitBreakerState,
+  AnomalyItem,
+  FeatureFlagAdminResponse,
+  FeatureFlag,
+  FeatureFlagCreateInput,
+  FeatureFlagUpdateInput,
+  ApiResponse,
+  MultiProjectSummaryItem,
+} from '../types/api.types';
 
 // Configuration axios
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 const API_TIMEOUT = 30000; // 30 secondes pour compenser le chargement des multiples jalons
 
-function generateRequestId() {
+function generateRequestId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
-const apiClient = axios.create({
+const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
   headers: {
@@ -26,17 +49,17 @@ const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     config.headers['x-request-id'] = config.headers['x-request-id'] || generateRequestId();
     const token = localStorage.getItem('qa_dashboard_token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
     // eslint-disable-next-line no-console
-    console.log(`[API] ${config.method.toUpperCase()} ${config.url}`);
+    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
-  (error) => {
+  (error: AxiosError) => {
     // eslint-disable-next-line no-console
     console.error('[API] Request error:', error);
     return Promise.reject(error);
@@ -49,7 +72,7 @@ apiClient.interceptors.response.use(
     console.log(`[API] Response:`, response.status, response.data);
     return response;
   },
-  (error) => {
+  (error: AxiosError) => {
     if (error.name === 'CanceledError' || error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
       return Promise.reject(error);
     }
@@ -63,261 +86,248 @@ apiClient.interceptors.response.use(
  */
 export { apiClient };
 
+export interface ReportGenerateParams {
+  projectId: number;
+  milestoneId?: number;
+  formats?: { html?: boolean; pptx?: boolean };
+  recommendations?: string[];
+}
+
+export interface ExportMilestones {
+  preprod: number[];
+  prod: number[];
+}
+
+function handleError(operation: string, error: AxiosError | Error): Error {
+  const axiosError = error as AxiosError<{ error?: string }>;
+  const errorMessage = axiosError.response?.data?.error || error.message;
+  console.error(`[API Service] ${operation} failed:`, errorMessage);
+  return new Error(`${operation}: ${errorMessage}`);
+}
+
+async function apiCall<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    throw handleError(operation, error as AxiosError | Error);
+  }
+}
+
 const apiService = {
   /**
    * Health check du backend
    */
-  async healthCheck() {
-    try {
+  async healthCheck(): Promise<{ status: string }> {
+    return apiCall('Health Check', async () => {
       const response = await apiClient.get('/health');
       return response.data;
-    } catch (error) {
-      throw this._handleError('Health Check', error);
-    }
+    });
   },
 
   /**
    * Récupère la liste des projets
    */
-  async getProjects() {
-    try {
+  async getProjects(): Promise<ApiResponse<{ result: Project[] }>> {
+    return apiCall('Get Projects', async () => {
       const response = await apiClient.get('/projects');
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Projects', error);
-    }
+    });
   },
 
   /**
    * Récupère la synthèse multi-projets
    */
-  async getMultiProjectSummary() {
-    try {
+  async getMultiProjectSummary(): Promise<ApiResponse<MultiProjectSummaryItem[]>> {
+    return apiCall('Get Multi-Project Summary', async () => {
       const response = await apiClient.get('/dashboard/multi');
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Multi-Project Summary', error);
-    }
+    });
   },
 
   /**
    * Récupère les métriques ISTQB d'un projet
    * Endpoint principal du dashboard
-   *
-   * @param {number} projectId - ID du projet
    */
-  async getDashboardMetrics(projectId, preprodMilestones = null, prodMilestones = null, signal = null) {
+  async getDashboardMetrics(
+    projectId: number,
+    preprodMilestones: number[] | null = null,
+    prodMilestones: number[] | null = null,
+    signal: AbortSignal | null = null
+  ): Promise<ApiResponse<DashboardMetrics>> {
     try {
-      const params = {};
+      const params: Record<string, string> = {};
       if (preprodMilestones) params.preprodMilestones = preprodMilestones.join(',');
       if (prodMilestones) params.prodMilestones = prodMilestones.join(',');
-      const config = { params };
+      const config: { params: Record<string, string>; signal?: AbortSignal } = { params };
       if (signal) config.signal = signal;
       const response = await apiClient.get(`/dashboard/${projectId}`, config);
       return response.data;
     } catch (error) {
-      if (error.name === 'AbortError' || error.name === 'CanceledError') throw error;
-      throw this._handleError('Get Dashboard Metrics', error);
+      if (
+        (error as Error).name === 'AbortError' ||
+        (error as Error).name === 'CanceledError'
+      ) {
+        throw error;
+      }
+      throw handleError('Get Dashboard Metrics', error as AxiosError | Error);
     }
   },
 
   /**
    * Récupère les taux qualité d'un projet (escape rate, detection rate...)
-   *
-   * @param {number} projectId
-   * @param {Array|null} preprodMilestones
-   * @param {Array|null} prodMilestones
-   * @param {AbortSignal|null} signal
    */
-  async getQualityRates(projectId, preprodMilestones = null, prodMilestones = null, signal = null) {
+  async getQualityRates(
+    projectId: number,
+    preprodMilestones: number[] | null = null,
+    prodMilestones: number[] | null = null,
+    signal: AbortSignal | null = null
+  ): Promise<ApiResponse<QualityRates>> {
     try {
-      const params = {};
+      const params: Record<string, string> = {};
       if (preprodMilestones) params.preprodMilestones = preprodMilestones.join(',');
       if (prodMilestones) params.prodMilestones = prodMilestones.join(',');
-      const config = { params };
+      const config: { params: Record<string, string>; signal?: AbortSignal } = { params };
       if (signal) config.signal = signal;
       const response = await apiClient.get(`/dashboard/${projectId}/quality-rates`, config);
       return response.data;
     } catch (error) {
-      if (error.name === 'AbortError' || error.name === 'CanceledError') throw error;
-      return { success: false };
+      if (
+        (error as Error).name === 'AbortError' ||
+        (error as Error).name === 'CanceledError'
+      ) {
+        throw error;
+      }
+      return { success: false } as ApiResponse<QualityRates>;
     }
   },
 
   /**
    * Récupère les runs d'un projet
-   *
-   * @param {number} projectId - ID du projet
-   * @param {boolean} activeOnly - Uniquement runs actifs
    */
-  async getProjectRuns(projectId, activeOnly = true) {
-    try {
+  async getProjectRuns(projectId: number, activeOnly = true): Promise<unknown> {
+    return apiCall('Get Project Runs', async () => {
       const response = await apiClient.get(`/projects/${projectId}/runs`, {
         params: { active: activeOnly },
       });
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Project Runs', error);
-    }
+    });
   },
 
   /**
    * Récupère les milestones d'un projet
-   *
-   * @param {number} projectId - ID du projet
+   * Le backend renvoie { success: true, data: { result: [...] } }
    */
-  async getProjectMilestones(projectId) {
-    try {
+  async getProjectMilestones(projectId: number): Promise<MilestoneListResponse> {
+    return apiCall('Get Project Milestones', async () => {
       const response = await apiClient.get(`/projects/${projectId}/milestones`);
-      return response.data.data; // Le backend renvoie { success: true, data: { result: [...] } }
-    } catch (error) {
-      throw this._handleError('Get Project Milestones', error);
-    }
+      return response.data.data;
+    });
   },
 
   /**
    * Récupère les détails d'un run
-   *
-   * @param {number} runId - ID du run
    */
-  async getRunDetails(runId) {
-    try {
+  async getRunDetails(runId: number): Promise<unknown> {
+    return apiCall('Get Run Details', async () => {
       const response = await apiClient.get(`/runs/${runId}`);
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Run Details', error);
-    }
+    });
   },
 
   /**
    * Récupère les résultats d'un run
-   *
-   * @param {number} runId - ID du run
-   * @param {string} statusFilter - Filtrer par statut (ex: '3,5')
    */
-  async getRunResults(runId, statusFilter = null) {
-    try {
+  async getRunResults(runId: number, statusFilter: string | null = null): Promise<unknown> {
+    return apiCall('Get Run Results', async () => {
       const params = statusFilter ? { status: statusFilter } : {};
       const response = await apiClient.get(`/runs/${runId}/results`, { params });
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Run Results', error);
-    }
+    });
   },
 
   /**
    * Récupère les runs d'automation
-   *
-   * @param {number} projectId - ID du projet
    */
-  async getAutomationRuns(projectId) {
-    try {
+  async getAutomationRuns(projectId: number): Promise<unknown> {
+    return apiCall('Get Automation Runs', async () => {
       const response = await apiClient.get(`/projects/${projectId}/automation`);
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Automation Runs', error);
-    }
+    });
   },
 
   /**
    * Récupère les tendances annuelles d'un projet
-   *
-   * @param {number} projectId - ID du projet
    */
-  async getAnnualTrends(projectId) {
-    try {
+  async getAnnualTrends(projectId: number): Promise<unknown> {
+    return apiCall('Get Annual Trends', async () => {
       const response = await apiClient.get(`/dashboard/${projectId}/annual-trends`);
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Annual Trends', error);
-    }
+    });
   },
 
   /**
    * Nettoie le cache backend
    */
-  async clearCache() {
-    try {
+  async clearCache(): Promise<unknown> {
+    return apiCall('Clear Cache', async () => {
       const response = await apiClient.post('/cache/clear');
       return response.data;
-    } catch (error) {
-      throw this._handleError('Clear Cache', error);
-    }
+    });
   },
 
   /**
    * Génère un rapport de clôture (HTML / PPTX)
    * ISTQB §5.4.2 Test Closure Report
-   *
-   * @param {Object} params - { projectId, milestoneId, formats: {html, pptx}, recommendations }
    */
-  async generateReport(params) {
-    try {
+  async generateReport(params: ReportGenerateParams): Promise<ApiResponse<unknown>> {
+    return apiCall('Generate Report', async () => {
       const response = await apiClient.post('/reports/generate', params, { timeout: 120000 });
       return response.data;
-    } catch (error) {
-      throw this._handleError('Generate Report', error);
-    }
+    });
   },
 
   // ---- Dashboard 6: Sync GitLab → Testmo --------------------------------
 
   /**
    * Récupère la liste des projets sync configurés
-   * @returns {Promise<Array>} [{ id, label, configured }]
    */
-  async getSyncProjects() {
-    try {
+  async getSyncProjects(): Promise<SyncProject[]> {
+    return apiCall('Get Sync Projects', async () => {
       const response = await apiClient.get('/sync/projects');
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Get Sync Projects', error);
-    }
+    });
   },
 
   /**
    * Recherche les itérations GitLab disponibles pour un projet
-   * @param {string} projectId  - ID interne (ex: 'neo-pilot')
-   * @param {string} search     - Terme de recherche (facultatif)
-   * @returns {Promise<Array>} [{ id, title, state, web_url }]
    */
-  async getSyncIterations(projectId, search = '') {
-    try {
+  async getSyncIterations(projectId: string, search = ''): Promise<SyncIteration[]> {
+    return apiCall('Get Sync Iterations', async () => {
       const response = await apiClient.get(`/sync/${projectId}/iterations`, {
         params: search ? { search } : {},
       });
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Get Sync Iterations', error);
-    }
+    });
   },
 
   /**
    * Lance un aperçu (dry-run) de synchronisation
-   * @param {string} projectId     - ID interne du projet
-   * @param {string} iterationName - Nom de l'itération
-   * @returns {Promise<Object>} { iteration, folder, issues, summary }
    */
-  async previewSync(projectId, iterationName) {
-    try {
+  async previewSync(projectId: string, iterationName: string): Promise<SyncPreviewResult> {
+    return apiCall('Preview Sync', async () => {
       const response = await apiClient.post('/sync/preview', { projectId, iterationName }, { timeout: 60000 });
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Preview Sync', error);
-    }
+    });
   },
 
   /**
    * Récupère l'historique des synchronisations (50 derniers)
-   * @returns {Promise<Array>}
    */
-  async getSyncHistory() {
-    try {
+  async getSyncHistory(): Promise<SyncHistoryEntry[]> {
+    return apiCall('Get Sync History', async () => {
       const response = await apiClient.get('/sync/history');
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Get Sync History', error);
-    }
+    });
   },
 
   // Note: la synchronisation réelle (execute) utilise EventSource (SSE) côté frontend,
@@ -332,79 +342,62 @@ const apiService = {
 
   /**
    * Liste les itérations GitLab du projet 63
-   * @param {string} search - Terme de recherche facultatif
-   * @returns {Promise<Array>} [{ id, title, state }]
    */
-  async getCrosstestIterations(search = '') {
-    try {
+  async getCrosstestIterations(search = ''): Promise<SyncIteration[]> {
+    return apiCall('Get Crosstest Iterations', async () => {
       const response = await apiClient.get('/crosstest/iterations', {
         params: search ? { search } : {},
       });
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Get Crosstest Iterations', error);
-    }
+    });
   },
 
   /**
    * Issues avec label CrossTest::OK pour une itération donnée
-   * @param {number} iterationId - ID de l'itération GitLab
-   * @returns {Promise<Array>} [{ iid, title, url, state, assignees, labels, ... }]
    */
-  async getCrosstestIssues(iterationId) {
-    try {
+  async getCrosstestIssues(iterationId: number): Promise<CrosstestIssue[]> {
+    return apiCall('Get Crosstest Issues', async () => {
       const response = await apiClient.get(`/crosstest/issues/${iterationId}`);
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Get Crosstest Issues', error);
-    }
+    });
   },
 
   /**
    * Récupère tous les commentaires CrossTest (indexés par issue_iid)
-   * @returns {Promise<Object>} { [iid]: { comment, ... } }
    */
-  async getCrosstestComments() {
-    try {
+  async getCrosstestComments(): Promise<Record<number, CrosstestComment>> {
+    return apiCall('Get Crosstest Comments', async () => {
       const response = await apiClient.get('/crosstest/comments');
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Get Crosstest Comments', error);
-    }
+    });
   },
 
   /**
    * Crée ou met à jour un commentaire pour une issue
-   * @param {number} iid               - Issue IID GitLab
-   * @param {string} comment           - Texte du commentaire
-   * @param {string} milestoneContext  - Nom de l'itération (ex: "R06")
-   * @returns {Promise<Object>} La ligne enregistrée
    */
-  async saveCrosstestComment(iid, comment, milestoneContext = null) {
-    try {
+  async saveCrosstestComment(
+    iid: number,
+    comment: string,
+    milestoneContext: string | null = null
+  ): Promise<CrosstestComment> {
+    return apiCall('Save Crosstest Comment', async () => {
       const response = await apiClient.post('/crosstest/comments', {
         issue_iid: iid,
         comment,
         milestone_context: milestoneContext,
       });
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Save Crosstest Comment', error);
-    }
+    });
   },
 
   /**
    * Supprime le commentaire d'une issue
-   * @param {number} iid - Issue IID GitLab
-   * @returns {Promise<boolean>}
    */
-  async deleteCrosstestComment(iid) {
-    try {
+  async deleteCrosstestComment(iid: number): Promise<boolean> {
+    return apiCall('Delete Crosstest Comment', async () => {
       const response = await apiClient.delete(`/crosstest/comments/${iid}`);
       return response.data.deleted;
-    } catch (error) {
-      throw this._handleError('Delete Crosstest Comment', error);
-    }
+    });
   },
 
   // ---- Fin Dashboard 7 ---------------------------------------------------
@@ -413,171 +406,143 @@ const apiService = {
 
   /**
    * Récupère la config courante du cron auto-sync
-   * @returns {Promise<Object>} { enabled, runId, iterationName, gitlabProjectId, updatedAt }
    */
-  async getAutoSyncConfig() {
-    try {
+  async getAutoSyncConfig(): Promise<AutoSyncConfig> {
+    return apiCall('Get Auto-Sync Config', async () => {
       const response = await apiClient.get('/sync/auto-config');
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Get Auto-Sync Config', error);
-    }
+    });
   },
 
   /**
    * Met à jour la config du cron auto-sync à chaud
-   * @param {Object} patch - Champs à modifier { enabled, runId, iterationName, gitlabProjectId }
-   * @returns {Promise<Object>} Config mise à jour
    */
-  async updateAutoSyncConfig(patch) {
-    try {
+  async updateAutoSyncConfig(patch: Partial<AutoSyncConfig>): Promise<AutoSyncConfig> {
+    return apiCall('Update Auto-Sync Config', async () => {
       const response = await apiClient.put('/sync/auto-config', patch);
       return response.data.data;
-    } catch (error) {
-      throw this._handleError('Update Auto-Sync Config', error);
-    }
+    });
   },
 
   // ---- Notifications -----------------------------------------------------
 
-  async getNotificationSettings(projectId = null) {
-    try {
+  async getNotificationSettings(projectId: number | null = null): Promise<ApiResponse<NotificationSettings>> {
+    return apiCall('Get Notification Settings', async () => {
       const url = projectId ? `/notifications/settings/${projectId}` : '/notifications/settings';
       const response = await apiClient.get(url);
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Notification Settings', error);
-    }
+    });
   },
 
-  async saveNotificationSettings(settings) {
-    try {
+  async saveNotificationSettings(settings: NotificationSettings): Promise<ApiResponse<NotificationSettings>> {
+    return apiCall('Save Notification Settings', async () => {
       const response = await apiClient.put('/notifications/settings', settings);
       return response.data;
-    } catch (error) {
-      throw this._handleError('Save Notification Settings', error);
-    }
+    });
   },
 
-  async testNotificationWebhook(channel, url) {
-    try {
+  async testNotificationWebhook(channel: string, url: string): Promise<ApiResponse<unknown>> {
+    return apiCall('Test Notification Webhook', async () => {
       const response = await apiClient.post('/notifications/test', { channel, url });
       return response.data;
-    } catch (error) {
-      throw this._handleError('Test Notification Webhook', error);
-    }
+    });
   },
 
   // ---- PDF Backend --------------------------------------------------------
 
-  async generateBackendPDF(projectId, milestones, format = 'A4', darkMode = false) {
-    try {
+  async generateBackendPDF(
+    projectId: number,
+    milestones: ExportMilestones,
+    format = 'A4',
+    darkMode = false
+  ): Promise<Blob> {
+    return apiCall('Generate Backend PDF', async () => {
       const response = await apiClient.post(
         '/pdf/generate',
         { projectId, milestones, format, darkMode },
         { responseType: 'blob', timeout: 120000 }
       );
       return response.data;
-    } catch (error) {
-      throw this._handleError('Generate Backend PDF', error);
-    }
+    });
   },
 
   // ---- Export CSV / Excel ------------------------------------------------
 
-  async generateCSV(projectId, milestones) {
-    try {
+  async generateCSV(projectId: number, milestones: ExportMilestones): Promise<Blob> {
+    return apiCall('Generate CSV', async () => {
       const response = await apiClient.post(
         '/export/csv',
         { projectId, milestones },
         { responseType: 'blob', timeout: 60000 }
       );
       return response.data;
-    } catch (error) {
-      throw this._handleError('Generate CSV', error);
-    }
+    });
   },
 
-  async generateExcel(projectId, milestones) {
-    try {
+  async generateExcel(projectId: number, milestones: ExportMilestones): Promise<Blob> {
+    return apiCall('Generate Excel', async () => {
       const response = await apiClient.post(
         '/export/excel',
         { projectId, milestones },
         { responseType: 'blob', timeout: 60000 }
       );
       return response.data;
-    } catch (error) {
-      throw this._handleError('Generate Excel', error);
-    }
+    });
   },
 
   // ---- Anomalies ---------------------------------------------------------
 
-  async getAnomalies(projectId) {
-    try {
+  async getAnomalies(projectId: number): Promise<ApiResponse<AnomalyItem[]>> {
+    return apiCall('Get Anomalies', async () => {
       const response = await apiClient.get(`/anomalies/${projectId}`);
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Anomalies', error);
-    }
+    });
   },
 
-  async getCircuitBreakers() {
-    try {
+  async getCircuitBreakers(): Promise<ApiResponse<CircuitBreakerState[]>> {
+    return apiCall('Get Circuit Breakers', async () => {
       const response = await apiClient.get('/health/circuit-breakers');
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Circuit Breakers', error);
-    }
+    });
   },
 
   // ---- Audit Logs --------------------------------------------------------
 
-  async getAuditLogs(filters = {}) {
-    try {
+  async getAuditLogs(filters: Record<string, unknown> = {}): Promise<ApiResponse<AuditLog[]>> {
+    return apiCall('Get Audit Logs', async () => {
       const response = await apiClient.get('/audit', { params: filters });
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Audit Logs', error);
-    }
+    });
   },
 
   // ---- Feature Flags Admin ------------------------------------------------
 
-  async getFeatureFlagsAdmin() {
-    try {
+  async getFeatureFlagsAdmin(): Promise<ApiResponse<FeatureFlagAdminResponse>> {
+    return apiCall('Get Feature Flags Admin', async () => {
       const response = await apiClient.get('/feature-flags/admin');
       return response.data;
-    } catch (error) {
-      throw this._handleError('Get Feature Flags Admin', error);
-    }
+    });
   },
 
-  async createFeatureFlag(data) {
-    try {
+  async createFeatureFlag(data: FeatureFlagCreateInput): Promise<ApiResponse<FeatureFlag>> {
+    return apiCall('Create Feature Flag', async () => {
       const response = await apiClient.post('/feature-flags/admin', data);
       return response.data;
-    } catch (error) {
-      throw this._handleError('Create Feature Flag', error);
-    }
+    });
   },
 
-  async updateFeatureFlag(key, data) {
-    try {
+  async updateFeatureFlag(key: string, data: FeatureFlagUpdateInput): Promise<ApiResponse<FeatureFlag>> {
+    return apiCall('Update Feature Flag', async () => {
       const response = await apiClient.put(`/feature-flags/admin/${key}`, data);
       return response.data;
-    } catch (error) {
-      throw this._handleError('Update Feature Flag', error);
-    }
+    });
   },
 
-  async deleteFeatureFlag(key) {
-    try {
+  async deleteFeatureFlag(key: string): Promise<ApiResponse<{ deleted: boolean }>> {
+    return apiCall('Delete Feature Flag', async () => {
       const response = await apiClient.delete(`/feature-flags/admin/${key}`);
       return response.data;
-    } catch (error) {
-      throw this._handleError('Delete Feature Flag', error);
-    }
+    });
   },
 
   // ---- Fin Dashboard 8 ---------------------------------------------------
@@ -586,11 +551,8 @@ const apiService = {
    * Gestion des erreurs
    * @private
    */
-  _handleError(operation, error) {
-    const errorMessage = error.response?.data?.error || error.message;
-    console.error(`[API Service] ${operation} failed:`, errorMessage);
-
-    return new Error(`${operation}: ${errorMessage}`);
+  _handleError(operation: string, error: AxiosError | Error): Error {
+    return handleError(operation, error);
   },
 };
 
