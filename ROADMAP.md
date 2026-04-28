@@ -184,7 +184,7 @@
 ## 🚀 P9 — Temps réel & Intelligence (Session en cours)
 
 - [x] **P9#1 Temps réel SSE dashboard** — Endpoint `GET /api/dashboard/:projectId/stream` (SSE), hook `useDashboardSSE`, indicateur "Live" UI, fallback polling, auto-reconnect
-- [ ] **P9#2 Détection d'anomalies** — Algo z-score sur tendances historiques, endpoint `/api/anomalies`, badges "trending" sur KPIs
+- [x] **P9#2 Détection d'anomalies** — Algo z-score sur tendances historiques, endpoint `/api/anomalies`, badges "trending" sur KPIs
 - [ ] **P9#3 Circuit breaker & resilience** — `CircuitBreaker` class sur appels Testmo/GitLab, retry exponentiel jobs sync, mode dégradé avec banner
 - [ ] **P9#4 Feature Flags UI admin** — CRUD `/admin/features`, rollout progressif, audit intégré
 
