@@ -252,22 +252,25 @@
 - [ ] Mesurer p95/p99 temps de réponse, mémoire SQLite, pool Puppeteer
 - [ ] Identifier et corriger les goulots d'étranglement (N+1 queries, blocages browser)
 
-### Option C — Docker & Déploiement conteneurisé
+### Option C — Docker & Déploiement conteneurisé ✅ Livré
 
-- [ ] `Dockerfile` backend multi-stage (Node + Chromium pour Puppeteer)
-- [ ] `Dockerfile` frontend (build Vite + Nginx static)
-- [ ] `docker-compose.yml` avec volume SQLite persistant
-- [ ] Mise à jour `docs/DEPLOYMENT.md` pour le déploiement Docker
+- [x] `Dockerfile` backend multi-stage (Node + Chromium pour Puppeteer)
+- [x] `Dockerfile` frontend (build Vite + Nginx static)
+- [x] `docker-compose.yml` avec volume SQLite persistant
+- [x] Mise à jour `docs/DEPLOYMENT.md` pour le déploiement Docker
+- [x] **Fix logs Winston** — `logger.service.ts` utilise `/app/logs` en production (volume monté accessible depuis l'hôte)
+- [x] **Limites mémoire/CPU** — `deploy.resources.limits` dans `docker-compose.yml` (backend 1 CPU / 1G, frontend 0.5 CPU / 256M)
+- [x] `docker-compose.dev.yml` — Hot-reload avec bind mounts pour le développement local (`Dockerfile.dev` backend + frontend, polling nodemon/chokidar pour Docker Desktop)
 
 ---
 
 ## 🚧 Sessions futures (P18+)
 
-- **P18** — Internationalisation (i18n) FR/EN : UI, emails, templates de rapport
-- **P19** — Pool Puppeteer optimisé : gestion mémoire, rotation de pages, mesures temps de génération
-- **P20** — WebSocket temps réel : remplacer/améliorer SSE par WebSocket natif pour le dashboard
-- **P21** — Backup automatisé SQLite : cron de dump + rotation + upload S3/rsync
-- **P22** — tRPC ou GraphQL : couche API typée côté backend pour consommation frontend sûre
+- [ ] **P18** — Internationalisation (i18n) FR/EN : UI, emails, templates de rapport
+- [x] **P19** — Pool Puppeteer optimisé : pool de 3 pages réutilisables, sémaphore concurrence, header `X-PDF-Generation-Time`, rotation fine pages + tests ✅
+- [x] **P20** — WebSocket temps réel : serveur WS (`ws`) + `DashboardRoom` (polling centralisé par projectId, broadcast clients) + hook `useDashboardWebSocket` avec fallback SSE automatique + tests ✅
+- [x] **P21** — Backup automatisé SQLite : cron quotidien 3h + dump VACUUM INTO + compression gzip + rotation locale 7j + upload S3 (IA) **ou rsync/SSH** + rotation distante 30j + endpoint admin `/api/admin/backups` ✅
+- [ ] **P22** — tRPC ou GraphQL : couche API typée côté backend pour consommation frontend sûre
 
 ## 📝 Notes
 

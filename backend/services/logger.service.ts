@@ -1,5 +1,14 @@
 import winston from 'winston';
 import path from 'path';
+import fs from 'fs';
+
+/**
+ * Répertoire des logs : en production Docker on utilise /app/logs (volume monté),
+ * sinon on reste relatif à __dirname pour le développement local.
+ */
+const logsDir = process.env.NODE_ENV === 'production'
+  ? '/app/logs'
+  : path.join(__dirname, '../logs');
 
 /**
  * Liste des clés sensibles à masquer dans les logs.
@@ -89,6 +98,11 @@ const customFormat = winston.format.combine(
   })
 );
 
+// S'assurer que le répertoire de logs existe
+if (!fs.existsSync(logsDir)) {
+  fs.mkdirSync(logsDir, { recursive: true });
+}
+
 // Configuration Winston
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
@@ -101,26 +115,20 @@ const logger = winston.createLogger({
 
     // Fichier pour tous les logs
     new winston.transports.File({
-      filename: path.join(__dirname, '../logs/combined.log'),
+      filename: path.join(logsDir, 'combined.log'),
       maxsize: 5242880, // 5MB
       maxFiles: 5,
     }),
 
     // Fichier séparé pour les erreurs (ITIL Incident Management)
     new winston.transports.File({
-      filename: path.join(__dirname, '../logs/errors.log'),
+      filename: path.join(logsDir, 'errors.log'),
       level: 'error',
       maxsize: 5242880,
       maxFiles: 5,
     }),
   ],
 });
-
-import fs from 'fs';
-const logsDir = path.join(__dirname, '../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
 
 export { redactSensitive };
 export default logger;

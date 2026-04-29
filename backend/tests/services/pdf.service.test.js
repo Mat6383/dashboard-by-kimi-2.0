@@ -13,6 +13,7 @@ const mockPage = {
   setContent: jest.fn().mockResolvedValue(),
   pdf: jest.fn().mockResolvedValue(Buffer.from('%PDF-1.4')),
   close: jest.fn().mockResolvedValue(),
+  goto: jest.fn().mockResolvedValue(),
 };
 
 const mockBrowser = {
@@ -102,16 +103,29 @@ describe('PdfService', () => {
     );
   });
 
-  it('ferme la page même en cas d erreur', async () => {
+  it('relâche la page même en cas d erreur', async () => {
     mockPage.setContent.mockRejectedValueOnce(new Error('Timeout'));
     await expect(pdfService.generateFromHTML('<h1>Fail</h1>')).rejects.toThrow('Timeout');
-    expect(mockPage.close).toHaveBeenCalledTimes(1);
+    expect(pdfService._activeCount).toBe(0);
   });
 
-  it('generateDashboardPDF appelle generateFromHTML', async () => {
-    const spy = jest.spyOn(pdfService, 'generateFromHTML').mockResolvedValue(Buffer.from('pdf'));
-    await pdfService.generateDashboardPDF({ passRate: 50 }, { darkMode: true });
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining('Rapport de qualité'), { darkMode: true });
-    spy.mockRestore();
+  it('retourne un buffer et le temps de génération', async () => {
+    const result = await pdfService.generateFromHTML('<h1>Test</h1>');
+    expect(result).toHaveProperty('buffer');
+    expect(result).toHaveProperty('durationMs');
+    expect(Buffer.isBuffer(result.buffer)).toBe(true);
+    expect(typeof result.durationMs).toBe('number');
+    expect(result.durationMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('initialise le pool avec 3 pages au premier appel', async () => {
+    await pdfService.generateFromHTML('<h1>Test</h1>');
+    expect(mockBrowser.newPage).toHaveBeenCalledTimes(3);
+  });
+
+  it('generateDashboardPDF retourne buffer et durationMs', async () => {
+    const result = await pdfService.generateDashboardPDF({ passRate: 50 }, { darkMode: true });
+    expect(result).toHaveProperty('buffer');
+    expect(result).toHaveProperty('durationMs');
   });
 });

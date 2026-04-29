@@ -1,6 +1,6 @@
 import React, { createContext, useState, useCallback, useEffect, useMemo } from 'react';
 import apiService from '../services/api.service';
-import { useDashboardSSE } from '../hooks/useDashboardSSE';
+import { useDashboardWebSocket } from '../hooks/useDashboardWebSocket';
 import { useProjects, useAnomalies, useCircuitBreakers, useDashboardMetrics } from '../hooks/queries';
 import { queryClient } from '../lib/queryClient';
 import type { DashboardMetrics, Project, AnomalyItem, CircuitBreakerState } from '../types/api.types';
@@ -63,7 +63,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const preprod = selectedPreprodMilestones.length > 0 ? selectedPreprodMilestones : null;
   const prod = selectedProdMilestones.length > 0 ? selectedProdMilestones : null;
 
-  const sse = useDashboardSSE({
+  const sse = useDashboardWebSocket({
     projectId,
     preprodMilestones: selectedPreprodMilestones,
     prodMilestones: selectedProdMilestones,

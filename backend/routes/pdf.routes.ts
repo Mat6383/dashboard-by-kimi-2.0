@@ -20,12 +20,13 @@ router.post('/generate', requireAuth, auditAction('export.pdf'), async (req, res
       milestones?.prod || null
     );
 
-    const pdfBuffer = await pdfService.generateDashboardPDF(metrics, { format, darkMode });
+    const { buffer, durationMs } = await pdfService.generateDashboardPDF(metrics, { format, darkMode });
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="qa-dashboard-${projectId}-${Date.now()}.pdf"`);
+    res.setHeader('X-PDF-Generation-Time', durationMs.toString());
     exportRunsTotal.inc({ format: 'pdf' });
-    res.send(pdfBuffer);
+    res.send(buffer);
   } catch (error) {
     res.status(500).json(safeErrorResponse(error, 'POST /api/pdf/generate'));
   }

@@ -25,6 +25,7 @@ import requestLogger from './middleware/requestLogger';
 import autoSyncJob from './jobs/autoSyncJob';
 import metricsSnapshotJob from './jobs/metricsSnapshotJob';
 import auditPruneJob from './jobs/auditPruneJob';
+import backupJob from './jobs/backupJob';
 import gracefulShutdown from './bootstrap/gracefulShutdown';
 
 import syncHistoryService from './services/syncHistory.service';
@@ -48,10 +49,12 @@ import exportRoutes from './routes/export.routes';
 import cacheRoutes from './routes/cache.routes';
 import featureFlagsRoutes from './routes/featureFlags.routes';
 import webhooksRoutes from './routes/webhooks.routes';
+import { setupWebSocket } from './websocket';
 import auditRoutes from './routes/audit.routes';
 import anomaliesRoutes from './routes/anomalies.routes';
 import docsRoutes from './routes/docs.routes';
 import metricsRoutes from './routes/metrics.routes';
+import backupsRoutes from './routes/backups.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -102,6 +105,7 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/anomalies', anomaliesRoutes);
 app.use('/api/docs', docsRoutes);
 app.use('/metrics', metricsRoutes);
+app.use('/api/admin/backups', requireAdminAuth, backupsRoutes);
 
 // ─── 404 ────────────────────────────────────────────────────────────────────
 app.use((req, res) => {
@@ -131,17 +135,22 @@ app.use((err: any, req: any, res: any, _next: any) => {
   });
 });
 
+let server: any;
+
 // ─── Démarrage (hors mode test) ─────────────────────────────────────────────
 if (process.env.NODE_ENV !== 'test') {
   autoSyncJob.start();
   metricsSnapshotJob.start();
   auditPruneJob.start();
+  backupJob.start();
 
-  const server = app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     logger.info(`Server ready on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
   });
 
-  server.on('error', (error) => {
+  setupWebSocket(server);
+
+  server.on('error', (error: Error) => {
     logger.error('Erreur au démarrage du serveur:', (error as Error).message);
     process.exit(1);
   });
@@ -149,5 +158,6 @@ if (process.env.NODE_ENV !== 'test') {
   gracefulShutdown.setup(server);
 }
 
+export { server };
 export default app;
 module.exports = exports.default;

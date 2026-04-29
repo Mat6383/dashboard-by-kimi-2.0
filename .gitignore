@@ -53,3 +53,4 @@ backend/coverage/
 frontend/coverage/
 .kimi/
 test-results/
+backend/backups/

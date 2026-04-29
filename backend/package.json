@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "tsx watch server.ts",
+    "dev:docker": "nodemon --legacy-watch --ext ts,js,json --exec tsx server.ts",
     "build": "tsc && npm run copy-assets",
     "copy-assets": "(cp -r docs dist/ 2>/dev/null || true) && mkdir -p dist/db && (cp -r db/migrations dist/db/ 2>/dev/null || true) && (cp -r data dist/ 2>/dev/null || true)",
     "test": "jest",
@@ -22,6 +23,7 @@
   "author": "Matou - Neo-Logix QA Lead",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1038.0",
     "@sentry/node": "^10.49.0",
     "axios": "^1.6.5",
     "better-sqlite3": "^12.8.0",
@@ -62,6 +64,7 @@
     "@types/passport": "^1.0.17",
     "@types/supertest": "^7.2.0",
     "@types/swagger-ui-express": "^4.1.8",
+    "@types/ws": "^8.18.1",
     "jest": "^30.3.0",
     "nodemon": "^3.0.2",
     "supertest": "^7.2.2",

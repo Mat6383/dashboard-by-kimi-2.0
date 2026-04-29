@@ -10,12 +10,26 @@ class PdfService {
   generationCount: number;
   idleTimer: any;
   lastActivity: number;
+  poolSize: number;
+  maxPageGenerations: number;
+  maxConcurrency: number;
+  maxQueueSize: number;
+  _pool: { page: any; busy: boolean; generationCount: number }[];
+  _queue: ((page: any) => void)[];
+  _activeCount: number;
 
   constructor() {
     this.browser = null;
     this.generationCount = 0;
     this.idleTimer = null;
     this.lastActivity = Date.now();
+    this.poolSize = parseInt(process.env.PDF_POOL_SIZE || '', 10) || 3;
+    this.maxPageGenerations = parseInt(process.env.PDF_MAX_PAGE_GENERATIONS || '', 10) || 20;
+    this.maxConcurrency = parseInt(process.env.PDF_MAX_CONCURRENCY || '', 10) || 3;
+    this.maxQueueSize = parseInt(process.env.PDF_MAX_QUEUE_SIZE || '', 10) || 5;
+    this._pool = [];
+    this._queue = [];
+    this._activeCount = 0;
   }
 
   async _getBrowser() {
@@ -71,6 +85,87 @@ class PdfService {
     }
   }
 
+  async _initPool(browser: any) {
+    if (this._pool.length > 0) return;
+    for (let i = 0; i < this.poolSize; i++) {
+      const page = await browser.newPage();
+      this._pool.push({ page, busy: false, generationCount: 0 });
+    }
+    logger.info(`[PdfService] Pool initialisé avec ${this.poolSize} pages`);
+  }
+
+  async _acquirePage(): Promise<any> {
+    const browser = await this._getBrowser();
+    await this._initPool(browser);
+
+    // Si une page est idle, on la prend
+    const idle = this._pool.find((p) => !p.busy);
+    if (idle && this._activeCount < this.maxConcurrency) {
+      idle.busy = true;
+      this._activeCount++;
+      await idle.page.goto('about:blank');
+      return idle.page;
+    }
+
+    // Si la queue est pleine, on rejette
+    if (this._queue.length >= this.maxQueueSize) {
+      throw new Error('PDF generation queue full (too many concurrent requests)');
+    }
+
+    // Sinon on attend qu'une page se libère
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        const idx = this._queue.indexOf(handler);
+        if (idx !== -1) this._queue.splice(idx, 1);
+        reject(new Error('PDF generation queue timeout'));
+      }, 30000);
+
+      const handler = (page: any) => {
+        clearTimeout(timeout);
+        resolve(page);
+      };
+
+      this._queue.push(handler);
+    });
+  }
+
+  async _releasePage(page: any) {
+    const entry = this._pool.find((p) => p.page === page);
+    if (!entry) return;
+
+    entry.generationCount++;
+    this.generationCount++;
+    this._activeCount--;
+
+    // Rotation fine : on recycle la page après N générations
+    if (entry.generationCount >= this.maxPageGenerations) {
+      await this._rotatePageEntry(entry);
+    }
+
+    entry.busy = false;
+
+    // Si quelqu'un attend dans la queue, on lui donne la page
+    if (this._queue.length > 0) {
+      const next = this._queue.shift()!;
+      entry.busy = true;
+      this._activeCount++;
+      next(entry.page);
+      return;
+    }
+  }
+
+  async _rotatePageEntry(entry: any) {
+    try {
+      await entry.page.close();
+    } catch (err: any) {
+      logger.warn('[PdfService] Erreur fermeture page:', err.message);
+    }
+    const browser = await this._getBrowser();
+    entry.page = await browser.newPage();
+    entry.generationCount = 0;
+    logger.info('[PdfService] Page du pool recyclée');
+  }
+
   /**
    * Génère un PDF à partir d'une chaîne HTML
    * @param {string} html — Contenu HTML complet
@@ -78,8 +173,8 @@ class PdfService {
    * @returns {Buffer} PDF
    */
   async generateFromHTML(html: any, options: any = {}) {
-    const browser = await this._getBrowser();
-    const page = await browser.newPage();
+    const start = Date.now();
+    const page = await this._acquirePage();
 
     try {
       await page.setContent(html, { waitUntil: 'networkidle0', timeout: PAGE_TIMEOUT_MS });
@@ -105,12 +200,17 @@ class PdfService {
         timeout: PAGE_TIMEOUT_MS,
       });
 
-      this.generationCount++;
+      const durationMs = Date.now() - start;
       this._logMemory();
-      logger.info('[PdfService] PDF généré (#' + this.generationCount + ')');
-      return pdfBuffer;
+      logger.info(`[PdfService] PDF généré en ${durationMs}ms (#${this.generationCount})`);
+
+      if (durationMs > 10000) {
+        logger.warn(`[PdfService] Génération lente : ${durationMs}ms`);
+      }
+
+      return { buffer: pdfBuffer, durationMs };
     } finally {
-      await page.close();
+      await this._releasePage(page);
     }
   }
 
@@ -213,6 +313,14 @@ class PdfService {
       clearTimeout(this.idleTimer);
       this.idleTimer = null;
     }
+    for (const entry of this._pool) {
+      try {
+        await entry.page.close();
+      } catch (err: any) {
+        logger.warn('[PdfService] Erreur fermeture page pool:', err.message);
+      }
+    }
+    this._pool = [];
     if (this.browser) {
       try {
         await this.browser.close();
@@ -223,6 +331,8 @@ class PdfService {
       this.browser = null;
     }
     this.generationCount = 0;
+    this._activeCount = 0;
+    this._queue = [];
   }
 }
 

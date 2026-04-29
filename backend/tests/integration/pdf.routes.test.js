@@ -17,7 +17,7 @@ jest.mock('../../services/logger.service', () => ({
 }));
 
 jest.mock('../../services/pdf.service', () => ({
-  generateDashboardPDF: jest.fn().mockResolvedValue(Buffer.from('%PDF-1.4 test')),
+  generateDashboardPDF: jest.fn().mockResolvedValue({ buffer: Buffer.from('%PDF-1.4 test'), durationMs: 1245 }),
 }));
 
 jest.mock('../../services/testmo.service', () => ({
@@ -74,5 +74,15 @@ describe('PDF Routes', () => {
   it('POST /api/pdf/generate returns 401 without token', async () => {
     const res = await request(app).post('/api/pdf/generate').send({ projectId: 1 });
     expect(res.status).toBe(401);
+  });
+
+  it('POST /api/pdf/generate retourne le header X-PDF-Generation-Time', async () => {
+    const res = await request(app)
+      .post('/api/pdf/generate')
+      .set('Authorization', token)
+      .send({ projectId: 1, format: 'A4' });
+
+    expect(res.status).toBe(200);
+    expect(res.headers['x-pdf-generation-time']).toBe('1245');
   });
 });
