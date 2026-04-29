@@ -181,6 +181,7 @@ export default function AppLayout({
             onClick={toggleCompactMode}
             title={compactMode ? t('layout.compactModeOn') : t('layout.compactModeOff')}
             type="button"
+            data-testid="compact-mode-toggle"
           >
             <LayoutTemplate size={16} />
             {compactMode ? t('layout.compactModeOn') : t('layout.compactModeOff')}
