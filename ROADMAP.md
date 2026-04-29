@@ -264,13 +264,19 @@
 
 ---
 
-## 🚧 Sessions futures (P18+)
+## 🚧 Sessions futures (P23+)
+
+- [ ] **Option B** — Tests de charge & Performance : k6/Artillery, 50 users simultanés, mesure p95/p99
+- [ ] **P23** — Améliorations UX : raccourcis clavier, drag-and-drop tableaux, mode compact
+- [ ] **P24** — Alerting avancé : webhooks personnalisés par métrique, templates d'alerte configurables
+
+## ✅ Sessions livrées
 
 - [x] **P18** — Internationalisation (i18n) FR/EN : UI, emails, templates de rapport ✅
 - [x] **P19** — Pool Puppeteer optimisé : pool de 3 pages réutilisables, sémaphore concurrence, header `X-PDF-Generation-Time`, rotation fine pages + tests ✅
 - [x] **P20** — WebSocket temps réel : serveur WS (`ws`) + `DashboardRoom` (polling centralisé par projectId, broadcast clients) + hook `useDashboardWebSocket` avec fallback SSE automatique + tests ✅
 - [x] **P21** — Backup automatisé SQLite : cron quotidien 3h + dump VACUUM INTO + compression gzip + rotation locale 7j + upload S3 (IA) **ou rsync/SSH** + rotation distante 30j + endpoint admin `/api/admin/backups` ✅
-- [x] **P22** — tRPC : couche API typée montée sur Express, 13 sous-routers backend, hooks frontend migrés, type-safety end-to-end
+- [x] **P22** — tRPC : couche API typée montée sur Express, 13 sous-routers backend, hooks frontend migrés, type-safety end-to-end ✅
 
 ## 📝 Notes
 
