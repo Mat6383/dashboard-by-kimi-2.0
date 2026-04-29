@@ -38,6 +38,20 @@ import { TRPCProvider } from './trpc/provider';
 import './i18n';
 import App from './App';
 
+// Enregistrement du Service Worker pour PWA
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        console.log('SW registered:', registration.scope);
+      })
+      .catch((error) => {
+        console.log('SW registration failed:', error);
+      });
+  });
+}
+
 // Montage de l'application
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

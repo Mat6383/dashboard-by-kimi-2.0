@@ -264,8 +264,12 @@
 
 ---
 
-## 🚧 Sessions futures (P23+)
+## 🚧 Sessions futures (P25+)
 
+- [ ] **P25 — PWA / Mobile** : Service worker, offline mode, manifest, responsive des dashboards complexes _(recommandé)_
+- [ ] **P25 — Analytics & Insights IA** : Détection de patterns dans les données de test, recommandations auto
+- [ ] **P25 — Data Retention & Archivage** : Politique de rétention, archivage auto des vieilles données, GDPR cleanup
+- [ ] **P25 — Intégrations tierces** : Jira, Azure DevOps, ou autre outil de test
 - [x] **Option B** — Tests de charge & Performance : k6, 50 users simultanés, mesure p95/p99, corrections goulots d'étranglement ✅
 - [x] **P23** — Améliorations UX : raccourcis clavier, drag-and-drop tableaux, mode compact ✅
 - [x] **P24** — Alerting avancé : webhooks personnalisés par métrique, templates d'alerte configurables
