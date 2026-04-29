@@ -7,7 +7,7 @@
     "start": "node dist/server.js",
     "dev": "tsx watch server.ts",
     "build": "tsc && npm run copy-assets",
-    "copy-assets": "cp -r docs dist/ && mkdir -p dist/db && cp -r db/migrations dist/db/ && cp -r data dist/ 2>/dev/null || true",
+    "copy-assets": "(cp -r docs dist/ 2>/dev/null || true) && mkdir -p dist/db && (cp -r db/migrations dist/db/ 2>/dev/null || true) && (cp -r data dist/ 2>/dev/null || true)",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "typecheck": "tsc --noEmit"

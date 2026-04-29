@@ -23,9 +23,6 @@ tests
 *.test.ts
 jest.config.*
 
-# Docs (déjà copiés via copy-assets)
-docs
-
 # Divers
 .DS_Store
 .vscode
