@@ -17,8 +17,12 @@ import {
   Radio,
   Globe,
   LayoutTemplate,
+  Menu,
 } from 'lucide-react';
 import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts';
+import { useIsMobile } from '../hooks/useMediaQuery';
+import MobileDrawer from './MobileDrawer';
+import MobileBottomNav from './MobileBottomNav';
 import ShortcutHelpOverlay from './ShortcutHelpOverlay';
 
 function getDashboardRoutes(isAdmin, t) {
@@ -105,6 +109,8 @@ export default function AppLayout({
 }) {
   const { t, i18n } = useTranslation();
   const dashboardRoutes = getDashboardRoutes(isAdmin, t);
+  const isMobile = useIsMobile();
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
@@ -143,11 +149,38 @@ export default function AppLayout({
           <Database size={32} color="#3B82F6" />
           <div className="header-title">
             <h1>{t('layout.title')}</h1>
-            <p className="header-subtitle">{t('layout.subtitle')}</p>
+            {!isMobile && <p className="header-subtitle">{t('layout.subtitle')}</p>}
           </div>
         </div>
 
-        <div className="header-right">
+        {isMobile ? (
+          <div className="header-right">
+            {projects.length > 0 && (
+              <select
+                value={projectId}
+                onChange={onProjectChange}
+                className="project-selector"
+                aria-label={t('layout.selectProject')}
+              >
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              className="btn-icon"
+              onClick={() => setDrawerOpen(true)}
+              aria-label={t('layout.menu')}
+              type="button"
+              style={{ minWidth: '44px', minHeight: '44px' }}
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+        ) : (
+          <div className="header-right">
           {/* Sélecteur de projet */}
           {projects.length > 0 && (
             <select
@@ -393,7 +426,139 @@ export default function AppLayout({
           {/* Statut backend */}
           <BackendStatus status={backendStatus} t={t} />
         </div>
+      )}
       </header>
+
+      {isMobile && (
+        <MobileDrawer
+          isOpen={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          title={t('layout.settings')}
+        >
+          <div className="mobile-drawer-controls">
+            {/* Toggle TV Mode */}
+            <button
+              className={`btn-toggle ${tvMode ? 'active' : ''}`}
+              onClick={toggleTvMode}
+              type="button"
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              <Monitor size={16} />
+              {tvMode ? t('layout.tvModeOn') : t('layout.tvModeOff')}
+            </button>
+
+            {/* Toggle Compact Mode */}
+            <button
+              className={`btn-toggle ${compactMode ? 'active' : ''}`}
+              onClick={toggleCompactMode}
+              type="button"
+              style={{ width: '100%', justifyContent: 'center' }}
+            >
+              <LayoutTemplate size={16} />
+              {compactMode ? t('layout.compactModeOn') : t('layout.compactModeOff')}
+            </button>
+
+            {/* Toggle Dark Theme */}
+            <div className="switch-container" style={{ justifyContent: 'space-between', padding: '12px 0' }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{t('layout.darkTheme')}</span>
+              <label className="theme-switch" aria-label={t('layout.darkTheme')}>
+                <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} />
+                <span className="slider round" />
+              </label>
+            </div>
+
+            {/* Sélecteur Dashboard */}
+            <select
+              value={currentPath}
+              onChange={onDashboardChange}
+              className="project-selector"
+              style={{ width: '100%' }}
+              aria-label={t('layout.selectDashboard')}
+            >
+              {dashboardRoutes.map((route) => (
+                <option key={route.path} value={route.path}>
+                  {route.label}
+                </option>
+              ))}
+            </select>
+
+            {/* Exports */}
+            {currentPath === '/global-view' && exportHandler && (
+              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center' }} onClick={exportHandler} type="button">
+                <Download size={16} /> {t('layout.exportPdf')}
+              </button>
+            )}
+            {currentPath === '/global-view' && onExportPdfBackend && (
+              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center', backgroundColor: '#8B5CF6', color: 'white' }} onClick={onExportPdfBackend} type="button">
+                <Download size={16} /> {t('layout.exportPdfBackend')}
+              </button>
+            )}
+            {currentPath === '/global-view' && onExportCSV && (
+              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center', backgroundColor: '#10B981', color: 'white' }} onClick={onExportCSV} type="button">
+                <FileText size={16} /> {t('layout.exportCsv')}
+              </button>
+            )}
+            {currentPath === '/global-view' && onExportExcel && (
+              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center', backgroundColor: '#3B82F6', color: 'white' }} onClick={onExportExcel} type="button">
+                <FileSpreadsheet size={16} /> {t('layout.exportExcel')}
+              </button>
+            )}
+
+            {/* Toggle Vocabulaire Métier */}
+            <div className="switch-container" style={{ justifyContent: 'space-between', padding: '12px 0' }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>{t('layout.businessTerms')}</span>
+              <label className="theme-switch" aria-label={t('layout.businessTerms')}>
+                <input type="checkbox" checked={useBusinessTerms} onChange={() => setUseBusinessTerms(!useBusinessTerms)} />
+                <span className="slider round" />
+              </label>
+            </div>
+
+            {/* Langue */}
+            <button className="btn-toggle" onClick={() => changeLanguage(i18n.language === 'fr' ? 'en' : 'fr')} type="button" style={{ width: '100%', justifyContent: 'center' }}>
+              <Globe size={16} />
+              {i18n.language === 'fr' ? 'FR' : 'EN'}
+            </button>
+
+            {/* Auto-refresh */}
+            <button className={`btn-toggle ${autoRefresh ? 'active' : ''}`} onClick={() => setAutoRefresh(!autoRefresh)} type="button" style={{ width: '100%', justifyContent: 'center' }}>
+              <RefreshCw size={16} className={autoRefresh ? 'spinning' : ''} />
+              {autoRefresh ? t('layout.autoRefreshOn') : t('layout.autoRefreshOff')}
+            </button>
+
+            {/* Refresh + Clear Cache */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button className="btn-icon" onClick={onRefresh} disabled={loading} type="button" style={{ flex: 1, justifyContent: 'center' }}>
+                <RefreshCw size={16} className={loading ? 'spinning' : ''} />
+              </button>
+              <button className="btn-icon" onClick={onClearCache} type="button" style={{ flex: 1, justifyContent: 'center' }}>
+                <Settings size={16} />
+              </button>
+            </div>
+
+            {/* Auth */}
+            {isAuthenticated && user ? (
+              <div className="user-badge" style={{ justifyContent: 'space-between', padding: '12px 0' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
+                  <User size={16} style={{ display: 'inline', marginRight: 6 }} />
+                  {user.name}
+                  {isAdmin && <span style={{ fontSize: '0.75rem', marginLeft: 4, opacity: 0.7 }}>{t('layout.adminBadge')}</span>}
+                </span>
+                <button className="btn-icon" onClick={onLogout} type="button">
+                  <LogOut size={16} />
+                </button>
+              </div>
+            ) : (
+              <button className="btn-toggle" onClick={onLogin} type="button" style={{ width: '100%', justifyContent: 'center', backgroundColor: '#FC6D26', color: '#fff', border: 'none' }}>
+                <LogIn size={16} />
+                {t('layout.loginGitLab')}
+              </button>
+            )}
+
+            {/* Backend Status */}
+            <BackendStatus status={backendStatus} t={t} />
+          </div>
+        </MobileDrawer>
+      )}
 
       {/* Main Content */}
       <main className="app-main" role="main">
@@ -401,6 +566,8 @@ export default function AppLayout({
       </main>
 
       <ShortcutHelpOverlay isOpen={showHelp} onClose={() => setShowHelp(false)} />
+
+      {isMobile && <MobileBottomNav isAdmin={isAdmin} />}
 
       {/* Footer */}
       <footer className="app-footer" role="contentinfo">

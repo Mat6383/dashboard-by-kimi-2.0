@@ -63,7 +63,9 @@
       "copyright": "© 2026 Neo-Logix | QA Dashboard by Matou",
       "lastUpdate": "Dernière mise à jour",
       "standards": "Standards: ISTQB | LEAN | ITIL"
-    }
+    },
+    "menu": "Menu",
+    "settings": "Paramètres"
   },
   "dashboard": {
     "standard": "Dashboard 1 (Standard)",
