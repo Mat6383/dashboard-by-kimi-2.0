@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from '../hooks/useToast';
+import { useTranslation } from 'react-i18next';
 import { X, FileText, Download, Activity, History, Calendar, Layers, Bug, Plus, Trash2 } from 'lucide-react';
 import apiService from '../services/api.service';
 import { generateQuickClosureDoc } from '../utils/docxGenerator';
@@ -8,13 +9,14 @@ import { generateQuickClosureDoc } from '../utils/docxGenerator';
 const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDark }) => {
   const modalRef = useFocusTrap(isOpen);
   const { showToast } = useToast();
+  const { t, i18n } = useTranslation();
     const [trends, setTrends] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedRuns, setSelectedRuns] = useState([]);
     const [isExporting, setIsExporting] = useState(false);
 
     // Form States
-    const [environment, setEnvironment] = useState('Préprod');
+    const [environment, setEnvironment] = useState(t('quickClosure.defaultEnvironment'));
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [bugs, setBugs] = useState([{ id: 1, desc: '', severity: 'Majeur' }]);
@@ -103,8 +105,8 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            const safeName = project?.name ? project.name.replace(/\s+/g, '_') : 'Projet';
-            a.download = `Quick_Closure_${safeName}_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.docx`;
+            const safeName = project?.name ? project.name.replace(/\s+/g, '_') : t('quickClosure.defaultProjectName');
+            a.download = `Quick_Closure_${safeName}_${new Date().toLocaleDateString(i18n.language).replace(/\//g, '-')}.docx`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -113,7 +115,7 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
             onClose(); // Fermer après l'export
         } catch (error) {
             console.error("Erreur génération:", error);
-            showToast("Erreur lors de la génération du document DOCX.", "error");
+            showToast(t('quickClosure.generateError'), 'error');
         } finally {
             setIsExporting(false);
         }
@@ -141,7 +143,7 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                 <div style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--card-bg)' }}>
                     <h2 id="quick-closure-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.4rem', color: 'var(--text-color)' }}>
                         <FileText size={28} color="#3B82F6" />
-                        Quick Clôture ISTQB (DOCX)
+                        {t('quickClosure.title')}
                         {metrics?.preprodMilestone && (
                             <span style={{ fontSize: '0.85rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
                                 – {metrics.preprodMilestone}
@@ -156,17 +158,17 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                 {/* BODY */}
                 <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem', color: 'var(--text-color)' }}>
                     <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                        Génère un rapport de clôture de test conforme <strong>ISTQB Foundation v4.0</strong> : périmètre, résultats, critères de sortie, anomalies, risques résiduels, décision Go/No-Go, REX et archivage. Sélectionnez jusqu'à 2 campagnes historiques pour la consolidation LEAN.
+                        {t('quickClosure.description')}
                     </p>
 
                     <div>
                         <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <Layers size={20} color="var(--text-muted)" />
-                            Contexte ISTQB
+                            {t('quickClosure.contextTitle')}
                         </h3>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Environnement</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>{t('quickClosure.environment')}</label>
                                 <input type="text" value={environment} onChange={e => setEnvironment(e.target.value)} style={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', color: 'var(--text-color)', width: '100%', padding: '0.5rem 0.75rem', borderRadius: '6px', outline: 'none', fontSize: '0.95rem' }} />
                             </div>
                             <div>
@@ -174,14 +176,14 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Date de début</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>{t('quickClosure.startDate')}</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--card-bg)', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                                     <Calendar size={18} color="var(--text-muted)" />
                                     <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--text-color)', width: '100%', outline: 'none', fontSize: '0.95rem' }} />
                                 </div>
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>Date de fin</label>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>{t('quickClosure.endDate')}</label>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--card-bg)', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
                                     <Calendar size={18} color="var(--text-muted)" />
                                     <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ background: 'transparent', border: 'none', color: 'var(--text-color)', width: '100%', outline: 'none', fontSize: '0.95rem' }} />
@@ -194,23 +196,23 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                             <h3 style={{ fontSize: '1.1rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <Bug size={20} color="#EF4444" />
-                                Bugs Majeurs/Critiques Restants
+                                {t('quickClosure.bugsTitle')}
                             </h3>
                             <button onClick={addBug} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', background: '#3B82F6', color: 'white', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                                <Plus size={14} /> Ajouter
+                                <Plus size={14} /> {t('quickClosure.add')}
                             </button>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: bugs.length > 0 ? '0.75rem' : '0' }}>
-                            {bugs.length === 0 && <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)' }}>Aucun bug critique restant.</div>}
+                            {bugs.length === 0 && <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)' }}>{t('quickClosure.noBugs')}</div>}
                             {bugs.map((b, i) => (
                                 <div key={b.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                     <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', width: '20px' }}>{i + 1}.</span>
-                                    <input type="text" placeholder="Description du ticket (JIRA/Testmo)..." value={b.desc} onChange={e => updateBug(b.id, 'desc', e.target.value)} style={{ flex: 1, background: 'var(--bg-color)', border: '1px solid var(--border-color)', color: 'var(--text-color)', padding: '0.4rem 0.6rem', borderRadius: '4px', outline: 'none' }} />
+                                    <input type="text" placeholder={t('quickClosure.bugPlaceholder')} value={b.desc} onChange={e => updateBug(b.id, 'desc', e.target.value)} style={{ flex: 1, background: 'var(--bg-color)', border: '1px solid var(--border-color)', color: 'var(--text-color)', padding: '0.4rem 0.6rem', borderRadius: '4px', outline: 'none' }} />
                                     <select value={b.severity} onChange={e => updateBug(b.id, 'severity', e.target.value)} style={{ background: 'var(--bg-color)', border: '1px solid var(--border-color)', color: 'var(--text-color)', padding: '0.4rem 0.6rem', borderRadius: '4px', outline: 'none', width: '120px' }}>
-                                        <option value="Critique">Critique</option>
-                                        <option value="Majeur">Majeur</option>
+                                        <option value="Critique">{t('quickClosure.critical')}</option>
+                                        <option value="Majeur">{t('quickClosure.major')}</option>
                                     </select>
-                                    <button onClick={() => removeBug(b.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '0.4rem' }} title="Supprimer">
+                                    <button onClick={() => removeBug(b.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '0.4rem' }} title={t('quickClosure.deleteBug')}>
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
@@ -221,17 +223,17 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                     <div>
                         <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <History size={20} color="var(--text-muted)" />
-                            Historique des Campagnes (Optionnel)
+                            {t('quickClosure.historyTitle')}
                         </h3>
 
                         {loading ? (
                             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                                 <Activity className="animate-spin" size={24} style={{ margin: '0 auto', display: 'block' }} />
-                                <p>Chargement de l'historique...</p>
+                                <p>{t('quickClosure.loadingHistory')}</p>
                             </div>
                         ) : trends.length === 0 ? (
                             <div style={{ padding: '1rem', backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '6px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                Aucun historique trouvé pour ce projet.
+                                {t('quickClosure.noHistory')}
                             </div>
                         ) : (
                             <div style={{ 
@@ -258,11 +260,11 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                                         >
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
                                                 <span style={{ fontWeight: 600, color: isSelected ? '#3B82F6' : 'var(--text-color)' }}>{trend.version}</span>
-                                                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Date : {new Date(trend.date).toLocaleDateString()}</span>
+                                                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t('quickClosure.dateLabel')} {new Date(trend.date).toLocaleDateString(i18n.language)}</span>
                                             </div>
                                             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
-                                                <span>DDP: <strong style={{color: '#10B981'}}>{trend.detectionRate}%</strong></span>
-                                                <span>Bugs Test: <strong>{trend.bugsInTest}</strong></span>
+                                                <span>{t('quickClosure.ddpLabel')} <strong style={{color: '#10B981'}}>{trend.detectionRate}%</strong></span>
+                                                <span>{t('quickClosure.bugsTestLabel')} <strong>{trend.bugsInTest}</strong></span>
                                             </div>
                                         </div>
                                     );
@@ -270,7 +272,7 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                             </div>
                         )}
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.5rem', textAlign: 'right' }}>
-                            {selectedRuns.length}/2 sélectionnés
+                            {t('quickClosure.selectedCount', { count: selectedRuns.length })}
                         </div>
                     </div>
                 </div>
@@ -278,11 +280,11 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                 {/* FOOTER ACTIONS */}
                 <div style={{ padding: '1.2rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'flex-end', gap: '1rem', backgroundColor: 'var(--card-bg)' }}>
                     <button onClick={onClose} disabled={isExporting} style={{ padding: '0.6rem 1.2rem', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-color)', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', opacity: isExporting ? 0.5 : 1 }}>
-                        Annuler
+                        {t('common.cancel')}
                     </button>
                     <button onClick={handleExport} disabled={isExporting} style={{ padding: '0.6rem 1.5rem', background: '#3B82F6', border: 'none', color: 'white', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s', opacity: isExporting ? 0.7 : 1 }}>
                         {isExporting ? <Activity size={18} className="spinner" /> : <Download size={18} />}
-                        {isExporting ? 'Génération...' : 'Générer DOCX'}
+                        {isExporting ? t('quickClosure.generating') : t('quickClosure.generateDocx')}
                     </button>
                 </div>
             </div>

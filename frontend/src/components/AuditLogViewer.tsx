@@ -1,27 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Shield, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import apiService from '../services/api.service';
 import type { AuditLog } from '../types/api.types';
 import { unwrapApiResponse } from '../types/api.types';
 
-const ACTION_LABELS: Record<string, string> = {
-  'cache.clear': 'Nettoyage cache',
-  'feature-flag.update': 'Mise à jour feature flag',
-  'sync.execute': 'Exécution sync',
-  'sync.config.update': 'Mise à jour config auto-sync',
-  'report.generate': 'Génération rapport',
-  'export.csv': 'Export CSV',
-  'export.excel': 'Export Excel',
-  'export.pdf': 'Export PDF',
-  'notification.settings.update': 'Mise à jour notifications',
-  'notification.test': 'Test notification',
-  'rbac.denied': 'Accès refusé (RBAC)',
+const ACTION_KEY_MAP: Record<string, string> = {
+  'cache.clear': 'cacheClear',
+  'feature-flag.update': 'featureFlagUpdate',
+  'sync.execute': 'syncExecute',
+  'sync.config.update': 'syncConfigUpdate',
+  'report.generate': 'reportGenerate',
+  'export.csv': 'exportCsv',
+  'export.excel': 'exportExcel',
+  'export.pdf': 'exportPdf',
+  'notification.settings.update': 'notificationSettingsUpdate',
+  'notification.test': 'notificationTest',
+  'rbac.denied': 'rbacDenied',
 };
 
-function formatDate(iso: string | null): string {
+function formatDate(iso: string | null, locale: string): string {
   if (!iso) return '-';
   const d = new Date(iso);
-  return d.toLocaleString('fr-FR', {
+  return d.toLocaleString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -31,7 +32,7 @@ function formatDate(iso: string | null): string {
   });
 }
 
-function StatusBadge({ success }: { success: boolean }) {
+function StatusBadge({ success, t }: { success: boolean; t: (key: string) => string }) {
   return (
     <span
       className="status-badge"
@@ -46,12 +47,13 @@ function StatusBadge({ success }: { success: boolean }) {
         color: success ? '#10B981' : '#EF4444',
       }}
     >
-      {success ? 'Succès' : 'Échec'}
+      {success ? t('auditLog.success') : t('auditLog.failure')}
     </span>
   );
 }
 
 export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
+  const { t, i18n } = useTranslation();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -77,7 +79,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
       setLogs(unwrapApiResponse(result));
       setTotal('total' in result ? result.total : 0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur de chargement');
+      setError(err instanceof Error ? err.message : t('auditLog.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -196,11 +198,11 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
         <div style={themeStyles.header}>
           <h2 style={themeStyles.title}>
             <Shield size={24} color="#3B82F6" />
-            Journal d&apos;Audit
+            {t('auditLog.title')}
           </h2>
           <button style={themeStyles.btnPrimary} onClick={fetchLogs} disabled={loading} type="button">
             <RefreshCw size={16} className={loading ? 'spinning' : ''} />
-            Recharger
+            {t('auditLog.reload')}
           </button>
         </div>
 
@@ -214,10 +216,10 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
               setFilters((f) => ({ ...f, action: e.target.value }));
             }}
           >
-            <option value="">Toutes les actions</option>
-            {Object.entries(ACTION_LABELS).map(([key, label]) => (
+            <option value="">{t('auditLog.allActions')}</option>
+            {Object.entries(ACTION_KEY_MAP).map(([key, mapKey]) => (
               <option key={key} value={key}>
-                {label}
+                {t(`auditLog.actions.${mapKey}`)}
               </option>
             ))}
           </select>
@@ -230,7 +232,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
               setOffset(0);
               setFilters((f) => ({ ...f, from: e.target.value }));
             }}
-            placeholder="Du"
+            placeholder={t('auditLog.fromPlaceholder')}
           />
           <input
             type="date"
@@ -241,7 +243,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
               setOffset(0);
               setFilters((f) => ({ ...f, to: e.target.value }));
             }}
-            placeholder="Au"
+            placeholder={t('auditLog.toPlaceholder')}
           />
         </div>
 
@@ -263,27 +265,27 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
           <table style={themeStyles.table}>
             <thead>
               <tr>
-                <th style={themeStyles.th}>Timestamp</th>
-                <th style={themeStyles.th}>Utilisateur</th>
-                <th style={themeStyles.th}>Action</th>
-                <th style={themeStyles.th}>Ressource</th>
-                <th style={themeStyles.th}>Méthode / Path</th>
-                <th style={themeStyles.th}>Statut HTTP</th>
-                <th style={themeStyles.th}>Résultat</th>
-                <th style={themeStyles.th}>IP</th>
+                <th style={themeStyles.th}>{t('auditLog.timestamp')}</th>
+                <th style={themeStyles.th}>{t('auditLog.user')}</th>
+                <th style={themeStyles.th}>{t('auditLog.action')}</th>
+                <th style={themeStyles.th}>{t('auditLog.resource')}</th>
+                <th style={themeStyles.th}>{t('auditLog.methodPath')}</th>
+                <th style={themeStyles.th}>{t('auditLog.httpStatus')}</th>
+                <th style={themeStyles.th}>{t('auditLog.result')}</th>
+                <th style={themeStyles.th}>{t('auditLog.ip')}</th>
               </tr>
             </thead>
             <tbody>
               {logs.length === 0 && !loading && (
                 <tr>
                   <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
-                    Aucune entrée d&apos;audit trouvée.
+                    {t('auditLog.noEntries')}
                   </td>
                 </tr>
               )}
               {logs.map((log) => (
                 <tr key={log.id}>
-                  <td style={themeStyles.td}>{formatDate(log.timestamp)}</td>
+                  <td style={themeStyles.td}>{formatDate(log.timestamp, i18n.language)}</td>
                   <td style={themeStyles.td}>
                     {log.actor_email ? (
                       <>
@@ -295,7 +297,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
                     )}
                   </td>
                   <td style={themeStyles.td}>
-                    <span style={{ fontWeight: 500 }}>{ACTION_LABELS[log.action] || log.action}</span>
+                    <span style={{ fontWeight: 500 }}>{log.action && ACTION_KEY_MAP[log.action] ? t(`auditLog.actions.${ACTION_KEY_MAP[log.action]}`) : log.action}</span>
                   </td>
                   <td style={themeStyles.td}>
                     {log.resource}
@@ -316,7 +318,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
                   </td>
                   <td style={themeStyles.td}>{log.status_code ?? '—'}</td>
                   <td style={themeStyles.td}>
-                    <StatusBadge success={log.success} />
+                    <StatusBadge success={log.success} t={t} />
                   </td>
                   <td style={themeStyles.td}>
                     <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{log.ip}</span>
@@ -335,10 +337,10 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
               disabled={offset === 0}
               type="button"
             >
-              <ChevronLeft size={16} /> Précédent
+              <ChevronLeft size={16} /> {t('auditLog.previous')}
             </button>
             <span>
-              Page {currentPage} / {totalPages} — {total} entrées
+              {t('auditLog.pageInfo', { currentPage, totalPages, total })}
             </span>
             <button
               style={{ ...themeStyles.pageBtn, opacity: offset + limit >= total ? 0.5 : 1 }}
@@ -346,7 +348,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
               disabled={offset + limit >= total}
               type="button"
             >
-              Suivant <ChevronRight size={16} />
+              {t('auditLog.next')} <ChevronRight size={16} />
             </button>
           </div>
         )}

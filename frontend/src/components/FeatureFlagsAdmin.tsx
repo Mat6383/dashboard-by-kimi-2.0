@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ToggleLeft,
   ToggleRight,
@@ -22,10 +23,10 @@ import { trpc } from '../trpc/client';
 import { useCreateFeatureFlag, useUpdateFeatureFlag, useDeleteFeatureFlag } from '../hooks/mutations/useFeatureFlags';
 import type { FeatureFlag } from '../types/api.types';
 
-function formatDate(iso: string | null | undefined): string {
+function formatDate(iso: string | null | undefined, lng: string): string {
   if (!iso) return '-';
   const d = new Date(iso);
-  return d.toLocaleString('fr-FR', {
+  return d.toLocaleString(lng === 'fr' ? 'fr-FR' : 'en-US', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -39,6 +40,7 @@ interface FeatureFlagsAdminProps {
 }
 
 export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
+  const { t, i18n } = useTranslation();
   const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -89,37 +91,37 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
     try {
       if (editingFlag) {
         await updateMutation.mutateAsync({ key: editingFlag.key, enabled: form.enabled, description: form.description, rolloutPercentage: form.rolloutPercentage });
-        showToast('Flag mis à jour', 'success');
+        showToast(t('featureFlags.updated'), 'success');
       } else {
         await createMutation.mutateAsync({ key: form.key, enabled: form.enabled, description: form.description, rolloutPercentage: form.rolloutPercentage });
-        showToast('Flag créé', 'success');
+        showToast(t('featureFlags.created'), 'success');
       }
       closeModal();
       refetchFlags();
     } catch (err: any) {
-      showToast(err.message || 'Erreur lors de la sauvegarde', 'error');
+      showToast(err.message || t('featureFlags.saveError'), 'error');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (key: string) => {
-    if (!window.confirm(`Supprimer le flag "${key}" ?`)) return;
+    if (!window.confirm(t('featureFlags.confirmDelete', { key }))) return;
     try {
       await deleteMutation.mutateAsync({ key });
-      showToast('Flag supprimé', 'success');
+      showToast(t('featureFlags.deleted'), 'success');
       refetchFlags();
     } catch (err: any) {
-      showToast(err.message || 'Erreur suppression', 'error');
+      showToast(err.message || t('featureFlags.deleteError'), 'error');
     }
   };
 
   const handleToggleEnabled = async (flag: FeatureFlag) => {
     try {
       await updateMutation.mutateAsync({ key: flag.key, enabled: !flag.enabled });
-      showToast(`Flag ${flag.key} ${!flag.enabled ? 'activé' : 'désactivé'}`, 'success');
+      showToast(t('featureFlags.toggled', { key: flag.key, state: !flag.enabled ? t('common.enabled') : t('common.disabled') }), 'success');
     } catch (err: any) {
-      showToast('Erreur toggle', 'error');
+      showToast(t('featureFlags.toggleError'), 'error');
     }
   };
 
@@ -128,7 +130,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
     try {
       await updateMutation.mutateAsync({ key: flag.key, rolloutPercentage: num });
     } catch (err: any) {
-      showToast('Erreur mise à jour rollout', 'error');
+      showToast(t('featureFlags.rolloutError'), 'error');
     }
   };
 
@@ -294,11 +296,11 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
         <div style={theme.header}>
           <h1 style={theme.title}>
             <SlidersHorizontal size={24} color="#3B82F6" />
-            Feature Flags
+            {t('featureFlags.title')}
           </h1>
           <button style={theme.btnPrimary} onClick={openCreate} type="button">
             <Plus size={16} />
-            Nouveau flag
+            {t('featureFlags.newFlag')}
           </button>
         </div>
 
@@ -309,20 +311,20 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
         ) : flags.length === 0 ? (
           <div style={theme.emptyState}>
             <AlertTriangle size={32} style={{ marginBottom: '12px', opacity: 0.5 }} />
-            <p>Aucun feature flag configuré.</p>
+            <p>{t('featureFlags.empty')}</p>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={theme.table}>
               <thead>
                 <tr>
-                  <th style={theme.th}>Flag</th>
-                  <th style={theme.th}>Description</th>
-                  <th style={theme.th}>Actif</th>
-                  <th style={theme.th}>Rollout %</th>
-                  <th style={theme.th}>Créé le</th>
-                  <th style={theme.th}>Modifié le</th>
-                  <th style={{ ...theme.th, width: '100px' }}>Actions</th>
+                  <th style={theme.th}>{t('featureFlags.flag')}</th>
+                  <th style={theme.th}>{t('featureFlags.description')}</th>
+                  <th style={theme.th}>{t('featureFlags.active')}</th>
+                  <th style={theme.th}>{t('featureFlags.rollout')}</th>
+                  <th style={theme.th}>{t('featureFlags.createdAt')}</th>
+                  <th style={theme.th}>{t('featureFlags.updatedAt')}</th>
+                  <th style={{ ...theme.th, width: '100px' }}>{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -346,7 +348,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
                           flag.rolloutPercentage > 0 &&
                           flag.rolloutPercentage < 100 && (
                             <span
-                              title={`Rollout progressif : ${flag.rolloutPercentage}% des utilisateurs`}
+                              title={t('featureFlags.rolloutTooltip', { percentage: flag.rolloutPercentage })}
                               style={{
                                 fontSize: '0.7rem',
                                 fontWeight: 700,
@@ -358,7 +360,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
                                 letterSpacing: '0.03em',
                               }}
                             >
-                              Bêta / {flag.rolloutPercentage}%
+                              {t('featureFlags.betaBadge', { percentage: flag.rolloutPercentage })}
                             </span>
                           )}
                       </div>
@@ -368,7 +370,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
                       <button
                         style={theme.toggleBtn}
                         onClick={() => handleToggleEnabled(flag)}
-                        title={flag.enabled ? 'Désactiver' : 'Activer'}
+                        title={flag.enabled ? t('common.disable') : t('common.enable')}
                         type="button"
                       >
                         {flag.enabled ? (
@@ -394,17 +396,17 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
                         </span>
                       </div>
                     </td>
-                    <td style={theme.td}>{formatDate(flag.createdAt)}</td>
-                    <td style={theme.td}>{formatDate(flag.updatedAt)}</td>
+                    <td style={theme.td}>{formatDate(flag.createdAt, i18n.language)}</td>
+                    <td style={theme.td}>{formatDate(flag.updatedAt, i18n.language)}</td>
                     <td style={theme.td}>
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        <button style={theme.btnIcon} onClick={() => openEdit(flag)} title="Modifier" type="button">
+                        <button style={theme.btnIcon} onClick={() => openEdit(flag)} title={t('common.edit')} type="button">
                           <Pencil size={14} />
                         </button>
                         <button
                           style={{ ...theme.btnIcon, color: '#EF4444' }}
                           onClick={() => handleDelete(flag.key)}
-                          title="Supprimer"
+                          title={t('common.delete')}
                           type="button"
                         >
                           <Trash2 size={14} />
@@ -427,7 +429,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}
             >
               <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>
-                {editingFlag ? 'Modifier le flag' : 'Nouveau flag'}
+                {editingFlag ? t('featureFlags.editFlag') : t('featureFlags.newFlag')}
               </h2>
               <button style={{ ...theme.btnIcon, border: 'none' }} onClick={closeModal} type="button">
                 <X size={20} />
@@ -436,29 +438,29 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
 
             <form onSubmit={handleSubmit}>
               <div style={theme.formGroup}>
-                <label style={theme.label}>Clé</label>
+                <label style={theme.label}>{t('featureFlags.key')}</label>
                 <input
                   style={theme.input}
                   value={form.key}
                   onChange={(e) => setForm({ ...form, key: e.target.value })}
-                  placeholder="ex: annualTrendsV2"
+                  placeholder={t('featureFlags.keyPlaceholder')}
                   required
                   disabled={!!editingFlag}
                 />
               </div>
 
               <div style={theme.formGroup}>
-                <label style={theme.label}>Description</label>
+                <label style={theme.label}>{t('featureFlags.description')}</label>
                 <input
                   style={theme.input}
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  placeholder="Description du flag"
+                  placeholder={t('featureFlags.descriptionPlaceholder')}
                 />
               </div>
 
               <div style={theme.formGroup}>
-                <label style={theme.label}>Actif</label>
+                <label style={theme.label}>{t('featureFlags.active')}</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
                   <button
                     type="button"
@@ -471,12 +473,12 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
                       <ToggleLeft size={28} color="#9CA3AF" />
                     )}
                   </button>
-                  <span style={{ fontSize: '0.875rem' }}>{form.enabled ? 'Oui' : 'Non'}</span>
+                  <span style={{ fontSize: '0.875rem' }}>{form.enabled ? t('common.yes') : t('common.no')}</span>
                 </div>
               </div>
 
               <div style={theme.formGroup}>
-                <label style={theme.label}>Rollout %</label>
+                <label style={theme.label}>{t('featureFlags.rollout')}</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
                   <input
                     type="range"
@@ -500,11 +502,11 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
                 <button type="button" style={theme.btnSecondary} onClick={closeModal}>
-                  Annuler
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" style={theme.btnPrimary} disabled={saving}>
                   {saving ? <Loader2 size={16} className="spinning" /> : <Save size={16} />}
-                  {saving ? 'Sauvegarde...' : editingFlag ? 'Mettre à jour' : 'Créer'}
+                  {saving ? t('common.saving') : editingFlag ? t('common.update') : t('common.create')}
                 </button>
               </div>
             </form>

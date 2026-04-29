@@ -35,6 +35,7 @@ import { PreferencesProvider } from './contexts/PreferencesContext';
 import { DashboardProvider } from './contexts/DashboardContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { TRPCProvider } from './trpc/provider';
+import './i18n';
 import App from './App';
 
 // Montage de l'application

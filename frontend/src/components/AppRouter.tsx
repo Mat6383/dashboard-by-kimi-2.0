@@ -1,4 +1,5 @@
 import React, { lazy, Suspense } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Routes, Route } from 'react-router-dom';
 import { useDashboard } from '../hooks/useDashboard';
 import MetricsCards from './MetricsCards';
@@ -25,10 +26,11 @@ const MultiProjectDashboard = lazy(() => import('./MultiProjectDashboard'));
 const FeatureFlagsAdmin = lazy(() => import('./FeatureFlagsAdmin'));
 
 function LoadingFallback() {
+  const { t } = useTranslation();
   return (
     <div className="loading-container">
       <div className="spinner" />
-      <p>Chargement du dashboard...</p>
+      <p>{t('appRouter.loadingDashboard')}</p>
     </div>
   );
 }

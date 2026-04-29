@@ -1,8 +1,10 @@
+import i18n from '../../i18n';
 import { esc } from './utils';
-function generateHTML(data: any, recommendations: any, complement: any) {
+function generateHTML(data: any, recommendations: any, complement: any, lang: string = 'fr') {
+  const t = (key: string) => i18n.t('report.' + key, { lng: lang });
   const { milestoneName, stats, runs, functionalRuns, tnrRuns, failedTests, wipTests, passedWithTickets, verdict } =
     data;
-  const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const today = new Date().toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'long', year: 'numeric' });
   const refDate = new Date().toISOString().split('T')[0].replace(/-/g, '-');
 
   const verdictColor = verdict === 'GO' ? '#10b981' : verdict === 'NO GO' ? '#ef4444' : '#f59e0b';
@@ -40,7 +42,7 @@ function generateHTML(data: any, recommendations: any, complement: any) {
         <td class="num" style="color:#10b981;">${r.passed}</td>
         <td class="num"${r.failed > 0 ? ' style="color:#ef4444;"' : ''}>${r.failed}</td>
         <td class="num"><span class="badge ${prBadge(r.passRate)}">${r.passRate}%</span></td>
-        <td class="num"><span class="badge ${r.failed === 0 ? 'badge-green' : 'badge-red'}">${r.failed === 0 ? 'OK' : 'Attention'}</span></td>
+        <td class="num"><span class="badge ${r.failed === 0 ? 'badge-green' : 'badge-red'}">${r.failed === 0 ? t('status.ok') : t('status.warning')}</span></td>
       </tr>`
     )
     .join('');
@@ -49,9 +51,9 @@ function generateHTML(data: any, recommendations: any, complement: any) {
   const failedRows = failedTests
     .map((ft: any) => {
       const tickets =
-        ft.correctionTickets.length > 0 ? ft.correctionTickets.map((t: any) => `<strong>#${t}</strong>`).join(', ') : '—';
+        ft.correctionTickets.length > 0 ? ft.correctionTickets.map((tk: any) => `<strong>#${tk}</strong>`).join(', ') : '—';
       const runShort = ft.run.replace(/^.*- /, '');
-      return `<tr><td>${runShort}</td><td>${esc(ft.caseName)}</td><td class="num"><span class="badge badge-red">Failed</span></td><td class="num">${tickets}</td></tr>`;
+      return `<tr><td>${runShort}</td><td>${esc(ft.caseName)}</td><td class="num"><span class="badge badge-red">${t('status.failed')}</span></td><td class="num">${tickets}</td></tr>`;
     })
     .join('');
 
@@ -59,7 +61,7 @@ function generateHTML(data: any, recommendations: any, complement: any) {
   const wipRows = (wipTests || [])
     .map((wt: any) => {
       const runShort = wt.run.replace(/^.*- /, '');
-      return `<tr><td>${runShort}</td><td>${esc(wt.caseName)}</td><td class="num"><span class="badge badge-orange">WIP</span></td></tr>`;
+      return `<tr><td>${runShort}</td><td>${esc(wt.caseName)}</td><td class="num"><span class="badge badge-orange">${t('status.wip')}</span></td></tr>`;
     })
     .join('');
 
@@ -67,7 +69,7 @@ function generateHTML(data: any, recommendations: any, complement: any) {
     .map((pt: any) => {
       const tickets = pt.correctionTickets.map((t: any) => `<strong>#${t}</strong>`).join(', ');
       const runShort = pt.run.replace(/^.*- /, '');
-      return `<tr><td>${runShort}</td><td>${esc(pt.caseName)}</td><td class="num"><span class="badge badge-green">Passed</span></td><td class="num">${tickets}</td></tr>`;
+      return `<tr><td>${runShort}</td><td>${esc(pt.caseName)}</td><td class="num"><span class="badge badge-green">${t('status.passed')}</span></td><td class="num">${tickets}</td></tr>`;
     })
     .join('');
 
@@ -106,7 +108,7 @@ function generateHTML(data: any, recommendations: any, complement: any) {
   const tFailed = tnrRuns.reduce((s: any, r: any) => s + r.failed, 0);
 
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${lang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -151,56 +153,56 @@ function generateHTML(data: any, recommendations: any, complement: any) {
 <!-- PAGE 1: COVER -->
 <div class="page cover">
   <div class="cover-badge">ISTQB &bull; LEAN &bull; ITIL</div>
-  <h1>Rapport de Clôture de Tests</h1>
-  <h2>${esc(milestoneName)} — Test Closure Report</h2>
+  <h1>${t('title')}</h1>
+  <h2>${esc(milestoneName)} — ${t('subtitle')}</h2>
   <div style="margin: 30px 0;">
     <div style="font-size: 52pt; font-weight: 800; color: ${verdictColor}; letter-spacing: -2px;">${verdict}</div>
   </div>
   <dl class="cover-meta">
-    <dt>Projet</dt><dd>Neo-Logix — QA Préprod</dd>
-    <dt>Version</dt><dd>${esc(milestoneName)}</dd>
-    <dt>Périmètre</dt><dd>${runs.length} runs</dd>
-    <dt>Date d'édition</dt><dd>${today}</dd>
+    <dt>${t('project')}</dt><dd>Neo-Logix — QA Préprod</dd>
+    <dt>${t('version')}</dt><dd>${esc(milestoneName)}</dd>
+    <dt>${t('scope')}</dt><dd>${runs.length} ${t('runs')}</dd>
+    <dt>${t('date')}</dt><dd>${today}</dd>
   </dl>
 </div>
 
 <!-- PAGE 2: KPI -->
 <div class="page">
   <div class="section-content">
-    <h2 class="section-title">1. Résumé exécutif <span style="font-size:9pt;color:#64748b;">(Executive Summary)</span></h2>
+    <h2 class="section-title">${t('executiveSummary')}</h2>
     <div class="kpi-grid">
       <div class="kpi-card" style="border-left: 4px solid ${stats.completionRate >= 90 ? '#10b981' : '#ef4444'};">
         <div class="kpi-value" style="color:${stats.completionRate >= 90 ? '#10b981' : '#ef4444'};">${stats.completionRate}%</div>
-        <div class="kpi-label">Taux d'exécution<br><em>(Completion Rate)</em></div>
-        <div class="kpi-target badge ${stats.completionRate >= 90 ? 'badge-green' : 'badge-red'}">Cible ≥ 90% ${stats.completionRate >= 90 ? '✓' : '✗'}</div>
+        <div class="kpi-label">${t('indicators.completionRate')}</div>
+        <div class="kpi-target badge ${stats.completionRate >= 90 ? 'badge-green' : 'badge-red'}">${t('indicators.target')} ≥ 90% ${stats.completionRate >= 90 ? '✓' : '✗'}</div>
       </div>
       <div class="kpi-card" style="border-left: 4px solid ${stats.passRate >= 95 ? '#10b981' : '#ef4444'};">
         <div class="kpi-value" style="color:${stats.passRate >= 95 ? '#10b981' : '#ef4444'};">${stats.passRate}%</div>
-        <div class="kpi-label">Taux de succès<br><em>(Pass Rate)</em></div>
-        <div class="kpi-target badge ${stats.passRate >= 95 ? 'badge-green' : 'badge-red'}">Cible ≥ 95% ${stats.passRate >= 95 ? '✓' : '✗'}</div>
+        <div class="kpi-label">${t('indicators.passRate')}</div>
+        <div class="kpi-target badge ${stats.passRate >= 95 ? 'badge-green' : 'badge-red'}">${t('indicators.target')} ≥ 95% ${stats.passRate >= 95 ? '✓' : '✗'}</div>
       </div>
       <div class="kpi-card" style="border-left: 4px solid ${stats.failureRate <= 5 ? '#10b981' : '#ef4444'};">
         <div class="kpi-value" style="color:${stats.failureRate <= 5 ? '#10b981' : '#ef4444'};">${stats.failureRate}%</div>
-        <div class="kpi-label">Taux d'échec<br><em>(Failure Rate)</em></div>
-        <div class="kpi-target badge ${stats.failureRate <= 5 ? 'badge-green' : 'badge-red'}">Cible ≤ 5% ${stats.failureRate <= 5 ? '✓' : '✗'}</div>
+        <div class="kpi-label">${t('indicators.failureRate')}</div>
+        <div class="kpi-target badge ${stats.failureRate <= 5 ? 'badge-green' : 'badge-red'}">${t('indicators.target')} ≤ 5% ${stats.failureRate <= 5 ? '✓' : '✗'}</div>
       </div>
       <div class="kpi-card" style="border-left: 4px solid ${stats.efficiency >= 95 ? '#10b981' : '#f59e0b'};">
         <div class="kpi-value" style="color:${stats.efficiency >= 95 ? '#10b981' : '#f59e0b'};">${stats.efficiency}%</div>
-        <div class="kpi-label">Efficacité<br><em>(Test Efficiency)</em></div>
-        <div class="kpi-target badge ${stats.efficiency >= 95 ? 'badge-green' : 'badge-orange'}">Cible ≥ 95% ${stats.efficiency >= 95 ? '✓' : '✗'}</div>
+        <div class="kpi-label">${t('indicators.efficiency')}</div>
+        <div class="kpi-target badge ${stats.efficiency >= 95 ? 'badge-green' : 'badge-orange'}">${t('indicators.target')} ≥ 95% ${stats.efficiency >= 95 ? '✓' : '✗'}</div>
       </div>
     </div>
     <table>
-      <tr><th>Indicateur</th><th class="num">Valeur</th></tr>
-      <tr><td>Cas de test totaux</td><td class="num"><strong>${stats.totalTests}</strong></td></tr>
-      <tr><td>Tests réussis (Passed)</td><td class="num" style="color:#10b981;font-weight:700;">${stats.totalPassed}</td></tr>
-      <tr><td>Tests échoués (Failed)</td><td class="num" style="color:#ef4444;font-weight:700;">${stats.totalFailed}</td></tr>
-      <tr><td>Tests ignorés (Skipped)</td><td class="num">${stats.totalSkipped}</td></tr>
-      <tr><td>Tests en cours (WIP)</td><td class="num" style="color:#f59e0b;">${stats.totalWip}</td></tr>
+      <tr><th>${t('table.indicator') || 'Indicateur'}</th><th class="num">${t('table.value') || 'Valeur'}</th></tr>
+      <tr><td>${t('indicators.totalTests')}</td><td class="num"><strong>${stats.totalTests}</strong></td></tr>
+      <tr><td>${t('indicators.passed')}</td><td class="num" style="color:#10b981;font-weight:700;">${stats.totalPassed}</td></tr>
+      <tr><td>${t('indicators.failed')}</td><td class="num" style="color:#ef4444;font-weight:700;">${stats.totalFailed}</td></tr>
+      <tr><td>${t('indicators.skipped')}</td><td class="num">${stats.totalSkipped}</td></tr>
+      <tr><td>${t('indicators.wip')}</td><td class="num" style="color:#f59e0b;">${stats.totalWip}</td></tr>
     </table>
     <div class="stacked-bar">
-      <div class="seg" style="width:${stats.totalTests > 0 ? (stats.totalPassed / stats.totalTests) * 100 : 0}%;background:#10b981;">Réussis ${stats.totalPassed}</div>
-      <div class="seg" style="width:${stats.totalTests > 0 ? (stats.totalFailed / stats.totalTests) * 100 : 0}%;background:#ef4444;">Échoués ${stats.totalFailed}</div>
+      <div class="seg" style="width:${stats.totalTests > 0 ? (stats.totalPassed / stats.totalTests) * 100 : 0}%;background:#10b981;">${t('table.passed')} ${stats.totalPassed}</div>
+      <div class="seg" style="width:${stats.totalTests > 0 ? (stats.totalFailed / stats.totalTests) * 100 : 0}%;background:#ef4444;">${t('table.failed')} ${stats.totalFailed}</div>
       ${stats.totalSkipped > 0 ? `<div class="seg" style="width:${(stats.totalSkipped / stats.totalTests) * 100}%;background:#94a3b8;"></div>` : ''}
       ${stats.totalWip > 0 ? `<div class="seg" style="width:${(stats.totalWip / stats.totalTests) * 100}%;background:#f59e0b;"></div>` : ''}
     </div>
@@ -211,24 +213,24 @@ function generateHTML(data: any, recommendations: any, complement: any) {
 <!-- PAGE 3: RÉSULTATS DÉTAILLÉS -->
 <div class="page">
   <div class="section-content">
-    <h2 class="section-title">2. Résultats détaillés <span style="font-size:9pt;color:#64748b;">(Detailed Test Results)</span></h2>
-    <h3 class="sub-title">2.1 Runs de validation fonctionnelle</h3>
+    <h2 class="section-title">${t('detailedResults')}</h2>
+    <h3 class="sub-title">${t('functionalRuns')}</h3>
     <table>
-      <tr><th>Run</th><th class="num">Total</th><th class="num">Réussis</th><th class="num">Échoués</th><th class="num">Ignorés</th><th class="num">WIP</th><th class="num">Exéc.</th><th class="num">Pass Rate</th></tr>
+      <tr><th>${t('table.run')}</th><th class="num">${t('table.total')}</th><th class="num">${t('table.passed')}</th><th class="num">${t('table.failed')}</th><th class="num">${t('table.skipped')}</th><th class="num">${t('table.wip')}</th><th class="num">${t('table.execution')}</th><th class="num">${t('table.passRate')}</th></tr>
       ${funcRunsRows}
       <tr style="background:#f1f5f9;font-weight:700;">
-        <td>TOTAL FONCTIONNELS</td><td class="num">${fTotal}</td><td class="num" style="color:#10b981;">${fPassed}</td><td class="num" style="color:#ef4444;">${fFailed}</td><td class="num">${fSkipped}</td><td class="num">${fWip}</td><td class="num">${fTotal > 0 ? Math.round(((fTotal - fWip) / fTotal) * 1000) / 10 : 0}%</td><td class="num">${fTotal - fWip > 0 ? Math.round((fPassed / (fTotal - fWip)) * 1000) / 10 : 0}%</td>
+        <td>${t('totals.functionalTotal')}</td><td class="num">${fTotal}</td><td class="num" style="color:#10b981;">${fPassed}</td><td class="num" style="color:#ef4444;">${fFailed}</td><td class="num">${fSkipped}</td><td class="num">${fWip}</td><td class="num">${fTotal > 0 ? Math.round(((fTotal - fWip) / fTotal) * 1000) / 10 : 0}%</td><td class="num">${fTotal - fWip > 0 ? Math.round((fPassed / (fTotal - fWip)) * 1000) / 10 : 0}%</td>
       </tr>
     </table>
     ${
       tnrRuns.length > 0
         ? `
-    <h3 class="sub-title">2.2 Tests de non-régression — TNR</h3>
+    <h3 class="sub-title">${t('tnrRuns')}</h3>
     <table>
-      <tr><th>Run TNR</th><th class="num">Total</th><th class="num">Réussis</th><th class="num">Échoués</th><th class="num">Pass Rate</th><th class="num">Statut</th></tr>
+      <tr><th>${t('table.run')} TNR</th><th class="num">${t('table.total')}</th><th class="num">${t('table.passed')}</th><th class="num">${t('table.failed')}</th><th class="num">${t('table.passRate')}</th><th class="num">${t('table.status')}</th></tr>
       ${tnrRunsRows}
       <tr style="background:#f1f5f9;font-weight:700;">
-        <td>TOTAL TNR</td><td class="num">${tTotal}</td><td class="num" style="color:#10b981;">${tPassed}</td><td class="num" style="color:#ef4444;">${tFailed}</td><td class="num">${tTotal > 0 ? Math.round((tPassed / tTotal) * 1000) / 10 : 0}%</td><td class="num"><span class="badge ${tFailed === 0 ? 'badge-green' : 'badge-orange'}">${tFailed === 0 ? 'OK' : 'Alerte'}</span></td>
+        <td>${t('totals.tnrTotal')}</td><td class="num">${tTotal}</td><td class="num" style="color:#10b981;">${tPassed}</td><td class="num" style="color:#ef4444;">${tFailed}</td><td class="num">${tTotal > 0 ? Math.round((tPassed / tTotal) * 1000) / 10 : 0}%</td><td class="num"><span class="badge ${tFailed === 0 ? 'badge-green' : 'badge-orange'}">${tFailed === 0 ? t('status.ok') : t('status.alert')}</span></td>
       </tr>
     </table>`
         : ''
@@ -240,29 +242,29 @@ function generateHTML(data: any, recommendations: any, complement: any) {
 <!-- PAGE 4: TRAÇABILITÉ TICKETS -->
 <div class="page">
   <div class="section-content">
-    <h2 class="section-title">3. Traçabilité des tickets GitLab <span style="font-size:9pt;color:#64748b;">(Defect Traceability — ISTQB §5.3)</span></h2>
+    <h2 class="section-title">${t('traceability')}</h2>
     ${
       failedTests.length > 0
         ? `
-    <h3 class="sub-title">3.1 Tests échoués et tickets de correction</h3>
+    <h3 class="sub-title">${t('failedTests')}</h3>
     <table style="font-size:9pt;">
-      <tr><th>Run</th><th>Cas de test</th><th class="num">Statut</th><th class="num">Ticket correction</th></tr>
+      <tr><th>${t('table.run')}</th><th>${t('table.testCase')}</th><th class="num">${t('table.status')}</th><th class="num">${t('table.correctionTicket')}</th></tr>
       ${failedRows}
       <tr style="background:#f1f5f9;font-weight:700;">
-        <td colspan="2">TOTAL TESTS ÉCHOUÉS</td><td class="num">${failedTests.length}</td><td class="num">${failedTests.filter((f: any) => f.correctionTickets.length > 0).length} tickets créés</td>
+        <td colspan="2">${t('totals.failedTotal')}</td><td class="num">${failedTests.length}</td><td class="num">${failedTests.filter((f: any) => f.correctionTickets.length > 0).length} ${t('totals.ticketsCreated')}</td>
       </tr>
     </table>`
-        : '<p>Aucun test échoué.</p>'
+        : `<p>${t('status.noFailed') || 'Aucun test échoué.'}</p>`
     }
     ${
       wipTests && wipTests.length > 0
         ? `
-    <h3 class="sub-title">3.2 Tests en cours (WIP) — à finaliser</h3>
+    <h3 class="sub-title">${t('wipTests')}</h3>
     <table style="font-size:9pt;">
-      <tr><th style="width:20%;">Run</th><th>Cas de test</th><th class="num" style="width:12%;">Statut</th></tr>
+      <tr><th style="width:20%;">${t('table.run')}</th><th>${t('table.testCase')}</th><th class="num" style="width:12%;">${t('table.status')}</th></tr>
       ${wipRows}
       <tr style="background:#fef3c7;font-weight:700;">
-        <td colspan="2">TOTAL WIP</td><td class="num">${wipTests.length}</td>
+        <td colspan="2">${t('totals.wipTotal')}</td><td class="num">${wipTests.length}</td>
       </tr>
     </table>`
         : ''
@@ -270,9 +272,9 @@ function generateHTML(data: any, recommendations: any, complement: any) {
     ${
       passedWithTickets.length > 0
         ? `
-    <h3 class="sub-title">3.3 Tests réussis avec ticket de suivi</h3>
+    <h3 class="sub-title">${t('passedWithTickets')}</h3>
     <table style="font-size:9pt;">
-      <tr><th>Run</th><th>Cas de test</th><th class="num">Statut</th><th class="num">Ticket suivi</th></tr>
+      <tr><th>${t('table.run')}</th><th>${t('table.testCase')}</th><th class="num">${t('table.status')}</th><th class="num">${t('table.followUpTicket')}</th></tr>
       ${passedTicketRows}
     </table>`
         : ''
@@ -280,9 +282,9 @@ function generateHTML(data: any, recommendations: any, complement: any) {
     ${
       ticketsPerRunRows
         ? `
-    <h3 class="sub-title">3.4 Tickets GitLab testés par run</h3>
+    <h3 class="sub-title">${t('ticketsPerRun')}</h3>
     <table style="font-size:8.5pt;">
-      <tr><th style="width:18%;">Run</th><th>Tickets GitLab testés</th><th class="num">Nb</th></tr>
+      <tr><th style="width:18%;">${t('table.run')}</th><th>${t('table.testedTickets')}</th><th class="num">${t('table.count')}</th></tr>
       ${ticketsPerRunRows}
     </table>`
         : ''
@@ -294,15 +296,15 @@ function generateHTML(data: any, recommendations: any, complement: any) {
 <!-- PAGE 5: RECOMMANDATIONS -->
 <div class="page">
   <div class="section-content">
-    <h2 class="section-title">4. Recommandations <span style="font-size:9pt;color:#64748b;">(Lessons Learned — LEAN Kaizen / ITIL CSI)</span></h2>
+    <h2 class="section-title">${t('recommendations')}</h2>
     ${
       recommendations && recommendations.length > 0
         ? `
     <table>
-      <tr><th style="width:18%;">Catégorie</th><th style="width:40%;">Constat et recommandation</th><th class="num" style="width:17%;">Type</th><th class="num" style="width:13%;">Statut</th><th class="num" style="width:12%;">Priorité</th></tr>
+      <tr><th style="width:18%;">${t('table.category')}</th><th style="width:40%;">${t('table.observation')}</th><th class="num" style="width:17%;">${t('table.type')}</th><th class="num" style="width:13%;">${t('table.statut')}</th><th class="num" style="width:12%;">${t('table.priority')}</th></tr>
       ${recoRows}
     </table>`
-        : '<p>Aucune recommandation saisie.</p>'
+        : `<p>${t('status.noRecommendations') || 'Aucune recommandation saisie.'}</p>`
     }
   </div>
   <div class="page-footer"><span>RC-${esc(milestoneName)}-${refDate}</span><span>Page 5</span></div>
@@ -314,7 +316,7 @@ ${
 <!-- PAGE 6: COMPLÉMENT D'INFORMATION -->
 <div class="page">
   <div class="section-content">
-    <h2 class="section-title">5. Complément d'information</h2>
+    <h2 class="section-title">${t('complement')}</h2>
     <div style="background:#f8fafc;border-left:4px solid #3b82f6;padding:18px 22px;border-radius:6px;font-size:10.5pt;line-height:1.8;white-space:pre-wrap;color:#1e293b;">${esc(complement)}</div>
   </div>
   <div class="page-footer"><span>RC-${esc(milestoneName)}-${refDate}</span><span>Page 6</span></div>

@@ -16,13 +16,15 @@ import {
 } from 'lucide-react';
 import '../styles/MetricsCards.css';
 import { useExportPDF } from '../hooks/useExportPDF';
+import { useTranslation } from 'react-i18next';
 
 const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDark }) => {
   const modalRef = useFocusTrap(isOpen);
   const { showToast } = useToast();
+  const { t, i18n } = useTranslation();
   // === Form States ===
   const [version, setVersion] = useState('');
-  const [environment, setEnvironment] = useState('Préprod');
+  const [environment, setEnvironment] = useState(t('testClosure.defaultEnvironment'));
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [decision, setDecision] = useState('GO_PRODUCTION');
@@ -116,7 +118,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
       onClose(); // Fermer après l'export
     } catch (error) {
       console.error("Erreur lors de l'export PDF:", error);
-      showToast('Erreur lors de la génération des PDF', 'error');
+      showToast(t('testClosure.exportError'), 'error');
     }
   };
 
@@ -192,7 +194,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
               style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.4rem' }}
             >
               <FileText size={28} color="var(--color-primary)" />
-              {useBusiness ? 'Bilan de Clôture de Test (ISTQB)' : 'Test Summary Report'}
+              {useBusiness ? t('testClosure.titleBusiness') : t('testClosure.titleStandard')}
             </h2>
             <button
               data-modal-close
@@ -209,7 +211,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
-                  Version ({useBusiness ? 'Détectée' : 'Detected'})
+                  {t('testClosure.versionLabel', { detected: useBusiness ? t('testClosure.detected') : 'Detected' })}
                 </label>
                 <div
                   style={{
@@ -241,7 +243,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
-                  Environnement
+                  {t('testClosure.environment')}
                 </label>
                 <input
                   type="text"
@@ -265,7 +267,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
-                  Date de début (1er run)
+                  {t('testClosure.startDate')}
                 </label>
                 <div
                   style={{
@@ -296,7 +298,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>
-                  Date de fin (Dernier validé)
+                  {t('testClosure.endDate')}
                 </label>
                 <div
                   style={{
@@ -345,11 +347,11 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                   textTransform: 'uppercase',
                 }}
               >
-                Rappel des Métriques Globales
+                {t('testClosure.metricsReminder')}
               </div>
               <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Exécution</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('testClosure.execution')}</span>
                   <span
                     style={{
                       fontSize: '1.2rem',
@@ -361,7 +363,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                   </span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Succès</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('testClosure.success')}</span>
                   <span
                     style={{ fontSize: '1.2rem', fontWeight: 700, color: m.passRate >= 95 ? '#10B981' : '#EF4444' }}
                   >
@@ -369,7 +371,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                   </span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Échecs</span>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('testClosure.failures')}</span>
                   <span
                     style={{ fontSize: '1.2rem', fontWeight: 700, color: m.failureRate <= 5 ? '#10B981' : '#EF4444' }}
                   >
@@ -392,7 +394,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                 <label
                   style={{ fontWeight: 600, fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                 >
-                  <Bug size={18} color="#EF4444" /> Bugs Majeurs/Critiques restants (Known Issues)
+                  <Bug size={18} color="#EF4444" /> {t('testClosure.bugsTitle')}
                 </label>
                 <button
                   onClick={addBug}
@@ -409,7 +411,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                     fontSize: '0.8rem',
                   }}
                 >
-                  <Plus size={14} /> Ajouter
+                  <Plus size={14} /> {t('testClosure.add')}
                 </button>
               </div>
 
@@ -426,7 +428,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
               >
                 {bugs.length === 0 && (
                   <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    Aucun bug critique restant.
+                    {t('testClosure.noBugs')}
                   </div>
                 )}
                 {bugs.map((b, i) => (
@@ -434,7 +436,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                     <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', width: '20px' }}>{i + 1}.</span>
                     <input
                       type="text"
-                      placeholder="Description du ticket (JIRA/Testmo)..."
+                      placeholder={t('testClosure.bugPlaceholder')}
                       value={b.desc}
                       onChange={(e) => updateBug(b.id, 'desc', e.target.value)}
                       style={{
@@ -460,8 +462,8 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                         width: '120px',
                       }}
                     >
-                      <option value="Critique">Critique</option>
-                      <option value="Majeur">Majeur</option>
+                      <option value="Critique">{t('testClosure.critical')}</option>
+                      <option value="Majeur">{t('testClosure.major')}</option>
                     </select>
                     <button
                       onClick={() => removeBug(b.id)}
@@ -472,7 +474,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                         cursor: 'pointer',
                         padding: '0.4rem',
                       }}
-                      title="Supprimer"
+                      title={t('testClosure.deleteBug')}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -493,7 +495,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                   fontSize: '1rem',
                 }}
               >
-                <ShieldCheck size={18} color={decisionColor} /> Recommandation Principale
+                <ShieldCheck size={18} color={decisionColor} /> {t('testClosure.mainRecommendation')}
               </label>
               <select
                 value={decision}
@@ -510,9 +512,9 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                   fontWeight: 600,
                 }}
               >
-                <option value="GO_PRODUCTION">🟢 GO PRODUCTION (Pas de risques bloquants)</option>
-                <option value="GO_RESERVE">🟠 GO SOUS RÉSERVE (Limites assumées)</option>
-                <option value="NO_GO">🔴 NO-GO (Qualité insuffisante)</option>
+                <option value="GO_PRODUCTION">{t('testClosure.goProduction')}</option>
+                <option value="GO_RESERVE">{t('testClosure.goReserve')}</option>
+                <option value="NO_GO">{t('testClosure.noGo')}</option>
               </select>
             </div>
 
@@ -528,10 +530,10 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                   fontSize: '1rem',
                 }}
               >
-                <AlertTriangle size={18} color="#F59E0B" /> Écarts & Risques Résiduels
+                <AlertTriangle size={18} color="#F59E0B" /> {t('testClosure.residualRisks')}
               </label>
               <textarea
-                placeholder="Renseignez les impacts métier, les limitations de couverture, etc..."
+                placeholder={t('testClosure.residualRisksPlaceholder')}
                 value={residualRisks}
                 onChange={(e) => setResidualRisks(e.target.value)}
                 style={{
@@ -552,10 +554,10 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
             {/* Sign-off */}
             <div>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '1rem' }}>
-                Signatures & Parties Prenantes (Sign-off)
+                {t('testClosure.signOffs')}
               </label>
               <textarea
-                placeholder={`Product Owner: Jane Doe\nTech Lead: John Smith\nQA Lead: Matou`}
+                placeholder={t('testClosure.signOffsPlaceholder')}
                 value={signOffs}
                 onChange={(e) => setSignOffs(e.target.value)}
                 style={{
@@ -600,7 +602,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                 opacity: isExporting ? 0.5 : 1,
               }}
             >
-              Annuler
+              {t('common.cancel')}
             </button>
             <button
               onClick={handleExport}
@@ -621,7 +623,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
               }}
             >
               {isExporting ? <Activity size={18} className="spinner" /> : <Download size={18} />}
-              {isExporting ? 'Génération...' : 'Valider & Exporter (PDF)'}
+              {isExporting ? t('testClosure.generating') : t('testClosure.validateExport')}
             </button>
           </div>
         </div>
@@ -644,23 +646,23 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
           }}
         >
           <div>
-            <h1 style={{ margin: '0 0 5px 0', fontSize: '24pt', color: '#111827' }}>Rapport Exécutif de Clôture</h1>
+            <h1 style={{ margin: '0 0 5px 0', fontSize: '24pt', color: '#111827' }}>{t('testClosure.pdfExecTitle')}</h1>
             <h2 style={{ margin: 0, fontSize: '14pt', color: '#4B5563', fontWeight: 'normal' }}>
-              Projet: {project?.name} | Version: {version}
+              {t('testClosure.pdfProjectLabel')} {project?.name} | {t('testClosure.pdfVersionLabel')} {version}
             </h2>
           </div>
           <div style={{ textAlign: 'right', fontSize: '10pt', color: '#6B7280' }}>
-            Date du rapport: {new Date().toLocaleDateString('fr-FR')}
+            {t('testClosure.pdfDateLabel')} {new Date().toLocaleDateString(i18n.language)}
           </div>
         </div>
 
         <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#F3F4F6', borderRadius: '8px' }}>
-          <h3 style={{ margin: '0 0 10px 0', fontSize: '12pt', color: '#111827' }}>Contexte de Test</h3>
+          <h3 style={{ margin: '0 0 10px 0', fontSize: '12pt', color: '#111827' }}>{t('testClosure.pdfContextTitle')}</h3>
           <p style={{ margin: '0 0 5px 0', fontSize: '10pt' }}>
-            <strong>Environnement :</strong> {environment}
+            <strong>{t('testClosure.pdfEnvironmentLabel')}</strong> {environment}
           </p>
           <p style={{ margin: '0 0 5px 0', fontSize: '10pt' }}>
-            <strong>Période :</strong> Du {startDate} au {endDate}
+            <strong>{t('testClosure.pdfPeriodLabel')}</strong> {t('testClosure.pdfPeriodFromTo', { startDate, endDate })}
           </p>
         </div>
 
@@ -674,11 +676,11 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
           }}
         >
           <h2 style={{ margin: '0 0 10px 0', fontSize: '16pt', color: decisionColor }}>
-            RECOMMANDATION : {decision.replace('_', ' ')}
+            {t('testClosure.pdfRecommendation', { decision: decision.replace('_', ' ') })}
           </h2>
           {residualRisks && (
             <div>
-              <strong style={{ fontSize: '10pt' }}>Écarts & Risques Assumés :</strong>
+              <strong style={{ fontSize: '10pt' }}>{t('testClosure.pdfResidualRisks')}</strong>
               <p style={{ margin: '5px 0 0 0', fontSize: '10pt', whiteSpace: 'pre-wrap' }}>{residualRisks}</p>
             </div>
           )}
@@ -688,7 +690,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
           <div
             style={{ flex: 1, padding: '15px', border: '1px solid #E5E7EB', borderRadius: '8px', textAlign: 'center' }}
           >
-            <div style={{ fontSize: '10pt', color: '#6B7280', textTransform: 'uppercase' }}>Taux d&apos;Exécution</div>
+            <div style={{ fontSize: '10pt', color: '#6B7280', textTransform: 'uppercase' }}>{t('testClosure.pdfExecutionRate')}</div>
             <div
               style={{ fontSize: '24pt', fontWeight: 'bold', color: m.completionRate >= 90 ? '#10B981' : '#F59E0B' }}
             >
@@ -698,7 +700,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
           <div
             style={{ flex: 1, padding: '15px', border: '1px solid #E5E7EB', borderRadius: '8px', textAlign: 'center' }}
           >
-            <div style={{ fontSize: '10pt', color: '#6B7280', textTransform: 'uppercase' }}>Taux de Succès</div>
+            <div style={{ fontSize: '10pt', color: '#6B7280', textTransform: 'uppercase' }}>{t('testClosure.pdfSuccessRate')}</div>
             <div style={{ fontSize: '24pt', fontWeight: 'bold', color: m.passRate >= 95 ? '#10B981' : '#EF4444' }}>
               {m.passRate}%
             </div>
@@ -706,7 +708,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
           <div
             style={{ flex: 1, padding: '15px', border: '1px solid #E5E7EB', borderRadius: '8px', textAlign: 'center' }}
           >
-            <div style={{ fontSize: '10pt', color: '#6B7280', textTransform: 'uppercase' }}>Taux d&apos;Échec</div>
+            <div style={{ fontSize: '10pt', color: '#6B7280', textTransform: 'uppercase' }}>{t('testClosure.pdfFailureRate')}</div>
             <div style={{ fontSize: '24pt', fontWeight: 'bold', color: m.failureRate <= 5 ? '#10B981' : '#EF4444' }}>
               {m.failureRate}%
             </div>
@@ -715,16 +717,16 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
 
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: '5px', fontSize: '14pt' }}>
-            Bugs Majeurs Restants ({bugs.filter((b) => b.desc.trim()).length})
+            {t('testClosure.pdfRemainingBugs', { count: bugs.filter((b) => b.desc.trim()).length })}
           </h3>
           {bugs.filter((b) => b.desc.trim()).length === 0 ? (
-            <p style={{ fontSize: '10pt', color: '#6B7280' }}>Aucune anomalie critique ou majeure ouverte.</p>
+            <p style={{ fontSize: '10pt', color: '#6B7280' }}>{t('testClosure.pdfNoBugs')}</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10pt' }}>
               <thead>
                 <tr style={{ backgroundColor: '#F3F4F6' }}>
-                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>Sévérité</th>
-                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>Description</th>
+                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>{t('testClosure.pdfSeverity')}</th>
+                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>{t('testClosure.pdfDescription')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -740,7 +742,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                           fontWeight: 'bold',
                         }}
                       >
-                        {b.severity}
+                        {t(`testClosure.${b.severity === 'Critique' ? 'critical' : 'major'}`)}
                       </td>
                       <td style={{ padding: '8px', border: '1px solid #E5E7EB' }}>{b.desc}</td>
                     </tr>
@@ -751,7 +753,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
         </div>
 
         <div style={{ marginTop: '40px' }}>
-          <h3 style={{ fontSize: '12pt', color: '#111827', marginBottom: '10px' }}>Sign-off / Approbations</h3>
+          <h3 style={{ fontSize: '12pt', color: '#111827', marginBottom: '10px' }}>{t('testClosure.pdfSignOff')}</h3>
           <div
             style={{
               padding: '15px',
@@ -762,7 +764,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
               whiteSpace: 'pre-wrap',
             }}
           >
-            {signOffs || 'Non renseigné.'}
+            {signOffs || t('testClosure.pdfNotProvided')}
           </div>
         </div>
       </div>
@@ -780,13 +782,13 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
           }}
         >
           <div>
-            <h1 style={{ margin: '0 0 5px 0', fontSize: '24pt', color: '#111827' }}>Rapport Détaillé de Clôture</h1>
+            <h1 style={{ margin: '0 0 5px 0', fontSize: '24pt', color: '#111827' }}>{t('testClosure.pdfDetailedTitle')}</h1>
             <h2 style={{ margin: 0, fontSize: '14pt', color: '#4B5563', fontWeight: 'normal' }}>
-              Projet: {project?.name} | Version: {version}
+              {t('testClosure.pdfProjectLabel')} {project?.name} | {t('testClosure.pdfVersionLabel')} {version}
             </h2>
           </div>
           <div style={{ textAlign: 'right', fontSize: '10pt', color: '#6B7280' }}>
-            Période : {startDate} - {endDate}
+            {t('testClosure.pdfPeriod', { startDate, endDate })}
           </div>
         </div>
 
@@ -800,15 +802,15 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
             marginBottom: '15px',
           }}
         >
-          Inventaire des Campagnes Exécutées
+          {t('testClosure.pdfCampaignInventory')}
         </h3>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9pt' }}>
           <thead>
             <tr style={{ backgroundColor: '#F3F4F6' }}>
-              <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>Nom de la Campagne</th>
-              <th style={{ padding: '8px', textAlign: 'center', border: '1px solid #E5E7EB' }}>Type</th>
-              <th style={{ padding: '8px', textAlign: 'center', border: '1px solid #E5E7EB' }}>Progression</th>
-              <th style={{ padding: '8px', textAlign: 'center', border: '1px solid #E5E7EB' }}>Succès</th>
+              <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>{t('testClosure.pdfCampaignName')}</th>
+              <th style={{ padding: '8px', textAlign: 'center', border: '1px solid #E5E7EB' }}>{t('testClosure.pdfType')}</th>
+              <th style={{ padding: '8px', textAlign: 'center', border: '1px solid #E5E7EB' }}>{t('testClosure.pdfProgress')}</th>
+              <th style={{ padding: '8px', textAlign: 'center', border: '1px solid #E5E7EB' }}>{t('testClosure.pdfSuccess')}</th>
             </tr>
           </thead>
           <tbody>
@@ -816,7 +818,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
               <tr key={r.id}>
                 <td style={{ padding: '8px', border: '1px solid #E5E7EB' }}>{r.name}</td>
                 <td style={{ padding: '8px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
-                  {r.isExploratory ? 'Exploratoire' : 'Scénarisée'}
+                  {r.isExploratory ? t('testClosure.pdfExploratory') : t('testClosure.pdfScripted')}
                 </td>
                 <td style={{ padding: '8px', border: '1px solid #E5E7EB', textAlign: 'center' }}>
                   {r.completionRate}%
@@ -839,16 +841,16 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
         {/* Reprise de la grille des Bugs du rapport 1 */}
         <div style={{ marginTop: '30px', pageBreakInside: 'avoid' }}>
           <h3 style={{ borderBottom: '1px solid #E5E7EB', paddingBottom: '5px', fontSize: '14pt' }}>
-            Bugs Majeurs Restants ({bugs.filter((b) => b.desc.trim()).length})
+            {t('testClosure.pdfRemainingBugs', { count: bugs.filter((b) => b.desc.trim()).length })}
           </h3>
           {bugs.filter((b) => b.desc.trim()).length === 0 ? (
-            <p style={{ fontSize: '10pt', color: '#6B7280' }}>Aucune anomalie critique ou majeure ouverte.</p>
+            <p style={{ fontSize: '10pt', color: '#6B7280' }}>{t('testClosure.pdfNoBugs')}</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10pt' }}>
               <thead>
                 <tr style={{ backgroundColor: '#F3F4F6' }}>
-                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>Sévérité</th>
-                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>Description</th>
+                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>{t('testClosure.pdfSeverity')}</th>
+                  <th style={{ padding: '8px', textAlign: 'left', border: '1px solid #E5E7EB' }}>{t('testClosure.pdfDescription')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -864,7 +866,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                           fontWeight: 'bold',
                         }}
                       >
-                        {b.severity}
+                        {t(`testClosure.${b.severity === 'Critique' ? 'critical' : 'major'}`)}
                       </td>
                       <td style={{ padding: '8px', border: '1px solid #E5E7EB' }}>{b.desc}</td>
                     </tr>
@@ -885,15 +887,15 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
           }}
         >
           <h2 style={{ margin: '0 0 10px 0', fontSize: '14pt', color: decisionColor }}>
-            RECOMMANDATION : {decision.replace('_', ' ')}
+            {t('testClosure.pdfRecommendation', { decision: decision.replace('_', ' ') })}
           </h2>
           <p style={{ margin: '0', fontSize: '9pt', whiteSpace: 'pre-wrap' }}>
-            {residualRisks || 'Pas de risques résiduels renseignés.'}
+            {residualRisks || t('testClosure.pdfNoResidualRisks')}
           </p>
         </div>
 
         <div style={{ marginTop: '30px' }}>
-          <h3 style={{ fontSize: '12pt', color: '#111827', marginBottom: '10px' }}>Approbations</h3>
+          <h3 style={{ fontSize: '12pt', color: '#111827', marginBottom: '10px' }}>{t('testClosure.pdfApprovals')}</h3>
           <div
             style={{
               padding: '15px',
@@ -904,7 +906,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
               whiteSpace: 'pre-wrap',
             }}
           >
-            {signOffs || 'Non renseigné.'}
+            {signOffs || t('testClosure.pdfNotProvided')}
           </div>
         </div>
       </div>

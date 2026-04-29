@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   RefreshCw,
   AlertCircle,
@@ -14,36 +15,37 @@ import {
   FileText,
   FileSpreadsheet,
   Radio,
+  Globe,
 } from 'lucide-react';
 
-function getDashboardRoutes(isAdmin) {
+function getDashboardRoutes(isAdmin, t) {
   const routes = [
-    { path: '/', label: 'Dashboard 1 (Standard)' },
-    { path: '/tv', label: 'Dashboard 2 (TV)' },
-    { path: '/quality-rates', label: 'Dashboard 3 (Quality Rates)' },
-    { path: '/global-view', label: 'Dashboard 4 (Vue Globale & PDF)' },
-    { path: '/annual-trends', label: 'Dashboard 5 (Tendances Annuelles)' },
-    { path: '/multi-project', label: 'Dashboard 6 (Multi-Projets)' },
-    { path: '/historical-trends', label: '📈 Tendances Historiques' },
-    { path: '/compare', label: '🔀 Comparateur' },
-    { path: '/sync-gitlab-to-testmo', label: '⚙ Sync GitLab → Testmo' },
-    { path: '/configuration', label: '⚙️ Configuration des Cycles' },
-    { path: '/crosstest', label: '🔗 CrossTest OK' },
-    { path: '/auto-sync', label: '🤖 Auto-Sync Testmo → GitLab' },
+    { path: '/', label: t('dashboard.standard') },
+    { path: '/tv', label: t('dashboard.tv') },
+    { path: '/quality-rates', label: t('dashboard.qualityRates') },
+    { path: '/global-view', label: t('dashboard.globalView') },
+    { path: '/annual-trends', label: t('dashboard.annualTrends') },
+    { path: '/multi-project', label: t('dashboard.multiProject') },
+    { path: '/historical-trends', label: t('dashboard.historicalTrends') },
+    { path: '/compare', label: t('dashboard.compare') },
+    { path: '/sync-gitlab-to-testmo', label: t('dashboard.syncGitlabToTestmo') },
+    { path: '/configuration', label: t('dashboard.configuration') },
+    { path: '/crosstest', label: t('dashboard.crosstest') },
+    { path: '/auto-sync', label: t('dashboard.autoSync') },
   ];
   if (isAdmin) {
-    routes.push({ path: '/notifications', label: '🔔 Notifications' });
-    routes.push({ path: '/admin/audit', label: '🛡️ Audit Logs' });
-    routes.push({ path: '/admin/feature-flags', label: '🎛️ Feature Flags' });
+    routes.push({ path: '/notifications', label: t('dashboard.notifications') });
+    routes.push({ path: '/admin/audit', label: t('dashboard.auditLogs') });
+    routes.push({ path: '/admin/feature-flags', label: t('dashboard.featureFlags') });
   }
   return routes;
 }
 
-function BackendStatus({ status }) {
+function BackendStatus({ status, t }) {
   const config = {
-    checking: { Icon: Activity, color: '#F59E0B', text: 'Connexion...' },
-    ok: { Icon: CheckCircle2, color: '#10B981', text: 'Backend OK' },
-    error: { Icon: AlertCircle, color: '#EF4444', text: 'Backend Error' },
+    checking: { Icon: Activity, color: '#F59E0B', text: t('layout.backendStatus.checking') },
+    ok: { Icon: CheckCircle2, color: '#10B981', text: t('layout.backendStatus.ok') },
+    error: { Icon: AlertCircle, color: '#EF4444', text: t('layout.backendStatus.error') },
   };
   const { Icon, color, text } = config[status] || config.checking;
 
@@ -95,7 +97,12 @@ export default function AppLayout({
   // Resilience
   circuitBreakers,
 }) {
-  const dashboardRoutes = getDashboardRoutes(isAdmin);
+  const { t, i18n } = useTranslation();
+  const dashboardRoutes = getDashboardRoutes(isAdmin, t);
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
   return (
     <div className={`app ${tvMode ? 'tv-mode' : ''} ${darkMode ? 'dark-theme' : ''}`}>
       {/* Banner mode dégradé */}
@@ -112,7 +119,7 @@ export default function AppLayout({
           }}
           role="alert"
         >
-          ⚠️ Mode dégradé — certains services externes sont temporairement indisponibles (
+          ⚠️ {t('layout.degradedMode')} (
           {circuitBreakers
             .filter((b) => b.state === 'OPEN')
             .map((b) => b.name)
@@ -126,8 +133,8 @@ export default function AppLayout({
         <div className="header-left">
           <Database size={32} color="#3B82F6" />
           <div className="header-title">
-            <h1>Testmo Dashboard</h1>
-            <p className="header-subtitle">ISTQB Compliant | LEAN Optimized | ITIL SLA Monitoring</p>
+            <h1>{t('layout.title')}</h1>
+            <p className="header-subtitle">{t('layout.subtitle')}</p>
           </div>
         </div>
 
@@ -138,7 +145,7 @@ export default function AppLayout({
               value={projectId}
               onChange={onProjectChange}
               className="project-selector"
-              aria-label="Sélectionner un projet"
+              aria-label={t('layout.selectProject')}
             >
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
@@ -152,11 +159,11 @@ export default function AppLayout({
           <button
             className={`btn-toggle ${tvMode ? 'active' : ''}`}
             onClick={toggleTvMode}
-            title="Mode TV"
+            title={tvMode ? t('layout.tvModeOn') : t('layout.tvModeOff')}
             type="button"
           >
             <Monitor size={16} />
-            {tvMode ? 'Mode TV' : 'Mode Standard'}
+            {tvMode ? t('layout.tvModeOn') : t('layout.tvModeOff')}
           </button>
 
           {/* Toggle Dark Theme */}
@@ -164,9 +171,9 @@ export default function AppLayout({
             className="switch-container"
             style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px', marginRight: '8px' }}
           >
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>Dark thème</span>
-            <label className="theme-switch" aria-label="Activer le thème sombre">
-              <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} aria-label="Thème sombre" />
+            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>{t('layout.darkTheme')}</span>
+            <label className="theme-switch" aria-label={t('layout.darkTheme')}>
+              <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} aria-label={t('layout.darkTheme')} />
               <span className="slider round" />
             </label>
           </div>
@@ -182,7 +189,7 @@ export default function AppLayout({
                 color: 'var(--text-color)',
                 border: '1px solid var(--border-color)',
               }}
-              aria-label="Sélectionner un dashboard"
+              aria-label={t('layout.selectDashboard')}
             >
               {dashboardRoutes.map((route) => (
                 <option key={route.path} value={route.path}>
@@ -198,7 +205,7 @@ export default function AppLayout({
               className="btn-icon"
               style={{ backgroundColor: '#3B82F6', color: 'white', marginRight: '8px', border: 'none' }}
               onClick={exportHandler}
-              title="Exporter en PDF"
+              title={t('layout.exportPdf')}
               type="button"
             >
               <Download size={16} />
@@ -211,7 +218,7 @@ export default function AppLayout({
               className="btn-icon"
               style={{ backgroundColor: '#8B5CF6', color: 'white', marginRight: '8px', border: 'none' }}
               onClick={onExportPdfBackend}
-              title="Exporter PDF (backend)"
+              title={t('layout.exportPdfBackend')}
               type="button"
             >
               <Download size={16} />
@@ -224,7 +231,7 @@ export default function AppLayout({
               className="btn-icon"
               style={{ backgroundColor: '#10B981', color: 'white', marginRight: '8px', border: 'none' }}
               onClick={onExportCSV}
-              title="Exporter CSV"
+              title={t('layout.exportCsv')}
               type="button"
             >
               <FileText size={16} />
@@ -237,7 +244,7 @@ export default function AppLayout({
               className="btn-icon"
               style={{ backgroundColor: '#3B82F6', color: 'white', marginRight: '8px', border: 'none' }}
               onClick={onExportExcel}
-              title="Exporter Excel"
+              title={t('layout.exportExcel')}
               type="button"
             >
               <FileSpreadsheet size={16} />
@@ -250,14 +257,14 @@ export default function AppLayout({
             style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px', marginRight: '8px' }}
           >
             <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>
-              Vocabulaire Métier
+              {t('layout.businessTerms')}
             </span>
-            <label className="theme-switch" aria-label="Activer le vocabulaire métier">
+            <label className="theme-switch" aria-label={t('layout.businessTerms')}>
               <input
                 type="checkbox"
                 checked={useBusinessTerms}
                 onChange={() => setUseBusinessTerms(!useBusinessTerms)}
-                aria-label="Vocabulaire métier"
+                aria-label={t('layout.businessTerms')}
               />
               <span className="slider round" />
             </label>
@@ -276,7 +283,7 @@ export default function AppLayout({
                 fontSize: '0.75rem',
                 fontWeight: 600,
               }}
-              title="Connexion temps réel active"
+              title={t('layout.liveIndicator')}
             >
               <Radio size={14} className="live-pulse" />
               <span>LIVE</span>
@@ -294,12 +301,24 @@ export default function AppLayout({
                 fontSize: '0.75rem',
                 fontWeight: 600,
               }}
-              title={liveError}
+              title={liveError || t('layout.offlineIndicator')}
             >
               <Radio size={14} />
               <span>OFFLINE</span>
             </div>
           )}
+
+          {/* Sélecteur de langue */}
+          <button
+            className="btn-toggle"
+            onClick={() => changeLanguage(i18n.language === 'fr' ? 'en' : 'fr')}
+            title={t('common.language')}
+            type="button"
+            style={{ marginLeft: '8px', marginRight: '8px' }}
+          >
+            <Globe size={16} />
+            {i18n.language === 'fr' ? 'FR' : 'EN'}
+          </button>
 
           {/* Toggle auto-refresh */}
           <button
@@ -309,16 +328,16 @@ export default function AppLayout({
             type="button"
           >
             <RefreshCw size={16} className={autoRefresh ? 'spinning' : ''} />
-            {autoRefresh ? 'Auto ON' : 'Auto OFF'}
+            {autoRefresh ? t('layout.autoRefreshOn') : t('layout.autoRefreshOff')}
           </button>
 
           {/* Refresh manuel */}
-          <button className="btn-icon" onClick={onRefresh} disabled={loading} title="Actualiser" type="button">
+          <button className="btn-icon" onClick={onRefresh} disabled={loading} title={t('common.refresh')} type="button">
             <RefreshCw size={16} className={loading ? 'spinning' : ''} />
           </button>
 
           {/* Clear cache */}
-          <button className="btn-icon" onClick={onClearCache} title="Nettoyer le cache" type="button">
+          <button className="btn-icon" onClick={onClearCache} title={t('layout.clearCache')} type="button">
             <Settings size={16} />
           </button>
 
@@ -331,9 +350,9 @@ export default function AppLayout({
               <User size={16} />
               <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>
                 {user.name}
-                {isAdmin && <span style={{ fontSize: '0.75rem', marginLeft: '4px', opacity: 0.7 }}>(Admin)</span>}
+                {isAdmin && <span style={{ fontSize: '0.75rem', marginLeft: '4px', opacity: 0.7 }}>{t('layout.adminBadge')}</span>}
               </span>
-              <button className="btn-icon" onClick={onLogout} title="Déconnexion" type="button">
+              <button className="btn-icon" onClick={onLogout} title={t('layout.logout')} type="button">
                 <LogOut size={16} />
               </button>
             </div>
@@ -341,17 +360,17 @@ export default function AppLayout({
             <button
               className="btn-toggle"
               onClick={onLogin}
-              title="Se connecter avec GitLab"
+              title={t('auth.login')}
               type="button"
               style={{ marginLeft: '8px', backgroundColor: '#FC6D26', color: '#fff', border: 'none' }}
             >
               <LogIn size={16} />
-              GitLab
+              {t('layout.loginGitLab')}
             </button>
           )}
 
           {/* Statut backend */}
-          <BackendStatus status={backendStatus} />
+          <BackendStatus status={backendStatus} t={t} />
         </div>
       </header>
 
@@ -363,11 +382,11 @@ export default function AppLayout({
       {/* Footer */}
       <footer className="app-footer" role="contentinfo">
         <div className="footer-content">
-          <span>© 2026 Neo-Logix | QA Dashboard by Matou</span>
+          <span>{t('layout.footer.copyright')}</span>
           {lastUpdate && (
-            <span className="last-update">Dernière mise à jour: {lastUpdate.toLocaleTimeString('fr-FR')}</span>
+            <span className="last-update">{t('layout.footer.lastUpdate')}: {lastUpdate.toLocaleTimeString(i18n.language === 'fr' ? 'fr-FR' : 'en-US')}</span>
           )}
-          <span>Standards: ISTQB | LEAN | ITIL</span>
+          <span>{t('layout.footer.standards')}</span>
         </div>
       </footer>
     </div>

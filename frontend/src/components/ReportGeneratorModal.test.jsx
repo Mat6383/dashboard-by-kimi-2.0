@@ -127,15 +127,15 @@ describe('ReportGeneratorModal', () => {
     expect(textareas[0]).toHaveValue('Nouveau texte de reco');
 
     const prioritySelects = screen.getAllByTitle('Priorité');
-    fireEvent.change(prioritySelects[0], { target: { value: 'Faible' } });
-    expect(prioritySelects[0]).toHaveValue('Faible');
+    fireEvent.change(prioritySelects[0], { target: { value: 'low' } });
+    expect(prioritySelects[0]).toHaveValue('low');
   });
 
   it('updates recommendation statut', () => {
     render(<ReportGeneratorModal {...baseProps} />);
     const statutSelects = screen.getAllByTitle('Statut');
-    fireEvent.change(statutSelects[0], { target: { value: 'Réalisé' } });
-    expect(statutSelects[0]).toHaveValue('Réalisé');
+    fireEvent.change(statutSelects[0], { target: { value: 'completed' } });
+    expect(statutSelects[0]).toHaveValue('completed');
   });
 
   it('updates complement text', () => {
@@ -176,12 +176,11 @@ describe('ReportGeneratorModal', () => {
     fireEvent.click(generateBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Rapport R01 généré/i)).toBeInTheDocument();
-      expect(screen.getByText('GO')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Télécharger HTML/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Télécharger PPTX/i })).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('button', { name: /Télécharger HTML/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Télécharger PPTX/i })).toBeInTheDocument();
+    expect(screen.getByText(/Rapport R01 généré — Verdict : GO/i)).toBeInTheDocument();
   });
 
   it('handles generation error', async () => {

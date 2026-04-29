@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 import ExcelJS from 'exceljs';
 import logger from './logger.service';
 
@@ -29,7 +30,8 @@ class ExportService {
    * @param {string} projectName — Nom du projet
    * @returns {Buffer}
    */
-  generateCSV(metrics: any, projectName: any) {
+  generateCSV(metrics: any, projectName: any, lang: string = 'fr') {
+    const t = (key: string) => i18n.t('report.' + key, { lng: lang });
     const lines = [];
     const m = metrics || {};
     const raw = m.raw || {};
@@ -39,31 +41,31 @@ class ExportService {
 
     // ── Section Métriques ──
     lines.push([
-      'Projet',
-      'ID Projet',
-      'Taux de réussite (%)',
-      'Taux de complétion (%)',
-      'Taux de blocage (%)',
+      t('export.project'),
+      t('export.projectId'),
+      t('export.passRate'),
+      t('export.completionRate'),
+      t('export.blockedRate'),
       'Escape Rate (%)',
       'Detection Rate (%)',
-      "Taux d'échec (%)",
-      'Efficacité des tests (%)',
-      'Total tests',
-      'Passés',
-      'Échoués',
-      'Bloqués',
+      t('export.failureRate'),
+      t('export.testEfficiency'),
+      t('export.totalTests'),
+      t('export.passed'),
+      t('export.failed'),
+      t('export.blocked'),
       'Skipped',
       'WIP',
-      'Non testés',
+      t('export.untested'),
       'MTTR (h)',
       'Lead Time (h)',
       'Change Fail Rate (%)',
       'WIP Total',
-      'Runs actifs',
-      'Runs fermés',
-      'Jalons complétés',
-      'Jalons total',
-      'Date génération',
+      t('export.activeRuns'),
+      t('export.closedRuns'),
+      t('export.milestonesCompleted'),
+      t('export.milestonesTotal'),
+      t('export.generationDate'),
     ]);
 
     lines.push([
@@ -99,19 +101,19 @@ class ExportService {
     // ── Section Runs ──
     lines.push([
       'ID',
-      'Nom',
-      'Total',
-      'Complétés',
-      'Passés',
-      'Échoués',
-      'Bloqués',
+      t('export.name'),
+      t('export.total'),
+      t('export.completed'),
+      t('export.passed'),
+      t('export.failed'),
+      t('export.blocked'),
       'WIP',
-      'Non testés',
-      'Taux complétion (%)',
-      'Taux réussite (%)',
-      'Exploratoire',
-      'Fermé',
-      'Date création',
+      t('export.untested'),
+      t('export.completionRate'),
+      t('export.passRate'),
+      t('export.exploratory'),
+      t('export.closed'),
+      t('export.creationDate'),
     ]);
 
     const runs = Array.isArray(m.runs) ? m.runs : [];
@@ -128,17 +130,17 @@ class ExportService {
         r.untested ?? '',
         r.completionRate ?? '',
         r.passRate ?? '',
-        r.isExploratory ? 'Oui' : 'Non',
-        r.isClosed ? 'Oui' : 'Non',
+        r.isExploratory ? t('common.yes') : t('common.no'),
+        r.isClosed ? t('common.yes') : t('common.no'),
         r.created_at ?? '',
       ]);
     }
 
     // ── Section SLA ──
     lines.push([]);
-    lines.push(['Statut SLA', m.slaStatus?.ok ? 'OK' : 'ALERTE']);
+    lines.push([t('export.slaStatus'), m.slaStatus?.ok ? 'OK' : 'ALERT']);
     if (m.slaStatus?.alerts?.length) {
-      lines.push(['Métrique', 'Valeur (%)', 'Seuil (%)', 'Sévérité']);
+      lines.push([t('export.metric'), t('export.value'), t('export.threshold'), t('export.severity')]);
       for (const a of m.slaStatus.alerts) {
         lines.push([a.metric ?? '', a.value ?? '', a.threshold ?? '', a.severity ?? '']);
       }
@@ -155,7 +157,8 @@ class ExportService {
    * @param {string} projectName — Nom du projet
    * @returns {Buffer}
    */
-  async generateExcel(metrics: any, projectName: any) {
+  async generateExcel(metrics: any, projectName: any, lang: string = 'fr') {
+    const t = (key: string) => i18n.t('report.' + key, { lng: lang });
     const m = metrics || {};
     const raw = m.raw || {};
     const itil = m.itil || {};
@@ -165,62 +168,62 @@ class ExportService {
     const workbook = new ExcelJS.Workbook();
 
     // ── Sheet Métriques ──
-    const wsMetrics = workbook.addWorksheet('Métriques');
+    const wsMetrics = workbook.addWorksheet(t('export.sheetMetrics'));
     wsMetrics.addRows([
-      ['Propriété', 'Valeur'],
-      ['Projet', projectName || m.projectName || 'Projet'],
-      ['ID Projet', m.projectId ?? ''],
-      ['Taux de réussite (%)', m.passRate ?? ''],
-      ['Taux de complétion (%)', m.completionRate ?? ''],
-      ['Taux de blocage (%)', m.blockedRate ?? ''],
+      [t('export.property'), t('export.value')],
+      [t('export.project'), projectName || m.projectName || 'Project'],
+      [t('export.projectId'), m.projectId ?? ''],
+      [t('export.passRate'), m.passRate ?? ''],
+      [t('export.completionRate'), m.completionRate ?? ''],
+      [t('export.blockedRate'), m.blockedRate ?? ''],
       ['Escape Rate (%)', m.escapeRate ?? ''],
       ['Detection Rate (%)', m.detectionRate ?? ''],
-      ["Taux d'échec (%)", m.failureRate ?? ''],
-      ['Efficacité des tests (%)', m.testEfficiency ?? ''],
-      ['Total tests', raw.total ?? ''],
-      ['Passés', raw.passed ?? ''],
-      ['Échoués', raw.failed ?? ''],
-      ['Bloqués', raw.blocked ?? ''],
+      [t('export.failureRate'), m.failureRate ?? ''],
+      [t('export.testEfficiency'), m.testEfficiency ?? ''],
+      [t('export.totalTests'), raw.total ?? ''],
+      [t('export.passed'), raw.passed ?? ''],
+      [t('export.failed'), raw.failed ?? ''],
+      [t('export.blocked'), raw.blocked ?? ''],
       ['Skipped', raw.skipped ?? ''],
       ['WIP', raw.wip ?? ''],
-      ['Non testés', raw.untested ?? ''],
+      [t('export.untested'), raw.untested ?? ''],
       ['MTTR (h)', itil.mttr ?? ''],
       ['Lead Time (h)', itil.leadTime ?? ''],
       ['Change Fail Rate (%)', itil.changeFailRate ?? ''],
       ['WIP Total', lean.wipTotal ?? ''],
-      ['Runs actifs', lean.activeRuns ?? ''],
-      ['Runs fermés', lean.closedRuns ?? ''],
-      ['Jalons complétés', istqb.milestonesCompleted ?? ''],
-      ['Jalons total', istqb.milestonesTotal ?? ''],
-      ['Date génération', new Date().toISOString()],
+      [t('export.activeRuns'), lean.activeRuns ?? ''],
+      [t('export.closedRuns'), lean.closedRuns ?? ''],
+      [t('export.milestonesCompleted'), istqb.milestonesCompleted ?? ''],
+      [t('export.milestonesTotal'), istqb.milestonesTotal ?? ''],
+      [t('export.generationDate'), new Date().toISOString()],
     ]);
 
     if (m.slaStatus?.alerts?.length) {
       wsMetrics.addRow([]);
-      wsMetrics.addRow(['Alertes SLA']);
-      wsMetrics.addRow(['Métrique', 'Valeur (%)', 'Seuil (%)', 'Sévérité']);
+      wsMetrics.addRow([t('export.slaAlerts')]);
+      wsMetrics.addRow([t('export.metric'), t('export.value'), t('export.threshold'), t('export.severity')]);
       for (const a of m.slaStatus.alerts) {
         wsMetrics.addRow([a.metric ?? '', a.value ?? '', a.threshold ?? '', a.severity ?? '']);
       }
     }
 
     // ── Sheet Runs ──
-    const wsRuns = workbook.addWorksheet('Runs');
+    const wsRuns = workbook.addWorksheet(t('export.sheetRuns'));
     wsRuns.addRow([
       'ID',
-      'Nom',
-      'Total',
-      'Complétés',
-      'Passés',
-      'Échoués',
-      'Bloqués',
+      t('export.name'),
+      t('export.total'),
+      t('export.completed'),
+      t('export.passed'),
+      t('export.failed'),
+      t('export.blocked'),
       'WIP',
-      'Non testés',
-      'Taux complétion (%)',
-      'Taux réussite (%)',
-      'Exploratoire',
-      'Fermé',
-      'Date création',
+      t('export.untested'),
+      t('export.completionRate'),
+      t('export.passRate'),
+      t('export.exploratory'),
+      t('export.closed'),
+      t('export.creationDate'),
     ]);
     const runs = Array.isArray(m.runs) ? m.runs : [];
     for (const r of runs) {
@@ -236,8 +239,8 @@ class ExportService {
         r.untested ?? '',
         r.completionRate ?? '',
         r.passRate ?? '',
-        r.isExploratory ? 'Oui' : 'Non',
-        r.isClosed ? 'Oui' : 'Non',
+        r.isExploratory ? t('common.yes') : t('common.no'),
+        r.isClosed ? t('common.yes') : t('common.no'),
         r.created_at ?? '',
       ]);
     }

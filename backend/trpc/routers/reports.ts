@@ -29,6 +29,7 @@ const generateInput = z
       }),
     recommendations: z.string().optional(),
     complement: z.string().optional(),
+    lang: z.enum(['fr', 'en']).optional(),
   })
   .refine((v) => v.runIds || v.milestoneId, {
     error: 'runIds (tableau) ou milestoneId requis',
@@ -70,13 +71,13 @@ export const reportsRouter = router({
       const result: any = { success: true, files: {} };
 
       if (input.formats.html) {
-        const htmlContent = reportService.generateHTML(data, input.recommendations, input.complement);
+        const htmlContent = reportService.generateHTML(data, input.recommendations, input.complement, input.lang);
         result.files.html = Buffer.from(htmlContent, 'utf-8').toString('base64');
         result.files.htmlFilename = `${data.milestoneName}_Cloture_Tests.html`;
       }
 
       if (input.formats.pptx) {
-        const pres = await reportService.generatePPTX(data, input.recommendations, input.complement);
+        const pres = await reportService.generatePPTX(data, input.recommendations, input.complement, input.lang);
         const pptxBuffer = await (pres as any).write({ outputType: 'nodebuffer' });
         result.files.pptx = pptxBuffer.toString('base64');
         result.files.pptxFilename = `${data.milestoneName}_Cloture_Tests.pptx`;

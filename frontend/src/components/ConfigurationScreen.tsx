@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Settings, Save, Info, Filter, Search, CheckSquare, Square } from 'lucide-react';
 import apiService from '../services/api.service';
 import Toast from './Toast';
 
 const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPreprodMilestones, initialProdMilestones }) => {
+    const { t } = useTranslation();
     const [milestones, setMilestones] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -43,7 +45,7 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
         setSelectedPreprod(prev => {
             if (prev.includes(id)) return prev.filter(x => x !== id);
             if (prev.length >= 2) {
-                setToastMessage('Vous ne pouvez sélectionner que 2 jalons maximum pour la préproduction.');
+                setToastMessage(t('config.maxPreprodMilestones'));
                 return prev;
             }
             return [...prev, id];
@@ -54,7 +56,7 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
         setSelectedProd(prev => {
             if (prev.includes(id)) return prev.filter(x => x !== id);
             if (prev.length >= 2) {
-                setToastMessage('Vous ne pouvez sélectionner que 2 jalons maximum pour la production.');
+                setToastMessage(t('config.maxProdMilestones'));
                 return prev;
             }
             return [...prev, id];
@@ -63,17 +65,17 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
 
     const handleSave = () => {
         onSaveSelection(selectedPreprod, selectedProd);
-        setToastMessage('Configuration sauvegardée avec succès !');
+        setToastMessage(t('config.saveSuccess'));
     };
 
     const clearSelection = () => {
         setSelectedPreprod([]);
         setSelectedProd([]);
         onSaveSelection([], []);
-        setToastMessage('Configuration réinitialisée au fonctionnement par défaut.');
+        setToastMessage(t('config.resetSuccess'));
     };
 
-    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>Chargement des données...</div>;
+    if (loading) return <div style={{ padding: '2rem', textAlign: 'center' }}>{t('config.loadingData')}</div>;
 
     const sectionStyle = {
         backgroundColor: 'var(--card-bg)',
@@ -122,8 +124,8 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
                 <div className="tv-title" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <Settings size={40} color="var(--primary-color)" />
                     <div>
-                        <h1 style={{ margin: 0 }}>Configuration des Cycles de Test</h1>
-                        <h2 style={{ margin: 0, opacity: 0.8, fontSize: '1.2rem', fontWeight: 400 }}>Personnalisation Préproduction / Production</h2>
+                        <h1 style={{ margin: 0 }}>{t('config.title')}</h1>
+                        <h2 style={{ margin: 0, opacity: 0.8, fontSize: '1.2rem', fontWeight: 400 }}>{t('config.subtitle')}</h2>
                     </div>
                 </div>
             </header>
@@ -133,31 +135,31 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
                 <div style={sectionStyle}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                         <Filter size={20} color="#F59E0B" />
-                        <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Préproduction</h3>
+                        <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{t('config.preproduction')}</h3>
                         <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            {selectedPreprod.length}/2 sélectionnés
+                            {selectedPreprod.length}/2 {t('config.selected')}
                         </span>
                     </div>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 1rem' }}>
-                        Sélectionnez les jalons de préproduction à analyser (max 2).
+                        {t('config.preprodDescription')}
                     </p>
 
                     <div style={{ position: 'relative' }}>
                         <Search size={16} style={{ position: 'absolute', left: '0.6rem', top: '0.7rem', color: 'var(--text-muted)' }} />
                         <input
                             type="text"
-                            placeholder="Rechercher un jalon..."
+                            placeholder={t('config.searchMilestone')}
                             value={searchPreprod}
                             onChange={e => setSearchPreprod(e.target.value)}
                             style={searchStyle}
-                            aria-label="Rechercher un jalon de préproduction"
+                            aria-label={t('config.searchPreprod')}
                         />
                     </div>
 
-                    <div style={listStyle} role="group" aria-label="Jalons de préproduction">
+                    <div style={listStyle} role="group" aria-label={t('config.preprodMilestones')}>
                         {filteredPreprod.length === 0 && (
                             <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                Aucun jalon trouvé.
+                                {t('config.noMilestone')}
                             </div>
                         )}
                         {filteredPreprod.map(m => {
@@ -192,31 +194,31 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
                 <div style={sectionStyle}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                         <Filter size={20} color="#EF4444" />
-                        <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Production</h3>
+                        <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{t('config.production')}</h3>
                         <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            {selectedProd.length}/2 sélectionnés
+                            {selectedProd.length}/2 {t('config.selected')}
                         </span>
                     </div>
                     <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 1rem' }}>
-                        Sélectionnez les jalons de production à analyser (max 2).
+                        {t('config.prodDescription')}
                     </p>
 
                     <div style={{ position: 'relative' }}>
                         <Search size={16} style={{ position: 'absolute', left: '0.6rem', top: '0.7rem', color: 'var(--text-muted)' }} />
                         <input
                             type="text"
-                            placeholder="Rechercher un jalon..."
+                            placeholder={t('config.searchMilestone')}
                             value={searchProd}
                             onChange={e => setSearchProd(e.target.value)}
                             style={searchStyle}
-                            aria-label="Rechercher un jalon de production"
+                            aria-label={t('config.searchProd')}
                         />
                     </div>
 
-                    <div style={listStyle} role="group" aria-label="Jalons de production">
+                    <div style={listStyle} role="group" aria-label={t('config.prodMilestones')}>
                         {filteredProd.length === 0 && (
                             <div style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                                Aucun jalon trouvé.
+                                {t('config.noMilestone')}
                             </div>
                         )}
                         {filteredProd.map(m => {
@@ -267,7 +269,7 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
                     }}
                 >
                     <Save size={20} />
-                    Sauvegarder la Configuration
+                    {t('config.saveConfiguration')}
                 </button>
 
                 <button
@@ -287,7 +289,7 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
                     }}
                 >
                     <Info size={20} />
-                    Réinitialiser
+                    {t('config.reset')}
                 </button>
             </div>
         </div>

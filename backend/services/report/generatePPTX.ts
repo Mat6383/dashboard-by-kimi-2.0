@@ -1,5 +1,7 @@
+import i18n from '../../i18n';
 import pptxgen from 'pptxgenjs';
-async function generatePPTX(data: any, recommendations: any, complement: any) {
+async function generatePPTX(data: any, recommendations: any, complement: any, lang: string = 'fr') {
+  const t = (key: string) => i18n.t('report.' + key, { lng: lang });
   const { milestoneName, stats, functionalRuns, tnrRuns, failedTests, wipTests, passedWithTickets, verdict } = data;
 
   const C = {
@@ -22,7 +24,7 @@ async function generatePPTX(data: any, recommendations: any, complement: any) {
   const pres = new pptxgen();
   pres.layout = 'LAYOUT_16x9';
   pres.author = 'QA Dashboard — Neo-Logix';
-  pres.title = `Clôture de Tests ${milestoneName}`;
+  pres.title = `${t('title')} ${milestoneName}`;
 
   // SLIDE 1: COVER
   const s1 = pres.addSlide();
@@ -39,7 +41,7 @@ async function generatePPTX(data: any, recommendations: any, complement: any) {
     fontFace: 'Calibri',
     charSpacing: 3,
   });
-  s1.addText('Rapport de Clôture de Tests', {
+  s1.addText(t('title'), {
     x: 0.5,
     y: 1.4,
     w: 9,
@@ -75,7 +77,7 @@ async function generatePPTX(data: any, recommendations: any, complement: any) {
   // SLIDE 2: KPIs
   const s2 = pres.addSlide();
   s2.background = { color: C.light };
-  s2.addText('Indicateurs clés', {
+  s2.addText(t('executiveSummary'), {
     x: 0.5,
     y: 0.3,
     w: 6,
@@ -167,7 +169,7 @@ async function generatePPTX(data: any, recommendations: any, complement: any) {
   // SLIDE 3: RESULTS TABLE
   const s3 = pres.addSlide();
   s3.background = { color: C.light };
-  s3.addText('Résultats par run', {
+  s3.addText(t('detailedResults'), {
     x: 0.5,
     y: 0.3,
     w: 6,
@@ -217,7 +219,7 @@ async function generatePPTX(data: any, recommendations: any, complement: any) {
   // SLIDE 4: TICKETS
   const s4 = pres.addSlide();
   s4.background = { color: C.light };
-  s4.addText('Traçabilité tickets GitLab', {
+  s4.addText(t('traceability'), {
     x: 0.5,
     y: 0.3,
     w: 7,
@@ -282,7 +284,7 @@ async function generatePPTX(data: any, recommendations: any, complement: any) {
   if (recommendations && recommendations.length > 0) {
     const s5 = pres.addSlide();
     s5.background = { color: C.light };
-    s5.addText('Recommandations', {
+    s5.addText(t('recommendations'), {
       x: 0.5,
       y: 0.25,
       w: 7,
@@ -356,7 +358,7 @@ async function generatePPTX(data: any, recommendations: any, complement: any) {
   if (complement && complement.trim()) {
     const s6 = pres.addSlide();
     s6.background = { color: C.light };
-    s6.addText("Complément d'information", {
+    s6.addText(t('complement'), {
       x: 0.5,
       y: 0.3,
       w: 9,
@@ -391,7 +393,7 @@ async function generatePPTX(data: any, recommendations: any, complement: any) {
   // SLIDE 7: CONCLUSION
   const sLast = pres.addSlide();
   sLast.background = { color: C.navy };
-  sLast.addText('Conclusion', {
+  sLast.addText(t('conclusion'), {
     x: 0.5,
     y: 0.5,
     w: 9,
@@ -415,7 +417,7 @@ async function generatePPTX(data: any, recommendations: any, complement: any) {
     align: 'center',
     valign: 'middle',
   });
-  sLast.addText(`${stats.totalPassed}/${stats.totalTests} tests réussis — ${stats.passRate}% pass rate`, {
+  sLast.addText(`${stats.totalPassed}/${stats.totalTests} tests ${t('table.passed')} — ${stats.passRate}% pass rate`, {
     x: 2,
     y: 2.1,
     w: 6,

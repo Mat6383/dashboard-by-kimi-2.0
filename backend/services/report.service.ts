@@ -13,12 +13,12 @@ class ReportService {
     return collectReportData(this.testmoService, projectId, runIds);
   }
 
-  generateHTML(data: any, recommendations: any, complement: any) {
-    return generateHTML(data, recommendations, complement);
+  generateHTML(data: any, recommendations: any, complement: any, lang?: string) {
+    return generateHTML(data, recommendations, complement, lang);
   }
 
-  async generatePPTX(data: any, recommendations: any, complement: any) {
-    return generatePPTX(data, recommendations, complement);
+  async generatePPTX(data: any, recommendations: any, complement: any, lang?: string) {
+    return generatePPTX(data, recommendations, complement, lang);
   }
 }
 

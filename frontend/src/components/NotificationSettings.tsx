@@ -5,12 +5,14 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useToast } from '../hooks/useToast';
 import { trpc } from '../trpc/client';
 import { useSaveNotificationSettings, useTestNotificationWebhook } from '../hooks/mutations/useNotifications';
 import { Bell, Mail, MessageSquare, Send, Save, TestTube } from 'lucide-react';
 
 export default function NotificationSettings({ isDark }) {
+  const { t } = useTranslation();
   const { showToast } = useToast();
   const { data: settingsData, isLoading: loading } = trpc.notifications.settings.useQuery(undefined, {
     refetchOnWindowFocus: false,
@@ -52,23 +54,23 @@ export default function NotificationSettings({ isDark }) {
         enabledSlaSlack: settings.enabledSlaSlack,
         enabledSlaTeams: settings.enabledSlaTeams,
       } as any);
-      showToast('Paramètres sauvegardés', 'success');
+      showToast(t('notifications.settingsSaved'), 'success');
     } catch (err) {
-      showToast('Erreur sauvegarde', 'error');
+      showToast(t('notifications.saveError'), 'error');
     }
   };
 
   const handleTest = async (channel: string) => {
     const url = channel === 'slack' ? settings.slackWebhook : settings.teamsWebhook;
     if (!url) {
-      showToast(`Webhook ${channel} non configuré`, 'error');
+      showToast(t('notifications.webhookNotConfigured', { channel }), 'error');
       return;
     }
     try {
       await testMutation.mutateAsync({ channel, url });
-      showToast(`Test ${channel} envoyé`, 'success');
+      showToast(t('notifications.testSent', { channel }), 'success');
     } catch (err) {
-      showToast(`Test ${channel} échoué`, 'error');
+      showToast(t('notifications.testFailed', { channel }), 'error');
     }
   };
 
@@ -102,19 +104,19 @@ export default function NotificationSettings({ isDark }) {
     <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>
       <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
         <Bell size={24} />
-        Configuration des notifications
+        {t('notifications.title')}
       </h2>
 
       {loading ? (
-        <p>Chargement...</p>
+        <p>{t('common.loading')}</p>
       ) : (
         <>
           <div style={cardStyle}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0 }}>
               <Mail size={18} />
-              Email SLA
+              {t('notifications.emailSla')}
             </h3>
-            <label style={labelStyle}>Adresse email</label>
+            <label style={labelStyle}>{t('notifications.emailAddress')}</label>
             <input
               type="email"
               style={inputStyle}
@@ -128,7 +130,7 @@ export default function NotificationSettings({ isDark }) {
                 checked={settings.enabledSlaEmail}
                 onChange={(e) => setSettings({ ...settings, enabledSlaEmail: e.target.checked })}
               />
-              Activer les alertes SLA par email
+              {t('notifications.enableEmailAlerts')}
             </label>
           </div>
 
@@ -137,7 +139,7 @@ export default function NotificationSettings({ isDark }) {
               <MessageSquare size={18} />
               Slack
             </h3>
-            <label style={labelStyle}>Webhook URL</label>
+            <label style={labelStyle}>{t('notifications.webhookUrl')}</label>
             <input
               type="url"
               style={inputStyle}
@@ -152,11 +154,11 @@ export default function NotificationSettings({ isDark }) {
                   checked={settings.enabledSlaSlack}
                   onChange={(e) => setSettings({ ...settings, enabledSlaSlack: e.target.checked })}
                 />
-                Activer les alertes SLA sur Slack
+                {t('notifications.enableSlackAlerts')}
               </label>
               <button className="btn-toggle" onClick={() => handleTest('slack')} type="button">
                 <TestTube size={14} />
-                Tester
+                {t('common.test')}
               </button>
             </div>
           </div>
@@ -166,7 +168,7 @@ export default function NotificationSettings({ isDark }) {
               <Send size={18} />
               Microsoft Teams
             </h3>
-            <label style={labelStyle}>Webhook URL</label>
+            <label style={labelStyle}>{t('notifications.webhookUrl')}</label>
             <input
               type="url"
               style={inputStyle}
@@ -181,11 +183,11 @@ export default function NotificationSettings({ isDark }) {
                   checked={settings.enabledSlaTeams}
                   onChange={(e) => setSettings({ ...settings, enabledSlaTeams: e.target.checked })}
                 />
-                Activer les alertes SLA sur Teams
+                {t('notifications.enableTeamsAlerts')}
               </label>
               <button className="btn-toggle" onClick={() => handleTest('teams')} type="button">
                 <TestTube size={14} />
-                Tester
+                {t('common.test')}
               </button>
             </div>
           </div>
@@ -198,7 +200,7 @@ export default function NotificationSettings({ isDark }) {
             style={{ backgroundColor: '#10B981', color: '#fff', border: 'none' }}
           >
             <Save size={16} />
-            {saveMutation.isPending ? 'Sauvegarde...' : 'Sauvegarder'}
+            {saveMutation.isPending ? t('common.saving') : t('common.save')}
           </button>
         </>
       )}

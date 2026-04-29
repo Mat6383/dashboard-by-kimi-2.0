@@ -10,6 +10,7 @@
  */
 
 import React, { useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
 import { usePreferences } from './hooks/usePreferences';
@@ -24,6 +25,7 @@ import AppRouter from './components/AppRouter';
 import './styles/App.css';
 
 function App() {
+  const { t, i18n } = useTranslation();
   const { isDark, tvMode, toggleDark, toggleTv } = useTheme();
   const { user, isAuthenticated, isAdmin, loginWithGitLab, logout } = useAuth();
   const { showToast } = useToast();
@@ -83,7 +85,8 @@ function App() {
         projectId,
         { preprod: selectedPreprodMilestones, prod: selectedProdMilestones },
         'A4',
-        isDark
+        isDark,
+        i18n.language
       );
       const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
       const link = document.createElement('a');
@@ -92,9 +95,9 @@ function App() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      showToast('PDF généré avec succès', 'success');
+      showToast(t('app.toast.pdfSuccess'), 'success');
     } catch (err) {
-      showToast('Erreur génération PDF', 'error');
+      showToast(t('app.toast.pdfError'), 'error');
     }
   };
 
@@ -104,7 +107,7 @@ function App() {
       const blob = await apiService.generateCSV(projectId, {
         preprod: selectedPreprodMilestones,
         prod: selectedProdMilestones,
-      });
+      }, i18n.language);
       const url = window.URL.createObjectURL(new Blob([blob], { type: 'text/csv' }));
       const link = document.createElement('a');
       link.href = url;
@@ -112,9 +115,9 @@ function App() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      showToast('CSV généré avec succès', 'success');
+      showToast(t('app.toast.csvSuccess'), 'success');
     } catch (err) {
-      showToast('Erreur génération CSV', 'error');
+      showToast(t('app.toast.csvError'), 'error');
     }
   };
 
@@ -124,7 +127,7 @@ function App() {
       const blob = await apiService.generateExcel(projectId, {
         preprod: selectedPreprodMilestones,
         prod: selectedProdMilestones,
-      });
+      }, i18n.language);
       const url = window.URL.createObjectURL(
         new Blob([blob], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
       );
@@ -134,9 +137,9 @@ function App() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      showToast('Excel généré avec succès', 'success');
+      showToast(t('app.toast.excelSuccess'), 'success');
     } catch (err) {
-      showToast('Erreur génération Excel', 'error');
+      showToast(t('app.toast.excelError'), 'error');
     }
   };
 
@@ -144,11 +147,11 @@ function App() {
     return (
       <div className="app-error">
         <AlertCircle size={48} color="#EF4444" />
-        <h2>Erreur de Chargement</h2>
+        <h2>{t('app.loadError.title')}</h2>
         <p>{error}</p>
         <button onClick={() => loadDashboardMetrics()} className="btn-retry" type="button">
           <RefreshCw size={16} />
-          Réessayer
+          {t('app.loadError.retry')}
         </button>
       </div>
     );
@@ -190,7 +193,7 @@ function App() {
       {loading && !metrics ? (
         <div className="loading-container">
           <RefreshCw size={48} className="spinner" />
-          <p>Chargement des métriques ISTQB...</p>
+          <p>{t('app.loadingMetrics')}</p>
         </div>
       ) : (
         <AppRouter

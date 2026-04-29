@@ -18,7 +18,7 @@ const reportService = new ReportService(testmoService);
  */
 router.post('/generate', validateBody(reportsGenerateBody), auditAction('report.generate'), async (req, res) => {
   try {
-    const { projectId, runIds, milestoneId, formats, recommendations, complement } = req.body;
+    const { projectId, runIds, milestoneId, formats, recommendations, complement, lang } = req.body;
 
     // Accepte runIds[] (nouveau format) OU milestoneId (ancien format)
     let resolvedRunIds = runIds;
@@ -46,14 +46,14 @@ router.post('/generate', validateBody(reportsGenerateBody), auditAction('report.
 
     // 2. Generate HTML
     if (formats.html) {
-      const htmlContent = reportService.generateHTML(data, recommendations, complement);
+      const htmlContent = reportService.generateHTML(data, recommendations, complement, lang);
       result.files.html = Buffer.from(htmlContent, 'utf-8').toString('base64');
       result.files.htmlFilename = `${data.milestoneName}_Cloture_Tests.html`;
     }
 
     // 3. Generate PPTX
     if (formats.pptx) {
-      const pres = await reportService.generatePPTX(data, recommendations, complement);
+      const pres = await reportService.generatePPTX(data, recommendations, complement, lang);
       const pptxBuffer = await (pres as any).write({ outputType: 'nodebuffer' });
       result.files.pptx = pptxBuffer.toString('base64');
       result.files.pptxFilename = `${data.milestoneName}_Cloture_Tests.pptx`;

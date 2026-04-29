@@ -30,13 +30,13 @@ async function _getMetricsAndName(projectId: any, milestones: any) {
 
 router.post('/csv', requireAuth, auditAction('export.csv'), async (req, res) => {
   try {
-    const { projectId, milestones } = req.body;
+    const { projectId, milestones, lang } = req.body;
     if (!projectId) {
       return res.status(400).json({ success: false, error: 'projectId requis' });
     }
 
     const { metrics, projectName } = await _getMetricsAndName(projectId, milestones);
-    const csvBuffer = exportService.generateCSV(metrics, projectName);
+    const csvBuffer = exportService.generateCSV(metrics, projectName, lang);
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="qa-dashboard-${projectId}-${Date.now()}.csv"`);
@@ -49,13 +49,13 @@ router.post('/csv', requireAuth, auditAction('export.csv'), async (req, res) => 
 
 router.post('/excel', requireAuth, auditAction('export.excel'), async (req, res) => {
   try {
-    const { projectId, milestones } = req.body;
+    const { projectId, milestones, lang } = req.body;
     if (!projectId) {
       return res.status(400).json({ success: false, error: 'projectId requis' });
     }
 
     const { metrics, projectName } = await _getMetricsAndName(projectId, milestones);
-    const xlsxBuffer = await exportService.generateExcel(metrics, projectName);
+    const xlsxBuffer = await exportService.generateExcel(metrics, projectName, lang);
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="qa-dashboard-${projectId}-${Date.now()}.xlsx"`);

@@ -458,12 +458,13 @@ const apiService = {
     projectId: number,
     milestones: ExportMilestones,
     format = 'A4',
-    darkMode = false
+    darkMode = false,
+    lang?: string
   ): Promise<Blob> {
     return apiCall('Generate Backend PDF', async () => {
       const response = await apiClient.post(
         '/pdf/generate',
-        { projectId, milestones, format, darkMode },
+        { projectId, milestones, format, darkMode, lang },
         { responseType: 'blob', timeout: 120000 }
       );
       return response.data;
@@ -472,22 +473,22 @@ const apiService = {
 
   // ---- Export CSV / Excel ------------------------------------------------
 
-  async generateCSV(projectId: number, milestones: ExportMilestones): Promise<Blob> {
+  async generateCSV(projectId: number, milestones: ExportMilestones, lang?: string): Promise<Blob> {
     return apiCall('Generate CSV', async () => {
       const response = await apiClient.post(
         '/export/csv',
-        { projectId, milestones },
+        { projectId, milestones, lang },
         { responseType: 'blob', timeout: 60000 }
       );
       return response.data;
     });
   },
 
-  async generateExcel(projectId: number, milestones: ExportMilestones): Promise<Blob> {
+  async generateExcel(projectId: number, milestones: ExportMilestones, lang?: string): Promise<Blob> {
     return apiCall('Generate Excel', async () => {
       const response = await apiClient.post(
         '/export/excel',
-        { projectId, milestones },
+        { projectId, milestones, lang },
         { responseType: 'blob', timeout: 60000 }
       );
       return response.data;

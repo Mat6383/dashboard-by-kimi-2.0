@@ -10,11 +10,13 @@
  */
 
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import apiService from '../services/api.service';
 import { useToast } from '../hooks/useToast';
 import { RefreshCw, Pencil, Trash2, Plus } from 'lucide-react';
 
 export default function CommentCell({ issue, comment, milestoneTitle, onSaved, onDeleted }) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const [saving, setSaving] = useState(false);
@@ -44,7 +46,7 @@ export default function CommentCell({ issue, comment, milestoneTitle, onSaved, o
       setDraft('');
     } catch (err) {
       console.error('Erreur sauvegarde commentaire:', err);
-      showToast(`Erreur: ${err.message}`, 'error');
+      showToast(t('commentCell.saveError', { message: err.message }), 'error');
     } finally {
       setSaving(false);
     }
@@ -62,7 +64,7 @@ export default function CommentCell({ issue, comment, milestoneTitle, onSaved, o
       onDeleted(issue.iid);
     } catch (err) {
       console.error('Erreur suppression commentaire:', err);
-      showToast(`Erreur: ${err.message}`, 'error');
+      showToast(t('commentCell.deleteError', { message: err.message }), 'error');
     } finally {
       setSaving(false);
     }
@@ -76,7 +78,7 @@ export default function CommentCell({ issue, comment, milestoneTitle, onSaved, o
           className="d7-comment-textarea"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Saisir un commentaire..."
+          placeholder={t('commentCell.placeholder')}
           rows={3}
           disabled={saving}
           onKeyDown={(e) => {
@@ -87,12 +89,12 @@ export default function CommentCell({ issue, comment, milestoneTitle, onSaved, o
         <div className="d7-comment-form-actions">
           <button className="d7-comment-save-btn" onClick={handleSave} disabled={saving || !draft.trim()}>
             {saving ? <RefreshCw size={12} className="d7-spinner" /> : null}
-            {saving ? 'Sauvegarde...' : 'Enregistrer'}
+            {saving ? t('common.saving') : t('commentCell.save')}
           </button>
           <button className="d7-comment-cancel-btn" onClick={cancelEdit} disabled={saving}>
-            Annuler
+            {t('common.cancel')}
           </button>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Ctrl+Entrée pour sauvegarder</span>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{t('commentCell.saveShortcut')}</span>
         </div>
       </div>
     );
@@ -103,10 +105,10 @@ export default function CommentCell({ issue, comment, milestoneTitle, onSaved, o
       <div className="d7-comment-view" style={{ position: 'relative' }}>
         <span className="d7-comment-text">{comment.comment}</span>
         <div className="d7-comment-actions">
-          <button className="d7-icon-btn edit" title="Modifier le commentaire" onClick={openEdit} disabled={saving}>
+          <button className="d7-icon-btn edit" title={t('commentCell.editTitle')} onClick={openEdit} disabled={saving}>
             <Pencil size={13} />
           </button>
-          <button className="d7-icon-btn del" title="Supprimer le commentaire" onClick={handleDelete} disabled={saving}>
+          <button className="d7-icon-btn del" title={t('commentCell.deleteTitle')} onClick={handleDelete} disabled={saving}>
             {saving ? <RefreshCw size={13} className="d7-spinner" /> : <Trash2 size={13} />}
           </button>
         </div>
@@ -133,14 +135,14 @@ export default function CommentCell({ issue, comment, milestoneTitle, onSaved, o
               }}
             >
               <p style={{ margin: '0 0 1rem', fontSize: '0.95rem', color: 'var(--text-color)' }}>
-                Supprimer le commentaire pour <strong>#{issue.iid}</strong> ?
+                {t('commentCell.confirmDeletePrefix')} <strong>#{issue.iid}</strong> {t('commentCell.confirmDeleteSuffix')}
               </p>
               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
                 <button onClick={() => setShowConfirm(false)} className="d7-comment-cancel-btn">
-                  Annuler
+                  {t('common.cancel')}
                 </button>
                 <button onClick={confirmDelete} className="d7-comment-save-btn" style={{ backgroundColor: '#EF4444' }}>
-                  Supprimer
+                  {t('common.delete')}
                 </button>
               </div>
             </div>
@@ -153,7 +155,7 @@ export default function CommentCell({ issue, comment, milestoneTitle, onSaved, o
   return (
     <button className="d7-comment-add-btn" onClick={openEdit} disabled={saving}>
       <Plus size={12} />
-      Ajouter un commentaire...
+      {t('commentCell.addComment')}
     </button>
   );
 }
