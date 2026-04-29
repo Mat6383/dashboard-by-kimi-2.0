@@ -1,13 +1,10 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import apiService from '../../services/api.service';
-import type { AutoSyncConfig } from '../../types/api.types';
+import { trpc } from '../../trpc/client';
 
 export function useUpdateAutoSyncConfig() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (patch: Partial<AutoSyncConfig>) => apiService.updateAutoSyncConfig(patch),
+  const utils = trpc.useUtils();
+  return trpc.sync.updateAutoConfig.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auto-sync-config'] });
+      utils.sync.autoConfig.invalidate();
     },
   });
 }

@@ -17,9 +17,10 @@ import {
   Loader2,
   AlertTriangle,
 } from 'lucide-react';
-import apiService from '../services/api.service';
 import { useToast } from '../hooks/useToast';
-import { unwrapApiResponse, type FeatureFlag } from '../types/api.types';
+import { trpc } from '../trpc/client';
+import { useCreateFeatureFlag, useUpdateFeatureFlag, useDeleteFeatureFlag } from '../hooks/mutations/useFeatureFlags';
+import type { FeatureFlag } from '../types/api.types';
 
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return '-';
@@ -39,8 +40,6 @@ interface FeatureFlagsAdminProps {
 
 export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
   const { showToast } = useToast();
-  const [flags, setFlags] = useState<FeatureFlag[]>([]);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingFlag, setEditingFlag] = useState<FeatureFlag | null>(null);
@@ -52,21 +51,11 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
     rolloutPercentage: 100,
   });
 
-  const fetchFlags = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await apiService.getFeatureFlagsAdmin();
-      setFlags(unwrapApiResponse(res).flags || []);
-    } catch (err) {
-      showToast('Erreur chargement des flags', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [showToast]);
+  const { data: flagsData, isLoading: loading, refetch: refetchFlags } = trpc.featureFlags.listAdmin.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    fetchFlags();
-  }, [fetchFlags]);
+  const flags = (flagsData?.data?.flags || []) as FeatureFlag[];
 
   const openCreate = () => {
     setEditingFlag(null);
@@ -90,29 +79,24 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
     setEditingFlag(null);
   };
 
+  const createMutation = useCreateFeatureFlag();
+  const updateMutation = useUpdateFeatureFlag();
+  const deleteMutation = useDeleteFeatureFlag();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
     try {
       if (editingFlag) {
-        await apiService.updateFeatureFlag(editingFlag.key, {
-          enabled: form.enabled,
-          description: form.description,
-          rolloutPercentage: form.rolloutPercentage,
-        });
+        await updateMutation.mutateAsync({ key: editingFlag.key, enabled: form.enabled, description: form.description, rolloutPercentage: form.rolloutPercentage });
         showToast('Flag mis à jour', 'success');
       } else {
-        await apiService.createFeatureFlag({
-          key: form.key,
-          enabled: form.enabled,
-          description: form.description,
-          rolloutPercentage: form.rolloutPercentage,
-        });
+        await createMutation.mutateAsync({ key: form.key, enabled: form.enabled, description: form.description, rolloutPercentage: form.rolloutPercentage });
         showToast('Flag créé', 'success');
       }
       closeModal();
-      fetchFlags();
-    } catch (err) {
+      refetchFlags();
+    } catch (err: any) {
       showToast(err.message || 'Erreur lors de la sauvegarde', 'error');
     } finally {
       setSaving(false);
@@ -122,20 +106,19 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
   const handleDelete = async (key: string) => {
     if (!window.confirm(`Supprimer le flag "${key}" ?`)) return;
     try {
-      await apiService.deleteFeatureFlag(key);
+      await deleteMutation.mutateAsync({ key });
       showToast('Flag supprimé', 'success');
-      fetchFlags();
-    } catch (err) {
+      refetchFlags();
+    } catch (err: any) {
       showToast(err.message || 'Erreur suppression', 'error');
     }
   };
 
   const handleToggleEnabled = async (flag: FeatureFlag) => {
     try {
-      await apiService.updateFeatureFlag(flag.key, { enabled: !flag.enabled });
-      setFlags((prev) => prev.map((f) => (f.key === flag.key ? { ...f, enabled: !f.enabled } : f)));
+      await updateMutation.mutateAsync({ key: flag.key, enabled: !flag.enabled });
       showToast(`Flag ${flag.key} ${!flag.enabled ? 'activé' : 'désactivé'}`, 'success');
-    } catch (err) {
+    } catch (err: any) {
       showToast('Erreur toggle', 'error');
     }
   };
@@ -143,9 +126,8 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
   const handleRolloutChange = async (flag: FeatureFlag, value: string) => {
     const num = Math.min(100, Math.max(0, Number(value)));
     try {
-      await apiService.updateFeatureFlag(flag.key, { rolloutPercentage: num });
-      setFlags((prev) => prev.map((f) => (f.key === flag.key ? { ...f, rolloutPercentage: num } : f)));
-    } catch (err) {
+      await updateMutation.mutateAsync({ key: flag.key, rolloutPercentage: num });
+    } catch (err: any) {
       showToast('Erreur mise à jour rollout', 'error');
     }
   };

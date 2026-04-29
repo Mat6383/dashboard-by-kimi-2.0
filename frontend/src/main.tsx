@@ -34,6 +34,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { PreferencesProvider } from './contexts/PreferencesContext';
 import { DashboardProvider } from './contexts/DashboardContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { TRPCProvider } from './trpc/provider';
 import App from './App';
 
 // Montage de l'application
@@ -41,15 +42,17 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ThemeProvider>
-          <PreferencesProvider>
-            <DashboardProvider>
-              <ToastProvider>
-                <App />
-              </ToastProvider>
-            </DashboardProvider>
-          </PreferencesProvider>
-        </ThemeProvider>
+        <TRPCProvider>
+          <ThemeProvider>
+            <PreferencesProvider>
+              <DashboardProvider>
+                <ToastProvider>
+                  <App />
+                </ToastProvider>
+              </DashboardProvider>
+            </PreferencesProvider>
+          </ThemeProvider>
+        </TRPCProvider>
       </BrowserRouter>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

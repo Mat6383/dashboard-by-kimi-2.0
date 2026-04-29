@@ -20,6 +20,10 @@ export default defineConfig(({ mode }) => {
           target: backendUrl,
           changeOrigin: true,
         },
+        '/trpc': {
+          target: backendUrl,
+          changeOrigin: true,
+        },
       },
     },
     build: {

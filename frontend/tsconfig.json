@@ -16,7 +16,8 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "~server/*": ["../backend/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

@@ -270,7 +270,7 @@
 - [x] **P19** — Pool Puppeteer optimisé : pool de 3 pages réutilisables, sémaphore concurrence, header `X-PDF-Generation-Time`, rotation fine pages + tests ✅
 - [x] **P20** — WebSocket temps réel : serveur WS (`ws`) + `DashboardRoom` (polling centralisé par projectId, broadcast clients) + hook `useDashboardWebSocket` avec fallback SSE automatique + tests ✅
 - [x] **P21** — Backup automatisé SQLite : cron quotidien 3h + dump VACUUM INTO + compression gzip + rotation locale 7j + upload S3 (IA) **ou rsync/SSH** + rotation distante 30j + endpoint admin `/api/admin/backups` ✅
-- [ ] **P22** — tRPC ou GraphQL : couche API typée côté backend pour consommation frontend sûre
+- [x] **P22** — tRPC : couche API typée montée sur Express, 13 sous-routers backend, hooks frontend migrés, type-safety end-to-end
 
 ## 📝 Notes
 

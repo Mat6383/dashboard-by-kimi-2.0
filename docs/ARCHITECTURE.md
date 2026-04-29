@@ -129,31 +129,50 @@ User ──► /api/crosstest/* ──► commentsService (SQLite)
 
 ```
 backend/
-├── server.js                 # Point d'entrée (< 100 lignes)
+├── server.ts                 # Point d'entrée Express + tRPC middleware
+├── trpc/                     # Couche API typée (tRPC v11)
+│   ├── init.ts               # Router factory + publicProcedure
+│   ├── context.ts            # Build context depuis Express req (user, requestId)
+│   ├── middleware.ts         # authedProcedure, adminProcedure
+│   ├── router.ts             # Merge de tous les sous-routers
+│   └── routers/
+│       ├── dashboard.ts      # metrics, qualityRates, trends, compare
+│       ├── projects.ts       # list, runs, milestones, automation
+│       ├── runs.ts           # details, results
+│       ├── sync.ts           # projects, iterations, preview, history
+│       ├── crosstest.ts      # iterations, issues, comments
+│       ├── reports.ts        # generate (JSON/base64)
+│       ├── notifications.ts  # settings, test webhook
+│       ├── featureFlags.ts   # CRUD + rollout
+│       ├── webhooks.ts       # CRUD admin
+│       ├── audit.ts          # logs list
+│       ├── anomalies.ts      # list + circuit breakers
+│       └── cache.ts          # clear
 ├── bootstrap/
-│   ├── envCheck.js           # Validation variables d'environnement
-│   └── gracefulShutdown.js   # Gestion SIGTERM/SIGINT
+│   ├── envCheck.ts           # Validation variables d'environnement
+│   └── gracefulShutdown.ts   # Gestion SIGTERM/SIGINT
 ├── middleware/
-│   ├── security.js           # Helmet + CORS + Rate-limiting
-│   ├── requestId.js          # Correlation ID (x-request-id)
-│   ├── requestLogger.js      # Logging Winston par requête
-│   └── adminAuth.js          # Protection endpoints admin (X-Admin-Token)
-├── routes/
-│   ├── health.routes.js
-│   ├── dashboard.routes.js
-│   ├── sync.routes.js
-│   └── ... (9 routers)
+│   ├── security.ts           # Helmet + CORS + Rate-limiting
+│   ├── requestId.ts          # Correlation ID (x-request-id)
+│   ├── requestLogger.ts      # Logging Winston par requête
+│   └── adminAuth.ts          # Protection endpoints admin (X-Admin-Token)
+├── routes/                   # REST conservé pour cas spéciaux
+│   ├── health.routes.ts      # Liveness / readiness / detailed
+│   ├── auth.routes.ts        # OAuth GitLab + JWT refresh
+│   ├── pdf.routes.ts         # Génération blob PDF
+│   ├── export.routes.ts      # Download blobs CSV/Excel
+│   └── sync.routes.ts        # SSE /sync/execute, /sync/status-to-gitlab
 ├── services/
-│   ├── testmo.service.js     # Client Testmo API + cache
-│   ├── gitlab.service.js     # Client GitLab REST + GraphQL
-│   ├── sync.service.js       # Logique sync GitLab → Testmo
-│   ├── status-sync.service.js# Logique sync Testmo → GitLab
-│   ├── logger.service.js     # Winston (JSON en prod)
+│   ├── testmo.service.ts     # Client Testmo API + cache
+│   ├── gitlab.service.ts     # Client GitLab REST + GraphQL
+│   ├── sync.service.ts       # Logique sync GitLab → Testmo
+│   ├── status-sync.service.ts# Logique sync Testmo → GitLab
+│   ├── logger.service.ts     # Winston (JSON en prod)
 │   └── ... (12 services)
 ├── validators/
-│   └── index.js              # Schémas Zod 4
+│   └── index.ts              # Schémas Zod 4
 └── tests/
-    └── *.test.js             # 291 tests Jest
+    └── *.test.ts             # Tests Jest + tests tRPC
 ```
 
 ### Sécurité
@@ -166,6 +185,39 @@ backend/
 | Auth admin       | `X-Admin-Token` header + `ADMIN_API_TOKEN` env    |
 | Erreurs 500      | `safeErrorResponse()` — message générique en prod |
 | Input validation | Zod 4 sur params, query, body                     |
+
+---
+
+### tRPC — API typée end-to-end (P22)
+
+Le backend expose une couche **tRPC v11** montée sur Express via `@trpc/server/adapters/express`. Tous les middlewares existants (Helmet, CORS, rate-limiting, logging, Passport) restent actifs sur le pipeline `/trpc`.
+
+**Routers tRPC (13 sous-routers) :**
+
+| Router          | Procédures principales                                                                        | Auth         |
+| --------------- | --------------------------------------------------------------------------------------------- | ------------ |
+| `dashboard`     | `metrics`, `qualityRates`, `annualTrends`, `trends`, `compare`, `multiProjectSummary`         | Public       |
+| `projects`      | `list`, `runs`, `milestones`, `automation`                                                    | Public       |
+| `runs`          | `details`, `results`                                                                          | Public       |
+| `sync`          | `projects`, `iterations`, `preview`, `history`, `iteration`, `autoConfig`, `updateAutoConfig` | Public       |
+| `crosstest`     | `iterations`, `issues`, `comments`, `saveComment`, `deleteComment`                            | Public       |
+| `reports`       | `generate`                                                                                    | Public       |
+| `notifications` | `settings`, `saveSettings`, `testWebhook`                                                     | Authed/Admin |
+| `featureFlags`  | `list`, `get`, `listAdmin`, `create`, `update`, `delete`                                      | Public/Admin |
+| `webhooks`      | `list`, `create`, `update`, `delete`                                                          | Admin        |
+| `audit`         | `logs`                                                                                        | Admin        |
+| `anomalies`     | `list`, `circuitBreakers`                                                                     | Public       |
+| `cache`         | `clear`                                                                                       | Admin        |
+
+**Routes REST conservées** (cas spéciaux non compatibles tRPC natif) :
+
+- `/api/auth/*` — Redirects OAuth 302
+- `/api/health/*` — Probes monitoring
+- `/metrics` — Prometheus scrape
+- `/api/sync/execute` + `/api/dashboard/:id/stream` — SSE streaming
+- `/api/pdf/generate` + `/api/export/csv` + `/api/export/excel` — Blobs binaires
+
+**Frontend** : `@trpc/react-query` fournit des hooks `useQuery` / `useMutation` qui réutilisent le `QueryClient` existant. Le client utilise `httpBatchLink` pour regrouper les requêtes parallèles en un seul appel HTTP.
 
 ---
 

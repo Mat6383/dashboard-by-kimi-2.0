@@ -1,34 +1,32 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import apiService from '../../services/api.service';
+import { trpc } from '../../trpc/client';
 import type { FeatureFlagCreateInput, FeatureFlagUpdateInput } from '../../types/api.types';
 
 export function useCreateFeatureFlag() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: FeatureFlagCreateInput) => apiService.createFeatureFlag(data),
+  const utils = trpc.useUtils();
+  return trpc.featureFlags.create.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feature-flags-admin'] });
+      utils.featureFlags.listAdmin.invalidate();
+      utils.featureFlags.list.invalidate();
     },
   });
 }
 
 export function useUpdateFeatureFlag() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ key, data }: { key: string; data: FeatureFlagUpdateInput }) =>
-      apiService.updateFeatureFlag(key, data),
+  const utils = trpc.useUtils();
+  return trpc.featureFlags.update.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feature-flags-admin'] });
+      utils.featureFlags.listAdmin.invalidate();
+      utils.featureFlags.list.invalidate();
     },
   });
 }
 
 export function useDeleteFeatureFlag() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (key: string) => apiService.deleteFeatureFlag(key),
+  const utils = trpc.useUtils();
+  return trpc.featureFlags.delete.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feature-flags-admin'] });
+      utils.featureFlags.listAdmin.invalidate();
+      utils.featureFlags.list.invalidate();
     },
   });
 }

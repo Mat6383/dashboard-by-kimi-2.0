@@ -1,12 +1,10 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import apiService from '../../services/api.service';
+import { trpc } from '../../trpc/client';
 
 export function useClearCache() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => apiService.clearCache(),
+  const utils = trpc.useUtils();
+  return trpc.cache.clear.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      utils.invalidate();
     },
   });
 }

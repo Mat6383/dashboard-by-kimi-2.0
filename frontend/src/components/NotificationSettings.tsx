@@ -5,15 +5,17 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import apiService from '../services/api.service';
 import { useToast } from '../hooks/useToast';
-import { unwrapApiResponse } from '../types/api.types';
+import { trpc } from '../trpc/client';
+import { useSaveNotificationSettings, useTestNotificationWebhook } from '../hooks/mutations/useNotifications';
 import { Bell, Mail, MessageSquare, Send, Save, TestTube } from 'lucide-react';
 
 export default function NotificationSettings({ isDark }) {
   const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const { data: settingsData, isLoading: loading } = trpc.notifications.settings.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
+
   const [settings, setSettings] = useState({
     email: '',
     slackWebhook: '',
@@ -24,35 +26,25 @@ export default function NotificationSettings({ isDark }) {
   });
 
   useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    setLoading(true);
-    try {
-      const res = await apiService.getNotificationSettings();
-      const data = unwrapApiResponse(res) as any;
-      if (data) {
-        setSettings({
-          email: data.email || '',
-          slackWebhook: data.slack_webhook || '',
-          teamsWebhook: data.teams_webhook || '',
-          enabledSlaEmail: !!data.enabled_sla_email,
-          enabledSlaSlack: !!data.enabled_sla_slack,
-          enabledSlaTeams: !!data.enabled_sla_teams,
-        });
-      }
-    } catch (err) {
-      showToast('Erreur chargement settings', 'error');
-    } finally {
-      setLoading(false);
+    if (settingsData?.data) {
+      const data = settingsData.data as any;
+      setSettings({
+        email: data.email || '',
+        slackWebhook: data.slack_webhook || '',
+        teamsWebhook: data.teams_webhook || '',
+        enabledSlaEmail: !!data.enabled_sla_email,
+        enabledSlaSlack: !!data.enabled_sla_slack,
+        enabledSlaTeams: !!data.enabled_sla_teams,
+      });
     }
-  };
+  }, [settingsData]);
+
+  const saveMutation = useSaveNotificationSettings();
+  const testMutation = useTestNotificationWebhook();
 
   const handleSave = async () => {
-    setSaving(true);
     try {
-      await apiService.saveNotificationSettings({
+      await saveMutation.mutateAsync({
         email: settings.email,
         slackWebhook: settings.slackWebhook,
         teamsWebhook: settings.teamsWebhook,
@@ -63,19 +55,17 @@ export default function NotificationSettings({ isDark }) {
       showToast('Paramètres sauvegardés', 'success');
     } catch (err) {
       showToast('Erreur sauvegarde', 'error');
-    } finally {
-      setSaving(false);
     }
   };
 
-  const handleTest = async (channel) => {
+  const handleTest = async (channel: string) => {
     const url = channel === 'slack' ? settings.slackWebhook : settings.teamsWebhook;
     if (!url) {
       showToast(`Webhook ${channel} non configuré`, 'error');
       return;
     }
     try {
-      await apiService.testNotificationWebhook(channel, url);
+      await testMutation.mutateAsync({ channel, url });
       showToast(`Test ${channel} envoyé`, 'success');
     } catch (err) {
       showToast(`Test ${channel} échoué`, 'error');
@@ -203,12 +193,12 @@ export default function NotificationSettings({ isDark }) {
           <button
             className="btn-toggle"
             onClick={handleSave}
-            disabled={saving}
+            disabled={saveMutation.isPending}
             type="button"
             style={{ backgroundColor: '#10B981', color: '#fff', border: 'none' }}
           >
             <Save size={16} />
-            {saving ? 'Sauvegarde...' : 'Sauvegarder'}
+            {saveMutation.isPending ? 'Sauvegarde...' : 'Sauvegarder'}
           </button>
         </>
       )}

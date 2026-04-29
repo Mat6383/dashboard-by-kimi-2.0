@@ -1,14 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import apiService from '../../services/api.service';
+import { trpc } from '../../trpc/client';
 import type { DashboardMetrics } from '../../types/api.types';
-import { unwrapApiResponse } from '../../types/api.types';
 
-/**
- * Hook React Query pour les métriques ISTQB d'un projet.
- * @param projectId - ID du projet
- * @param preprodMilestones - IDs des milestones préprod
- * @param prodMilestones - IDs des milestones prod
- */
 export interface UseDashboardMetricsOptions {
   autoRefresh?: boolean;
   liveConnected?: boolean;
@@ -22,20 +14,45 @@ export function useDashboardMetrics(
 ) {
   const { autoRefresh = false, liveConnected = false } = options;
 
-  return useQuery<DashboardMetrics>({
-    queryKey: ['dashboard-metrics', projectId, preprodMilestones, prodMilestones],
-    queryFn: async ({ signal }) => {
-      const [metricsRes, qualityRes] = await Promise.all([
-        apiService.getDashboardMetrics(projectId!, preprodMilestones, prodMilestones, signal),
-        apiService.getQualityRates(projectId!, preprodMilestones, prodMilestones, signal),
-      ]);
-      return {
-        ...unwrapApiResponse(metricsRes),
-        qualityRates: qualityRes.success ? qualityRes.data : null,
-      };
+  const metricsQuery = trpc.dashboard.metrics.useQuery(
+    projectId ? { projectId, preprodMilestones: preprodMilestones || undefined, prodMilestones: prodMilestones || undefined } : undefined,
+    {
+      enabled: !!projectId,
+      staleTime: 2 * 60 * 1000,
+      refetchInterval: autoRefresh && !liveConnected ? 60000 : false,
+    }
+  );
+
+  const qualityQuery = trpc.dashboard.qualityRates.useQuery(
+    projectId ? { projectId, preprodMilestones: preprodMilestones || undefined, prodMilestones: prodMilestones || undefined } : undefined,
+    {
+      enabled: !!projectId,
+      staleTime: 2 * 60 * 1000,
+      refetchInterval: autoRefresh && !liveConnected ? 60000 : false,
+    }
+  );
+
+  const isLoading = metricsQuery.isLoading || qualityQuery.isLoading;
+  const isError = metricsQuery.isError || qualityQuery.isError;
+  const error = metricsQuery.error || qualityQuery.error;
+
+  const data: DashboardMetrics | undefined =
+    metricsQuery.data && qualityQuery.data
+      ? {
+          ...(metricsQuery.data.data as any),
+          qualityRates: qualityQuery.data.data,
+        }
+      : undefined;
+
+  return {
+    data,
+    isLoading,
+    isError,
+    error,
+    dataUpdatedAt: metricsQuery.dataUpdatedAt,
+    refetch: () => {
+      metricsQuery.refetch();
+      qualityQuery.refetch();
     },
-    enabled: !!projectId,
-    staleTime: 2 * 60 * 1000,
-    refetchInterval: autoRefresh && !liveConnected ? 60000 : false,
-  });
+  };
 }

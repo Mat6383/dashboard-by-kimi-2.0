@@ -27,6 +27,9 @@ import metricsSnapshotJob from './jobs/metricsSnapshotJob';
 import auditPruneJob from './jobs/auditPruneJob';
 import backupJob from './jobs/backupJob';
 import gracefulShutdown from './bootstrap/gracefulShutdown';
+import { createExpressMiddleware } from '@trpc/server/adapters/express';
+import { appRouter } from './trpc/router';
+import { createTRPCContext } from './trpc/context';
 
 import syncHistoryService from './services/syncHistory.service';
 import commentsService from './services/comments.service';
@@ -85,6 +88,12 @@ auditService.init();
 // ─── Passport & Cookies ─────────────────────────────────────────────────────
 app.use(cookieParser());
 app.use(passport.initialize());
+
+// ─── tRPC ───────────────────────────────────────────────────────────────────
+app.use('/trpc', createExpressMiddleware({
+  router: appRouter,
+  createContext: createTRPCContext,
+}));
 
 // ─── Routes ─────────────────────────────────────────────────────────────────
 app.use('/api/health', healthRoutes);

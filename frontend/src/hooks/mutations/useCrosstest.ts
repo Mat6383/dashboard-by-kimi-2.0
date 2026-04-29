@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import apiService from '../../services/api.service';
+import { trpc } from '../../trpc/client';
 
 interface SaveCommentVariables {
   iid: number;
@@ -8,22 +7,19 @@ interface SaveCommentVariables {
 }
 
 export function useSaveCrosstestComment() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ iid, comment, milestoneContext }: SaveCommentVariables) =>
-      apiService.saveCrosstestComment(iid, comment, milestoneContext ?? null),
+  const utils = trpc.useUtils();
+  return trpc.crosstest.saveComment.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['crosstest-comments'] });
+      utils.crosstest.comments.invalidate();
     },
   });
 }
 
 export function useDeleteCrosstestComment() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (iid: number) => apiService.deleteCrosstestComment(iid),
+  const utils = trpc.useUtils();
+  return trpc.crosstest.deleteComment.useMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['crosstest-comments'] });
+      utils.crosstest.comments.invalidate();
     },
   });
 }
