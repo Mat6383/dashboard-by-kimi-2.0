@@ -268,7 +268,7 @@
 
 - [x] **Option B** — Tests de charge & Performance : k6, 50 users simultanés, mesure p95/p99, corrections goulots d'étranglement ✅
 - [x] **P23** — Améliorations UX : raccourcis clavier, drag-and-drop tableaux, mode compact ✅
-- [ ] **P24** — Alerting avancé : webhooks personnalisés par métrique, templates d'alerte configurables
+- [x] **P24** — Alerting avancé : webhooks personnalisés par métrique, templates d'alerte configurables
 
 ## ✅ Sessions livrées
 
