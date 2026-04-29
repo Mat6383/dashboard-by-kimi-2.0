@@ -246,11 +246,11 @@
 - [x] **P17#5** Typer `req.query`, `req.params`, `req.body` avec casts `as string` et types précis
 - [x] **P17#6** Valider : `typecheck` 0 erreur, tests 489/491, build OK, lint 0 erreur
 
-### Option B — Tests de charge & Performance
+### Option B — Tests de charge & Performance ✅ Livré
 
-- [ ] Scénarios k6/Artillery : 50 users simultanés sur `/api/dashboard`, `/api/health`, exports PDF/Excel
-- [ ] Mesurer p95/p99 temps de réponse, mémoire SQLite, pool Puppeteer
-- [ ] Identifier et corriger les goulots d'étranglement (N+1 queries, blocages browser)
+- [x] Scénarios k6 : 50 users simultanés sur `/api/dashboard`, `/api/health`, exports PDF/Excel
+- [x] Mesurer p95/p99 temps de réponse, mémoire SQLite, pool Puppeteer
+- [x] Identifier et corriger les goulots d'étranglement (rate limit, health checks externes, pool PDF, cache exports)
 
 ### Option C — Docker & Déploiement conteneurisé ✅ Livré
 
@@ -266,7 +266,7 @@
 
 ## 🚧 Sessions futures (P23+)
 
-- [ ] **Option B** — Tests de charge & Performance : k6/Artillery, 50 users simultanés, mesure p95/p99
+- [x] **Option B** — Tests de charge & Performance : k6, 50 users simultanés, mesure p95/p99, corrections goulots d'étranglement ✅
 - [ ] **P23** — Améliorations UX : raccourcis clavier, drag-and-drop tableaux, mode compact
 - [ ] **P24** — Alerting avancé : webhooks personnalisés par métrique, templates d'alerte configurables
 

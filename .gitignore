@@ -54,3 +54,4 @@ frontend/coverage/
 .kimi/
 test-results/
 backend/backups/
+load-tests/.loadtest.env

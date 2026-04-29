@@ -85,6 +85,9 @@ function setupSecurity(app: any) {
 
   app.use('/api/', apiLimiter);
   app.use('/api/reports/generate', heavyLimiter);
+  app.use('/api/pdf/generate', heavyLimiter);
+  app.use('/api/export/csv', heavyLimiter);
+  app.use('/api/export/excel', heavyLimiter);
   app.use('/api/sync/execute', heavyLimiter);
   app.use('/api/sync/status-to-gitlab', heavyLimiter);
 }

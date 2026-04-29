@@ -23,10 +23,10 @@ class PdfService {
     this.generationCount = 0;
     this.idleTimer = null;
     this.lastActivity = Date.now();
-    this.poolSize = parseInt(process.env.PDF_POOL_SIZE || '', 10) || 3;
+    this.poolSize = parseInt(process.env.PDF_POOL_SIZE || '', 10) || 5;
     this.maxPageGenerations = parseInt(process.env.PDF_MAX_PAGE_GENERATIONS || '', 10) || 20;
-    this.maxConcurrency = parseInt(process.env.PDF_MAX_CONCURRENCY || '', 10) || 3;
-    this.maxQueueSize = parseInt(process.env.PDF_MAX_QUEUE_SIZE || '', 10) || 5;
+    this.maxConcurrency = parseInt(process.env.PDF_MAX_CONCURRENCY || '', 10) || 5;
+    this.maxQueueSize = parseInt(process.env.PDF_MAX_QUEUE_SIZE || '', 10) || 10;
     this._pool = [];
     this._queue = [];
     this._activeCount = 0;
@@ -107,18 +107,19 @@ class PdfService {
       return idle.page;
     }
 
-    // Si la queue est pleine, on rejette
+    // Si la queue est pleine, on rejette (fail-fast)
     if (this._queue.length >= this.maxQueueSize) {
+      logger.warn(`[PdfService] Queue pleine — ${this._queue.length}/${this.maxQueueSize} en attente, active=${this._activeCount}`);
       throw new Error('PDF generation queue full (too many concurrent requests)');
     }
 
-    // Sinon on attend qu'une page se libère
+    // Sinon on attend qu'une page se libère (timeout court pour fail-fast)
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         const idx = this._queue.indexOf(handler);
         if (idx !== -1) this._queue.splice(idx, 1);
         reject(new Error('PDF generation queue timeout'));
-      }, 30000);
+      }, 10000);
 
       const handler = (page: any) => {
         clearTimeout(timeout);

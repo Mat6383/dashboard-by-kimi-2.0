@@ -56,7 +56,7 @@ class EmailService {
         <td style="padding:8px;"><strong style="color:${a.severity === 'critical' ? '#DC2626' : '#F59E0B'}">${a.severity.toUpperCase()}</strong></td>
         <td style="padding:8px;">${a.metric}</td>
         <td style="padding:8px;">${a.value}%</td>
-        <td style="padding:8px;">${t.threshold}: ${a.threshold}%</td>
+        <td style="padding:8px;">${t('threshold')}: ${a.threshold}%</td>
       </tr>`
       )
       .join('');
@@ -68,17 +68,17 @@ class EmailService {
 <body style="font-family:system-ui,sans-serif;background:#f3f4f6;padding:24px;">
   <div style="max-width:600px;margin:auto;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);overflow:hidden;">
     <div style="background:#DC2626;color:#fff;padding:16px 24px;">
-      <h2 style="margin:0;font-size:1.25rem;">${t.slaAlertTitle}</h2>
+      <h2 style="margin:0;font-size:1.25rem;">${t('slaAlertTitle')}</h2>
       <p style="margin:4px 0 0;">${projectName || `Projet ${projectId}`}</p>
     </div>
     <table style="width:100%;border-collapse:collapse;font-size:0.875rem;">
       <thead style="background:#f9fafb;">
-        <tr><th style="padding:8px;text-align:left;">${t.severity}</th><th style="padding:8px;text-align:left;">${t.metric}</th><th style="padding:8px;text-align:left;">${t.value}</th><th style="padding:8px;text-align:left;">${t.threshold}</th></tr>
+        <tr><th style="padding:8px;text-align:left;">${t('severity')}</th><th style="padding:8px;text-align:left;">${t('metric')}</th><th style="padding:8px;text-align:left;">${t('value')}</th><th style="padding:8px;text-align:left;">${t('threshold')}</th></tr>
       </thead>
       <tbody>${rows}</tbody>
     </table>
     <div style="padding:16px 24px;text-align:center;">
-      <a href="${dashboardUrl || '#'}" style="display:inline-block;background:#3B82F6;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">${t.viewDashboard}</a>
+      <a href="${dashboardUrl || '#'}" style="display:inline-block;background:#3B82F6;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:500;">${t('viewDashboard')}</a>
     </div>
   </div>
 </body>
@@ -88,9 +88,9 @@ class EmailService {
   _buildText({ projectId, projectName, alerts, dashboardUrl, lang }: any) {
     const t = (key: string) => i18n.t(`email.${key}`, { lng: lang, interpolation: { escapeValue: false } });
     const lines = alerts.map(
-      (a: any) => `- [${a.severity.toUpperCase()}] ${a.metric}: ${a.value}% (${t.threshold}: ${a.threshold}%)`
+      (a: any) => `- [${a.severity.toUpperCase()}] ${a.metric}: ${a.value}% (${t('threshold')}: ${a.threshold}%)`
     );
-    return `${t.slaAlertText.replace('{{projectName}}', projectName || `Projet ${projectId}`)}\n\n${lines.join('\n')}\n\n${dashboardUrl || ''}`;
+    return `${t('slaAlertText').replace('{{projectName}}', projectName || `Projet ${projectId}`)}\n\n${lines.join('\n')}\n\n${dashboardUrl || ''}`;
   }
 }
 

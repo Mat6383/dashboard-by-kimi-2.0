@@ -118,9 +118,9 @@ describe('PdfService', () => {
     expect(result.durationMs).toBeGreaterThanOrEqual(0);
   });
 
-  it('initialise le pool avec 3 pages au premier appel', async () => {
+  it('initialise le pool avec 5 pages au premier appel', async () => {
     await pdfService.generateFromHTML('<h1>Test</h1>');
-    expect(mockBrowser.newPage).toHaveBeenCalledTimes(3);
+    expect(mockBrowser.newPage).toHaveBeenCalledTimes(5);
   });
 
   it('generateDashboardPDF retourne buffer et durationMs', async () => {

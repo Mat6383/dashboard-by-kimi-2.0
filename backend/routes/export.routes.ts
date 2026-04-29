@@ -7,6 +7,27 @@ import { safeErrorResponse } from '../utils/errorResponse';
 import { auditAction } from '../middleware/audit.middleware';
 import { exportRunsTotal } from '../middleware/metrics';
 
+// Cache local pour les noms de projets (évite de refaire getProjects() à chaque export)
+const _projectNameCache = new Map<number, { name: string | null; ts: number }>();
+const _PROJECT_NAME_CACHE_TTL = 300000; // 5 min
+
+async function _getProjectName(projectId: number): Promise<string | null> {
+  const cached = _projectNameCache.get(projectId);
+  if (cached && Date.now() - cached.ts < _PROJECT_NAME_CACHE_TTL) {
+    return cached.name;
+  }
+  try {
+    const projects = await testmoService.getProjects();
+    const list = Array.isArray(projects) ? projects : projects?.result || [];
+    const found = list.find((p: any) => p.id === projectId);
+    const name = found ? found.name : null;
+    _projectNameCache.set(projectId, { name, ts: Date.now() });
+    return name;
+  } catch {
+    return null;
+  }
+}
+
 async function _getMetricsAndName(projectId: any, milestones: any) {
   const metrics = await testmoService.getProjectMetrics(
     parseInt(projectId),
@@ -14,17 +35,7 @@ async function _getMetricsAndName(projectId: any, milestones: any) {
     milestones?.prod || null
   );
 
-  // Essayer de récupérer le nom du projet
-  let projectName = null;
-  try {
-    const projects = await testmoService.getProjects();
-    const list = Array.isArray(projects) ? projects : projects?.result || [];
-    const found = list.find((p: any) => p.id === parseInt(projectId));
-    if (found) projectName = found.name;
-  } catch {
-    // silencieux
-  }
-
+  const projectName = await _getProjectName(parseInt(projectId));
   return { metrics, projectName };
 }
 

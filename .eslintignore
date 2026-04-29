@@ -4,3 +4,5 @@ frontend/node_modules/
 frontend/dist/
 backend/logs/
 backend/db/
+load-tests/
+reports/

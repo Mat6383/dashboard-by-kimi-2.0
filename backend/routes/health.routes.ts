@@ -9,6 +9,25 @@ import gitlabService, { gitlabBreaker } from '../services/gitlab.service';
 import { statusSyncBreaker } from '../services/status-sync.service';
 import { getStats } from '../services/apiTimer.service';
 
+// Cache pour health checks externes (évite de bombarder Testmo/GitLab sous charge)
+const HEALTH_CACHE_TTL_MS = 10000;
+let _cachedHealth: any = null;
+let _cachedHealthAt = 0;
+
+async function _getCachedExternalHealth() {
+  const now = Date.now();
+  if (_cachedHealth && now - _cachedHealthAt < HEALTH_CACHE_TTL_MS) {
+    return _cachedHealth;
+  }
+  const [testmo, gitlab] = await Promise.all([
+    testmoService.healthCheck({ timeout: 3000 }),
+    gitlabService.healthCheck({ timeout: 3000 }),
+  ]);
+  _cachedHealth = { testmo, gitlab };
+  _cachedHealthAt = now;
+  return _cachedHealth;
+}
+
 /**
  * GET /api/health
  * Liveness probe — lightweight, no external calls
@@ -80,21 +99,20 @@ router.get('/ready', async (_req, res) => {
   checks.commentsDB = db2;
   if (db2.status !== 'OK') allOk = false;
 
-  const testmo = await testmoService.healthCheck({ timeout: 3000 });
+  const ext = await _getCachedExternalHealth();
   checks.testmoAPI = {
-    status: testmo.ok ? 'OK' : 'FAIL',
-    responseTimeMs: testmo.responseTimeMs,
-    ...(testmo.error && { error: testmo.error }),
+    status: ext.testmo.ok ? 'OK' : 'FAIL',
+    responseTimeMs: ext.testmo.responseTimeMs,
+    ...(ext.testmo.error && { error: ext.testmo.error }),
   };
-  if (!testmo.ok) allOk = false;
+  if (!ext.testmo.ok) allOk = false;
 
-  const gitlab = await gitlabService.healthCheck({ timeout: 3000 });
   checks.gitlabAPI = {
-    status: gitlab.ok ? 'OK' : 'FAIL',
-    responseTimeMs: gitlab.responseTimeMs,
-    ...(gitlab.error && { error: gitlab.error }),
+    status: ext.gitlab.ok ? 'OK' : 'FAIL',
+    responseTimeMs: ext.gitlab.responseTimeMs,
+    ...(ext.gitlab.error && { error: ext.gitlab.error }),
   };
-  if (!gitlab.ok) allOk = false;
+  if (!ext.gitlab.ok) allOk = false;
 
   res.status(allOk ? 200 : 503).json({
     status: allOk ? 'OK' : 'DEGRADED',
@@ -120,22 +138,21 @@ router.get('/detailed', async (_req, res) => {
   checks.commentsDB = db2;
   if (db2.status !== 'OK') allOk = false;
 
-  // External API checks
-  const testmo = await testmoService.healthCheck({ timeout: 3000 });
+  // External API checks (avec cache 10s)
+  const ext = await _getCachedExternalHealth();
   checks.testmoAPI = {
-    status: testmo.ok ? 'OK' : 'FAIL',
-    responseTimeMs: testmo.responseTimeMs,
-    ...(testmo.error && { error: testmo.error }),
+    status: ext.testmo.ok ? 'OK' : 'FAIL',
+    responseTimeMs: ext.testmo.responseTimeMs,
+    ...(ext.testmo.error && { error: ext.testmo.error }),
   };
-  if (!testmo.ok) allOk = false;
+  if (!ext.testmo.ok) allOk = false;
 
-  const gitlab = await gitlabService.healthCheck({ timeout: 3000 });
   checks.gitlabAPI = {
-    status: gitlab.ok ? 'OK' : 'FAIL',
-    responseTimeMs: gitlab.responseTimeMs,
-    ...(gitlab.error && { error: gitlab.error }),
+    status: ext.gitlab.ok ? 'OK' : 'FAIL',
+    responseTimeMs: ext.gitlab.responseTimeMs,
+    ...(ext.gitlab.error && { error: ext.gitlab.error }),
   };
-  if (!gitlab.ok) allOk = false;
+  if (!ext.gitlab.ok) allOk = false;
 
   // Disk check
   const disk = checkDisk();
