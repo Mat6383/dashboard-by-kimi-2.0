@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useToast } from '../hooks/useToast';
+import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts';
 import { useTranslation } from 'react-i18next';
 import { X, FileText, Download, Activity, History, Calendar, Layers, Bug, Plus, Trash2 } from 'lucide-react';
 import apiService from '../services/api.service';
@@ -73,8 +74,6 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
         }
     }, [isOpen, project]);
 
-    if (!isOpen) return null;
-
     const handleToggleRun = (run) => {
         setSelectedRuns(prev => {
             if (prev.find(r => r.version === run.version)) {
@@ -120,6 +119,13 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
             setIsExporting(false);
         }
     };
+
+    useGlobalShortcuts({
+      onClose: isOpen ? onClose : undefined,
+      onSave: isOpen ? handleExport : undefined,
+    });
+
+    if (!isOpen) return null;
 
     return (
         <div

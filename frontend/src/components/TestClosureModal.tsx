@@ -17,6 +17,7 @@ import {
 import '../styles/MetricsCards.css';
 import { useExportPDF } from '../hooks/useExportPDF';
 import { useTranslation } from 'react-i18next';
+import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts';
 
 const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDark }) => {
   const modalRef = useFocusTrap(isOpen);
@@ -101,8 +102,6 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
     }
   }, [isOpen, metrics]);
 
-  if (!isOpen) return null;
-
   // === Bug List Handlers ===
   const addBug = () => setBugs([...bugs, { id: Date.now(), desc: '', severity: 'Majeur' }]);
   const removeBug = (id) => setBugs(bugs.filter((b) => b.id !== id));
@@ -141,6 +140,13 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
     fontFamily: 'Arial, sans-serif',
     boxSizing: 'border-box',
   } satisfies React.CSSProperties;
+
+  useGlobalShortcuts({
+    onClose: isOpen ? onClose : undefined,
+    onSave: isOpen ? handleExport : undefined,
+  });
+
+  if (!isOpen) return null;
 
   return (
     <>

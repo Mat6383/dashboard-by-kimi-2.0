@@ -8,6 +8,7 @@ import apiService from '../services/api.service';
 import { unwrapApiResponse } from '../types/api.types';
 import '../styles/ReportGeneratorModal.css';
 import { useTranslation } from 'react-i18next';
+import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts';
 
 const RECO_TYPE_KEYS = [
   'observation', 'risk', 'recommendation', 'proposedAction', 'decidedAction', 'implementedAction', 'lessonsLearned',
@@ -58,8 +59,6 @@ const ReportGeneratorModal = ({ isOpen, onClose, metrics, project, isDark }) => 
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
-
-  if (!isOpen) return null;
 
   // Extract milestone info from metrics
   const runs = metrics?.runs || [];
@@ -151,6 +150,13 @@ const ReportGeneratorModal = ({ isOpen, onClose, metrics, project, isDark }) => 
       setGenerating(false);
     }
   };
+
+  useGlobalShortcuts({
+    onClose: isOpen ? onClose : undefined,
+    onSave: isOpen ? handleGenerate : undefined,
+  });
+
+  if (!isOpen) return null;
 
   return (
     <div
