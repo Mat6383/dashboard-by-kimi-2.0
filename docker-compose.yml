@@ -28,7 +28,7 @@ services:
       - "3001:3001"
     networks:
       - dashboard-net
-    # Healthcheck géré par le Dockerfile (évite conflit compose vs Dockerfile)
+    # Healthcheck géré par le Dockerfile (start_period: 30s)
 
   # ═════════════════════════════════════════════════════════════════════════════
   # Frontend — Nginx statique + reverse-proxy /api
@@ -44,7 +44,8 @@ services:
     networks:
       - dashboard-net
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Volumes persistants

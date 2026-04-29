@@ -14,6 +14,14 @@ NC='\033[0m' # No Color
 
 PROJECT_NAME="qa-dashboard"
 COMPOSE_FILE="docker-compose.yml"
+NO_CACHE=""
+
+# Parse arguments
+for arg in "$@"; do
+  if [[ "$arg" == "--clean" || "$arg" == "--no-cache" ]]; then
+    NO_CACHE="--no-cache"
+  fi
+done
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 function info()  { echo -e "${BLUE}ℹ${NC}  $1"; }
@@ -48,8 +56,12 @@ fi
 ok "Prérequis OK"
 
 # ─── Build ────────────────────────────────────────────────────────────────────
-info "Build des images Docker..."
-docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" build --no-cache
+if [[ -n "$NO_CACHE" ]]; then
+  info "Build des images Docker (sans cache)..."
+else
+  info "Build des images Docker (avec cache)..."
+fi
+docker compose -f "$COMPOSE_FILE" -p "$PROJECT_NAME" build $NO_CACHE
 ok "Build terminé"
 
 # ─── Démarrage ────────────────────────────────────────────────────────────────
