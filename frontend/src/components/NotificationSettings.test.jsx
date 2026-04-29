@@ -4,26 +4,39 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import NotificationSettings from './NotificationSettings';
 
 const mockShowToast = vi.fn();
-const mockGetSettings = vi.fn();
-const mockSaveSettings = vi.fn();
-const mockTestWebhook = vi.fn();
+const mockMutateAsyncSave = vi.fn();
+const mockMutateAsyncTest = vi.fn();
+const mockUseQuery = vi.fn();
 
 vi.mock('../hooks/useToast', () => ({
   useToast: () => ({ showToast: mockShowToast }),
 }));
 
-vi.mock('../services/api.service', () => ({
-  default: {
-    getNotificationSettings: () => mockGetSettings(),
-    saveNotificationSettings: (s) => mockSaveSettings(s),
-    testNotificationWebhook: (c, u) => mockTestWebhook(c, u),
+vi.mock('../hooks/mutations/useNotifications', () => ({
+  useSaveNotificationSettings: () => ({
+    mutateAsync: mockMutateAsyncSave,
+    isPending: false,
+  }),
+  useTestNotificationWebhook: () => ({
+    mutateAsync: mockMutateAsyncTest,
+    isPending: false,
+  }),
+}));
+
+vi.mock('../trpc/client', () => ({
+  trpc: {
+    notifications: {
+      settings: {
+        useQuery: () => mockUseQuery(),
+      },
+    },
   },
 }));
 
 describe('NotificationSettings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetSettings.mockResolvedValue({ success: true, data: null });
+    mockUseQuery.mockReturnValue({ data: { data: null }, isLoading: false, error: null });
   });
 
   it('renders settings form', async () => {
@@ -33,16 +46,17 @@ describe('NotificationSettings', () => {
   });
 
   it('loads existing settings', async () => {
-    mockGetSettings.mockResolvedValue({
-      success: true,
-      data: { email: 'admin@test.com', slack_webhook: 'https://slack.test', enabled_sla_email: 1 },
+    mockUseQuery.mockReturnValue({
+      data: { data: { email: 'admin@test.com', slack_webhook: 'https://slack.test', enabled_sla_email: 1 } },
+      isLoading: false,
+      error: null,
     });
     render(<NotificationSettings isDark={false} />);
     await waitFor(() => expect(screen.getByDisplayValue('admin@test.com')).toBeInTheDocument());
   });
 
   it('saves settings on button click', async () => {
-    mockSaveSettings.mockResolvedValue({});
+    mockMutateAsyncSave.mockResolvedValue({});
     render(<NotificationSettings isDark={false} />);
     await waitFor(() => expect(screen.getByText(/Sauvegarder/i)).toBeInTheDocument());
 
@@ -55,7 +69,7 @@ describe('NotificationSettings', () => {
   });
 
   it('tests slack webhook', async () => {
-    mockTestWebhook.mockResolvedValue({});
+    mockMutateAsyncTest.mockResolvedValue({});
     render(<NotificationSettings isDark={false} />);
     await waitFor(() => expect(screen.getAllByText(/Tester/i).length).toBeGreaterThan(0));
 
@@ -67,7 +81,7 @@ describe('NotificationSettings', () => {
   });
 
   it('shows error toast on save failure', async () => {
-    mockSaveSettings.mockRejectedValue(new Error('fail'));
+    mockMutateAsyncSave.mockRejectedValue(new Error('fail'));
     render(<NotificationSettings isDark={false} />);
     await waitFor(() => expect(screen.getByText(/Sauvegarder/i)).toBeInTheDocument());
 

@@ -3,12 +3,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import MultiProjectDashboard from './MultiProjectDashboard';
-import apiService from '../services/api.service';
 
-vi.mock('../services/api.service', () => ({
-  default: {
-    getMultiProjectSummary: vi.fn(),
-  },
+const mockUseQuery = vi.fn();
+
+vi.mock('../hooks/queries/useMultiProjectSummary', () => ({
+  useMultiProjectSummary: () => mockUseQuery(),
 }));
 
 function createTestQueryClient() {
@@ -29,13 +28,13 @@ describe('MultiProjectDashboard', () => {
   });
 
   it('renders loading state initially', () => {
-    apiService.getMultiProjectSummary.mockReturnValue(new Promise(() => {}));
+    mockUseQuery.mockReturnValue({ data: [], isLoading: true, error: null });
     render(<MultiProjectDashboard isDark={false} />, { wrapper: Wrapper });
     expect(screen.getByText(/Chargement/i)).toBeInTheDocument();
   });
 
   it('renders multi-project summary', async () => {
-    apiService.getMultiProjectSummary.mockResolvedValue({
+    mockUseQuery.mockReturnValue({
       data: [
         {
           projectId: 1,
@@ -58,6 +57,8 @@ describe('MultiProjectDashboard', () => {
           slaStatus: { ok: false, alerts: [{ severity: 'critical', metric: 'Pass Rate' }] },
         },
       ],
+      isLoading: false,
+      error: null,
     });
 
     render(<MultiProjectDashboard isDark={false} />, { wrapper: Wrapper });
@@ -69,7 +70,11 @@ describe('MultiProjectDashboard', () => {
   });
 
   it('renders error state on failure', async () => {
-    apiService.getMultiProjectSummary.mockRejectedValue(new Error('Network error'));
+    mockUseQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: new Error('Network error'),
+    });
     render(<MultiProjectDashboard isDark={false} />, { wrapper: Wrapper });
 
     await waitFor(() => expect(screen.getByText('Network error')).toBeInTheDocument());
