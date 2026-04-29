@@ -9,14 +9,26 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '../hooks/useToast';
 import { trpc } from '../trpc/client';
 import { useSaveNotificationSettings, useTestNotificationWebhook } from '../hooks/mutations/useNotifications';
-import { Bell, Mail, MessageSquare, Send, Save, TestTube } from 'lucide-react';
+import { useSaveAlertTemplates } from '../hooks/mutations/useAlertTemplates';
+import { useWebhooks, useCreateWebhook, useUpdateWebhook, useDeleteWebhook } from '../hooks/mutations/useWebhooks';
+import { Bell, Settings, FileText, Webhook } from 'lucide-react';
+import NotificationChannels from './NotificationChannels';
+import AlertTemplates from './AlertTemplates';
+import WebhookSubscriptions from './WebhookSubscriptions';
+
+const TAB_CHANNELS = 'channels';
+const TAB_TEMPLATES = 'templates';
+const TAB_WEBHOOKS = 'webhooks';
 
 export default function NotificationSettings({ isDark }) {
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const { data: settingsData, isLoading: loading } = trpc.notifications.settings.useQuery(undefined, {
+  const [activeTab, setActiveTab] = useState(TAB_CHANNELS);
+
+  const { data: settingsData, isLoading: loadingSettings } = trpc.notifications.settings.useQuery(undefined, {
     refetchOnWindowFocus: false,
   });
+  const { data: webhooksData, isLoading: loadingWebhooks } = useWebhooks();
 
   const [settings, setSettings] = useState({
     email: '',
@@ -25,11 +37,14 @@ export default function NotificationSettings({ isDark }) {
     enabledSlaEmail: false,
     enabledSlaSlack: false,
     enabledSlaTeams: false,
+    emailTemplate: '',
+    slackTemplate: '',
+    teamsTemplate: '',
   });
 
   useEffect(() => {
     if (settingsData?.data) {
-      const data = settingsData.data as any;
+      const data = settingsData.data;
       setSettings({
         email: data.email || '',
         slackWebhook: data.slack_webhook || '',
@@ -37,14 +52,21 @@ export default function NotificationSettings({ isDark }) {
         enabledSlaEmail: !!data.enabled_sla_email,
         enabledSlaSlack: !!data.enabled_sla_slack,
         enabledSlaTeams: !!data.enabled_sla_teams,
+        emailTemplate: data.email_template || '',
+        slackTemplate: data.slack_template || '',
+        teamsTemplate: data.teams_template || '',
       });
     }
   }, [settingsData]);
 
   const saveMutation = useSaveNotificationSettings();
+  const saveTemplatesMutation = useSaveAlertTemplates();
   const testMutation = useTestNotificationWebhook();
+  const createWebhookMutation = useCreateWebhook();
+  const updateWebhookMutation = useUpdateWebhook();
+  const deleteWebhookMutation = useDeleteWebhook();
 
-  const handleSave = async () => {
+  const handleSaveChannels = async () => {
     try {
       await saveMutation.mutateAsync({
         email: settings.email,
@@ -53,14 +75,27 @@ export default function NotificationSettings({ isDark }) {
         enabledSlaEmail: settings.enabledSlaEmail,
         enabledSlaSlack: settings.enabledSlaSlack,
         enabledSlaTeams: settings.enabledSlaTeams,
-      } as any);
+      });
       showToast(t('notifications.settingsSaved'), 'success');
     } catch (err) {
       showToast(t('notifications.saveError'), 'error');
     }
   };
 
-  const handleTest = async (channel: string) => {
+  const handleSaveTemplates = async (templates) => {
+    try {
+      await saveTemplatesMutation.mutateAsync({
+        emailTemplate: templates.emailTemplate || null,
+        slackTemplate: templates.slackTemplate || null,
+        teamsTemplate: templates.teamsTemplate || null,
+      });
+      showToast(t('notifications.templatesSaved') || 'Templates sauvegardés', 'success');
+    } catch (err) {
+      showToast(t('notifications.saveError'), 'error');
+    }
+  };
+
+  const handleTest = async (channel) => {
     const url = channel === 'slack' ? settings.slackWebhook : settings.teamsWebhook;
     if (!url) {
       showToast(t('notifications.webhookNotConfigured', { channel }), 'error');
@@ -74,134 +109,76 @@ export default function NotificationSettings({ isDark }) {
     }
   };
 
-  const cardStyle = {
-    backgroundColor: isDark ? '#1e293b' : '#f9fafb',
-    border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
-    borderRadius: '8px',
-    padding: '20px',
-    marginBottom: '16px',
-  };
-
-  const labelStyle = {
-    display: 'block',
+  const tabStyle = (tab) => ({
+    padding: '10px 20px',
+    cursor: 'pointer',
+    borderBottom: activeTab === tab ? '2px solid #3B82F6' : '2px solid transparent',
+    color: activeTab === tab ? '#3B82F6' : isDark ? '#94a3b8' : '#6b7280',
+    fontWeight: activeTab === tab ? 600 : 400,
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    background: 'none',
+    borderTop: 'none',
+    borderLeft: 'none',
+    borderRight: 'none',
     fontSize: '0.875rem',
-    fontWeight: 500,
-    marginBottom: '6px',
-    color: isDark ? '#e2e8f0' : '#374151',
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '8px 12px',
-    borderRadius: '6px',
-    border: `1px solid ${isDark ? '#475569' : '#d1d5db'}`,
-    backgroundColor: isDark ? '#0f172a' : '#fff',
-    color: isDark ? '#f1f5f9' : '#1f2937',
-    fontSize: '0.875rem',
-  };
+  });
 
   return (
-    <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
       <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
         <Bell size={24} />
         {t('notifications.title')}
       </h2>
 
-      {loading ? (
+      <div style={{ display: 'flex', borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`, marginBottom: '24px' }}>
+        <button style={tabStyle(TAB_CHANNELS)} onClick={() => setActiveTab(TAB_CHANNELS)} type="button">
+          <Settings size={16} /> {t('notifications.tabs.channels') || 'Paramètres'}
+        </button>
+        <button style={tabStyle(TAB_TEMPLATES)} onClick={() => setActiveTab(TAB_TEMPLATES)} type="button">
+          <FileText size={16} /> {t('notifications.tabs.templates') || 'Templates'}
+        </button>
+        <button style={tabStyle(TAB_WEBHOOKS)} onClick={() => setActiveTab(TAB_WEBHOOKS)} type="button">
+          <Webhook size={16} /> {t('notifications.tabs.webhooks') || 'Webhooks'}
+        </button>
+      </div>
+
+      {loadingSettings || loadingWebhooks ? (
         <p>{t('common.loading')}</p>
       ) : (
         <>
-          <div style={cardStyle}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0 }}>
-              <Mail size={18} />
-              {t('notifications.emailSla')}
-            </h3>
-            <label style={labelStyle}>{t('notifications.emailAddress')}</label>
-            <input
-              type="email"
-              style={inputStyle}
-              value={settings.email}
-              onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-              placeholder="alerts@neo-logix.local"
+          {activeTab === TAB_CHANNELS && (
+            <NotificationChannels
+              isDark={isDark}
+              settings={settings}
+              setSettings={setSettings}
+              onSave={handleSaveChannels}
+              savePending={saveMutation.isPending}
+              onTest={handleTest}
             />
-            <label style={{ ...labelStyle, marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input
-                type="checkbox"
-                checked={settings.enabledSlaEmail}
-                onChange={(e) => setSettings({ ...settings, enabledSlaEmail: e.target.checked })}
-              />
-              {t('notifications.enableEmailAlerts')}
-            </label>
-          </div>
-
-          <div style={cardStyle}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0 }}>
-              <MessageSquare size={18} />
-              Slack
-            </h3>
-            <label style={labelStyle}>{t('notifications.webhookUrl')}</label>
-            <input
-              type="url"
-              style={inputStyle}
-              value={settings.slackWebhook}
-              onChange={(e) => setSettings({ ...settings, slackWebhook: e.target.value })}
-              placeholder="https://hooks.slack.com/services/..."
+          )}
+          {activeTab === TAB_TEMPLATES && (
+            <AlertTemplates
+              isDark={isDark}
+              templates={{
+                emailTemplate: settings.emailTemplate,
+                slackTemplate: settings.slackTemplate,
+                teamsTemplate: settings.teamsTemplate,
+              }}
+              onSave={handleSaveTemplates}
+              savePending={saveTemplatesMutation.isPending}
             />
-            <div style={{ marginTop: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <label style={{ ...labelStyle, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="checkbox"
-                  checked={settings.enabledSlaSlack}
-                  onChange={(e) => setSettings({ ...settings, enabledSlaSlack: e.target.checked })}
-                />
-                {t('notifications.enableSlackAlerts')}
-              </label>
-              <button className="btn-toggle" onClick={() => handleTest('slack')} type="button">
-                <TestTube size={14} />
-                {t('common.test')}
-              </button>
-            </div>
-          </div>
-
-          <div style={cardStyle}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 0 }}>
-              <Send size={18} />
-              Microsoft Teams
-            </h3>
-            <label style={labelStyle}>{t('notifications.webhookUrl')}</label>
-            <input
-              type="url"
-              style={inputStyle}
-              value={settings.teamsWebhook}
-              onChange={(e) => setSettings({ ...settings, teamsWebhook: e.target.value })}
-              placeholder="https://neo-logix.webhook.office.com/webhookb2/..."
+          )}
+          {activeTab === TAB_WEBHOOKS && (
+            <WebhookSubscriptions
+              isDark={isDark}
+              subscriptions={webhooksData?.data || []}
+              onCreate={(data) => createWebhookMutation.mutateAsync(data)}
+              onUpdate={(id, data) => updateWebhookMutation.mutateAsync({ id, ...data })}
+              onDelete={(id) => deleteWebhookMutation.mutateAsync({ id })}
             />
-            <div style={{ marginTop: '12px', display: 'flex', gap: '12px', alignItems: 'center' }}>
-              <label style={{ ...labelStyle, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <input
-                  type="checkbox"
-                  checked={settings.enabledSlaTeams}
-                  onChange={(e) => setSettings({ ...settings, enabledSlaTeams: e.target.checked })}
-                />
-                {t('notifications.enableTeamsAlerts')}
-              </label>
-              <button className="btn-toggle" onClick={() => handleTest('teams')} type="button">
-                <TestTube size={14} />
-                {t('common.test')}
-              </button>
-            </div>
-          </div>
-
-          <button
-            className="btn-toggle"
-            onClick={handleSave}
-            disabled={saveMutation.isPending}
-            type="button"
-            style={{ backgroundColor: '#10B981', color: '#fff', border: 'none' }}
-          >
-            <Save size={16} />
-            {saveMutation.isPending ? t('common.saving') : t('common.save')}
-          </button>
+          )}
         </>
       )}
     </div>
