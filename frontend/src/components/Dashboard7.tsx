@@ -26,11 +26,30 @@ import {
 } from 'lucide-react';
 import '../styles/Dashboard7.css';
 import CommentCell from './CommentCell';
+import { useColumnOrder } from '../hooks/useColumnOrder';
+import SortableTableHeader, { type ColumnDef } from './SortableTableHeader';
+
+const CROSS_TEST_COLUMNS: ColumnDef[] = [
+  { key: 'iid', label: '#' },
+  { key: 'title', label: 'Ticket' },
+  { key: 'assignees', label: 'Assigné(s)' },
+  { key: 'state', label: 'Statut' },
+  { key: 'comments', label: 'Commentaires' },
+];
 
 /* =========================================
    Sous-composant : tableau virtualisé
    ========================================= */
-function VirtualIssueTable({ issues, comments, selectedIteration, onCommentSaved, onCommentDeleted, tableWrapperRef }) {
+function VirtualIssueTable({
+  issues,
+  comments,
+  selectedIteration,
+  onCommentSaved,
+  onCommentDeleted,
+  tableWrapperRef,
+  columnOrder,
+  onReorder,
+}) {
   const rowVirtualizer = useVirtualizer({
     count: issues.length,
     getScrollElement: () => tableWrapperRef.current,
@@ -42,13 +61,12 @@ function VirtualIssueTable({ issues, comments, selectedIteration, onCommentSaved
     <div ref={tableWrapperRef} className="d7-table-wrapper">
       <table className="d7-table">
         <thead>
-          <tr>
-            <th>#</th>
-            <th>Ticket</th>
-            <th>Assigné(s)</th>
-            <th>Statut</th>
-            <th>Commentaires</th>
-          </tr>
+          <SortableTableHeader
+            columns={CROSS_TEST_COLUMNS}
+            columnOrder={columnOrder}
+            onReorder={onReorder}
+            tableId="crosstest"
+          />
         </thead>
         <tbody style={{ height: `${rowVirtualizer.getTotalSize()}px`, position: 'relative' }}>
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -61,67 +79,82 @@ function VirtualIssueTable({ issues, comments, selectedIteration, onCommentSaved
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
-                {/* IID */}
-                <td>{issue.iid}</td>
+                {columnOrder.map((colKey) => {
+                  switch (colKey) {
+                    case 'iid':
+                      return <td key={colKey}>{issue.iid}</td>;
 
-                {/* Titre + lien + labels */}
-                <td>
-                  <a
-                    className="d7-issue-link"
-                    href={issue.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={`Ouvrir #${issue.iid} dans GitLab`}
-                  >
-                    <span className="d7-issue-iid">#{issue.iid}</span>
-                    {issue.title}
-                    <ExternalLink size={12} style={{ flexShrink: 0 }} />
-                  </a>
-                  {issue.labels && issue.labels.length > 0 && (
-                    <div className="d7-labels">
-                      {issue.labels.map((label) => (
-                        <span key={label} className="d7-label-chip">
-                          {label}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </td>
+                    case 'title':
+                      return (
+                        <td key={colKey}>
+                          <a
+                            className="d7-issue-link"
+                            href={issue.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={`Ouvrir #${issue.iid} dans GitLab`}
+                          >
+                            <span className="d7-issue-iid">#{issue.iid}</span>
+                            {issue.title}
+                            <ExternalLink size={12} style={{ flexShrink: 0 }} />
+                          </a>
+                          {issue.labels && issue.labels.length > 0 && (
+                            <div className="d7-labels">
+                              {issue.labels.map((label) => (
+                                <span key={label} className="d7-label-chip">
+                                  {label}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                      );
 
-                {/* Assignés */}
-                <td>
-                  {issue.assignees && issue.assignees.length > 0 ? (
-                    issue.assignees.join(', ')
-                  ) : (
-                    <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Non assigné</span>
-                  )}
-                </td>
+                    case 'assignees':
+                      return (
+                        <td key={colKey}>
+                          {issue.assignees && issue.assignees.length > 0 ? (
+                            issue.assignees.join(', ')
+                          ) : (
+                            <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Non assigné</span>
+                          )}
+                        </td>
+                      );
 
-                {/* Statut */}
-                <td>
-                  {issue.state === 'closed' ? (
-                    <span className="d7-badge d7-badge-closed">
-                      <CheckCircle2 size={11} />
-                      Fermé
-                    </span>
-                  ) : (
-                    <span className="d7-badge d7-badge-open">
-                      <Clock size={11} />
-                      Ouvert
-                    </span>
-                  )}
-                </td>
+                    case 'state':
+                      return (
+                        <td key={colKey}>
+                          {issue.state === 'closed' ? (
+                            <span className="d7-badge d7-badge-closed">
+                              <CheckCircle2 size={11} />
+                              Fermé
+                            </span>
+                          ) : (
+                            <span className="d7-badge d7-badge-open">
+                              <Clock size={11} />
+                              Ouvert
+                            </span>
+                          )}
+                        </td>
+                      );
 
-                {/* Commentaires */}
-                <td className="d7-comment-cell">
-                  <CommentCell
-                    issue={issue}
-                    comment={comments[issue.iid] || null}
-                    milestoneTitle={selectedIteration?.title}
-                    onSaved={onCommentSaved}
-                    onDeleted={onCommentDeleted}
-                  />
-                </td>
+                    case 'comments':
+                      return (
+                        <td key={colKey} className="d7-comment-cell">
+                          <CommentCell
+                            issue={issue}
+                            comment={comments[issue.iid] || null}
+                            milestoneTitle={selectedIteration?.title}
+                            onSaved={onCommentSaved}
+                            onDeleted={onCommentDeleted}
+                          />
+                        </td>
+                      );
+
+                    default:
+                      return <td key={colKey} />;
+                  }
+                })}
               </tr>
             );
           })}
@@ -251,6 +284,11 @@ export default function Dashboard7({ isDark: _isDark }) {
         );
       })
     : issues;
+
+  const { columnOrder, setColumnOrder } = useColumnOrder(
+    'crosstest',
+    CROSS_TEST_COLUMNS.map((c) => c.key)
+  );
 
   /* ---- Rendu ---- */
   return (
@@ -385,6 +423,8 @@ export default function Dashboard7({ isDark: _isDark }) {
             onCommentSaved={handleCommentSaved}
             onCommentDeleted={handleCommentDeleted}
             tableWrapperRef={tableWrapperRef}
+            columnOrder={columnOrder}
+            onReorder={setColumnOrder}
           />
         )}
       </div>

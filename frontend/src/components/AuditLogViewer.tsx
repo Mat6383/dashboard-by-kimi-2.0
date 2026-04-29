@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import apiService from '../services/api.service';
 import type { AuditLog } from '../types/api.types';
 import { unwrapApiResponse } from '../types/api.types';
+import { useColumnOrder } from '../hooks/useColumnOrder';
+import SortableTableHeader from './SortableTableHeader';
 
 const ACTION_KEY_MAP: Record<string, string> = {
   'cache.clear': 'cacheClear',
@@ -61,7 +63,24 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
   const [offset, setOffset] = useState(0);
   const limit = 50;
 
-  const [filters, setFilters] = useState<{ action: string; from: string; to: string }>({
+    const AUDIT_COLUMNS = [
+    { key: 'timestamp', label: t('auditLog.timestamp') },
+    { key: 'user', label: t('auditLog.user') },
+    { key: 'action', label: t('auditLog.action') },
+    { key: 'resource', label: t('auditLog.resource') },
+    { key: 'methodPath', label: t('auditLog.methodPath') },
+    { key: 'httpStatus', label: t('auditLog.httpStatus') },
+    { key: 'result', label: t('auditLog.result') },
+    { key: 'ip', label: t('auditLog.ip') },
+  ];
+
+  const { columnOrder, setColumnOrder } = useColumnOrder('audit', AUDIT_COLUMNS.map((c) => c.key));
+
+  const [filters, setFilters] = useState<{
+    action: string;
+    from: string;
+    to: string;
+  }>({
     action: '',
     from: '',
     to: '',
@@ -264,65 +283,87 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
         <div style={{ overflowX: 'auto' }}>
           <table style={themeStyles.table}>
             <thead>
-              <tr>
-                <th style={themeStyles.th}>{t('auditLog.timestamp')}</th>
-                <th style={themeStyles.th}>{t('auditLog.user')}</th>
-                <th style={themeStyles.th}>{t('auditLog.action')}</th>
-                <th style={themeStyles.th}>{t('auditLog.resource')}</th>
-                <th style={themeStyles.th}>{t('auditLog.methodPath')}</th>
-                <th style={themeStyles.th}>{t('auditLog.httpStatus')}</th>
-                <th style={themeStyles.th}>{t('auditLog.result')}</th>
-                <th style={themeStyles.th}>{t('auditLog.ip')}</th>
-              </tr>
+              <SortableTableHeader
+                columns={AUDIT_COLUMNS}
+                columnOrder={columnOrder}
+                onReorder={setColumnOrder}
+                tableId="audit"
+              />
             </thead>
             <tbody>
               {logs.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
+                  <td colSpan={columnOrder.length} style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
                     {t('auditLog.noEntries')}
                   </td>
                 </tr>
               )}
               {logs.map((log) => (
                 <tr key={log.id}>
-                  <td style={themeStyles.td}>{formatDate(log.timestamp, i18n.language)}</td>
-                  <td style={themeStyles.td}>
-                    {log.actor_email ? (
-                      <>
-                        <div>{log.actor_email}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{log.actor_role}</div>
-                      </>
-                    ) : (
-                      <span style={{ color: '#9ca3af' }}>—</span>
-                    )}
-                  </td>
-                  <td style={themeStyles.td}>
-                    <span style={{ fontWeight: 500 }}>{log.action && ACTION_KEY_MAP[log.action] ? t(`auditLog.actions.${ACTION_KEY_MAP[log.action]}`) : log.action}</span>
-                  </td>
-                  <td style={themeStyles.td}>
-                    {log.resource}
-                    {log.resource_id ? ` / ${log.resource_id}` : ''}
-                  </td>
-                  <td style={themeStyles.td}>
-                    <code
-                      style={{
-                        fontSize: '0.75rem',
-                        backgroundColor: isDark ? '#374151' : '#f3f4f6',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                      }}
-                    >
-                      {log.method}
-                    </code>
-                    <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '2px' }}>{log.path}</div>
-                  </td>
-                  <td style={themeStyles.td}>{log.status_code ?? '—'}</td>
-                  <td style={themeStyles.td}>
-                    <StatusBadge success={log.success} t={t} />
-                  </td>
-                  <td style={themeStyles.td}>
-                    <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{log.ip}</span>
-                  </td>
+                  {columnOrder.map((colKey) => {
+                    switch (colKey) {
+                      case 'timestamp':
+                        return <td key={colKey} style={themeStyles.td}>{formatDate(log.timestamp, i18n.language)}</td>;
+                      case 'user':
+                        return (
+                          <td key={colKey} style={themeStyles.td}>
+                            {log.actor_email ? (
+                              <>
+                                <div>{log.actor_email}</div>
+                                <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{log.actor_role}</div>
+                              </>
+                            ) : (
+                              <span style={{ color: '#9ca3af' }}>—</span>
+                            )}
+                          </td>
+                        );
+                      case 'action':
+                        return (
+                          <td key={colKey} style={themeStyles.td}>
+                            <span style={{ fontWeight: 500 }}>{log.action && ACTION_KEY_MAP[log.action] ? t(`auditLog.actions.${ACTION_KEY_MAP[log.action]}`) : log.action}</span>
+                          </td>
+                        );
+                      case 'resource':
+                        return (
+                          <td key={colKey} style={themeStyles.td}>
+                            {log.resource}
+                            {log.resource_id ? ` / ${log.resource_id}` : ''}
+                          </td>
+                        );
+                      case 'methodPath':
+                        return (
+                          <td key={colKey} style={themeStyles.td}>
+                            <code
+                              style={{
+                                fontSize: '0.75rem',
+                                backgroundColor: isDark ? '#374151' : '#f3f4f6',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              {log.method}
+                            </code>
+                            <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '2px' }}>{log.path}</div>
+                          </td>
+                        );
+                      case 'httpStatus':
+                        return <td key={colKey} style={themeStyles.td}>{log.status_code ?? '—'}</td>;
+                      case 'result':
+                        return (
+                          <td key={colKey} style={themeStyles.td}>
+                            <StatusBadge success={log.success} t={t} />
+                          </td>
+                        );
+                      case 'ip':
+                        return (
+                          <td key={colKey} style={themeStyles.td}>
+                            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{log.ip}</span>
+                          </td>
+                        );
+                      default:
+                        return null;
+                    }
+                  })}
                 </tr>
               ))}
             </tbody>
