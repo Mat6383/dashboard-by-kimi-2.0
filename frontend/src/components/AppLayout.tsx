@@ -16,7 +16,10 @@ import {
   FileSpreadsheet,
   Radio,
   Globe,
+  LayoutTemplate,
 } from 'lucide-react';
+import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts';
+import ShortcutHelpOverlay from './ShortcutHelpOverlay';
 
 function getDashboardRoutes(isAdmin, t) {
   const routes = [
@@ -96,6 +99,9 @@ export default function AppLayout({
   liveError,
   // Resilience
   circuitBreakers,
+  // Compact mode
+  compactMode,
+  toggleCompactMode,
 }) {
   const { t, i18n } = useTranslation();
   const dashboardRoutes = getDashboardRoutes(isAdmin, t);
@@ -103,6 +109,9 @@ export default function AppLayout({
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
   };
+
+  const [showHelp, setShowHelp] = React.useState(false);
+  useGlobalShortcuts({ onHelp: () => setShowHelp((prev) => !prev) });
   return (
     <div className={`app ${tvMode ? 'tv-mode' : ''} ${darkMode ? 'dark-theme' : ''}`}>
       {/* Banner mode dégradé */}
@@ -164,6 +173,17 @@ export default function AppLayout({
           >
             <Monitor size={16} />
             {tvMode ? t('layout.tvModeOn') : t('layout.tvModeOff')}
+          </button>
+
+          {/* Toggle Compact Mode */}
+          <button
+            className={`btn-toggle ${compactMode ? 'active' : ''}`}
+            onClick={toggleCompactMode}
+            title={compactMode ? t('layout.compactModeOn') : t('layout.compactModeOff')}
+            type="button"
+          >
+            <LayoutTemplate size={16} />
+            {compactMode ? t('layout.compactModeOn') : t('layout.compactModeOff')}
           </button>
 
           {/* Toggle Dark Theme */}
@@ -378,6 +398,8 @@ export default function AppLayout({
       <main className="app-main" role="main">
         {children}
       </main>
+
+      <ShortcutHelpOverlay isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
       {/* Footer */}
       <footer className="app-footer" role="contentinfo">

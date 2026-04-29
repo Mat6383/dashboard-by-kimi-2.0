@@ -13,6 +13,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
+import { useCompactMode } from './hooks/useCompactMode';
 import { usePreferences } from './hooks/usePreferences';
 import { useDashboard } from './hooks/useDashboard';
 import { useAutoRefresh } from './hooks/useAutoRefresh';
@@ -27,6 +28,7 @@ import './styles/App.css';
 function App() {
   const { t, i18n } = useTranslation();
   const { isDark, tvMode, toggleDark, toggleTv } = useTheme();
+  const { compactMode, toggleCompactMode } = useCompactMode();
   const { user, isAuthenticated, isAdmin, loginWithGitLab, logout } = useAuth();
   const { showToast } = useToast();
   const { useBusinessTerms, setUseBusinessTerms, autoRefresh, setAutoRefresh } = usePreferences();
@@ -179,6 +181,8 @@ function App() {
       liveConnected={liveConnected}
       liveError={liveError}
       circuitBreakers={circuitBreakers}
+      compactMode={compactMode}
+      toggleCompactMode={toggleCompactMode}
       currentPath={location.pathname}
       exportHandler={exportHandler}
       user={user}
