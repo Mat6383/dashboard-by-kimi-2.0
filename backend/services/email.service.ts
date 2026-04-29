@@ -25,11 +25,11 @@ class EmailService {
     }
   }
 
-  async sendSLAAlert({ to, projectId, projectName, alerts, dashboardUrl, lang = 'fr' }: any) {
+  async sendSLAAlert({ to, projectId, projectName, alerts, dashboardUrl, lang = 'fr', customHtml, customText }: any) {
     if (!this.transporter || !to) return { sent: false, reason: 'not_configured' };
 
     const subject = i18n.t('email.slaAlertSubject', { lng: lang, interpolation: { escapeValue: false } }).replace('{{projectName}}', projectName || `Projet ${projectId}`);
-    const html = this._buildHTML({ projectId, projectName, alerts, dashboardUrl, lang });
+    const html = customHtml || this._buildHTML({ projectId, projectName, alerts, dashboardUrl, lang });
 
     try {
       const info = await this.transporter.sendMail({
@@ -37,7 +37,7 @@ class EmailService {
         to,
         subject,
         html,
-        text: this._buildText({ projectId, projectName, alerts, dashboardUrl, lang }),
+        text: customText || this._buildText({ projectId, projectName, alerts, dashboardUrl, lang }),
       });
       logger.info('[EmailService] Email envoyé:', info.messageId);
       return { sent: true, messageId: info.messageId };

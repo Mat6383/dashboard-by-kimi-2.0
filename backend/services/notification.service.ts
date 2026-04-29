@@ -4,6 +4,8 @@ import logger from './logger.service';
 import Database from 'better-sqlite3';
 import path from 'path';
 import { run as runMigrations } from '../db/migrate';
+import templateService from './template.service';
+import webhooksService from './webhooks.service';
 
 const DB_DIR = process.env.DB_DATA_DIR || path.join(__dirname, '../db');
 const DB_PATH = path.join(DB_DIR, 'sync-history.db');
@@ -26,7 +28,7 @@ class NotificationService {
   /**
    * Dispatch une alerte SLA vers tous les canaux configurés
    */
-  async dispatch(projectId: any, alerts: any) {
+  async dispatch(projectId: any, alerts: any, projectName: string | null = null) {
     if (!alerts || alerts.length === 0) return;
 
     const settings = this.getSettings(projectId);
@@ -46,15 +48,33 @@ class NotificationService {
 
     const promises = [];
 
+    // Préparer les variables pour chaque alerte
+    const varsList = alerts.map((alert: any) => ({
+      metric: alert.metric,
+      value: String(alert.value),
+      threshold: String(alert.threshold),
+      severity: alert.severity,
+      projectName: projectName || `Projet ${projectId}`,
+      timestamp: new Date().toISOString(),
+    }));
+
     if (merged.enabled_sla_email && merged.email) {
+      const customHtml = merged.email_template
+        ? varsList.map((v: any) => templateService.render('email', merged.email_template, v, '')).join('<hr style="margin:16px 0;border:none;border-top:1px solid #e5e7eb;"/>')
+        : undefined;
+      const customText = merged.email_template
+        ? varsList.map((v: any) => templateService.render('email', merged.email_template, v, '')).join('\n---\n')
+        : undefined;
       promises.push(
         emailService
           .sendSLAAlert({
             to: merged.email,
             projectId,
-            projectName: null,
+            projectName: projectName || null,
             alerts,
             dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/?project=${projectId}`,
+            customHtml,
+            customText,
           })
           .then((r: any) => {
             if (r.sent) this._logAlert(projectId, 'email');
@@ -63,18 +83,49 @@ class NotificationService {
     }
 
     if (merged.enabled_sla_slack && merged.slack_webhook) {
+      const text = merged.slack_template
+        ? varsList.map((v: any) => templateService.render('slack', merged.slack_template, v, '')).join('\n\n')
+        : alertService._formatSlackMessage(projectId, alerts);
       promises.push(
         alertService
-          ._sendSlack(alertService._formatSlackMessage(projectId, alerts), merged.slack_webhook)
+          ._sendSlack(text, merged.slack_webhook)
           .then(() => this._logAlert(projectId, 'slack'))
       );
     }
 
     if (merged.enabled_sla_teams && merged.teams_webhook) {
+      if (merged.teams_template) {
+        const card = alertService._formatTeamsCard(projectId, alerts);
+        const rendered = templateService.render('teams', merged.teams_template, varsList[0], '');
+        card.summary = rendered;
+        if (card.sections && card.sections[0]) {
+          card.sections[0].activityTitle = rendered;
+        }
+        promises.push(
+          alertService
+            ._sendTeams(card, merged.teams_webhook)
+            .then(() => this._logAlert(projectId, 'teams'))
+        );
+      } else {
+        promises.push(
+          alertService
+            ._sendTeams(alertService._formatTeamsCard(projectId, alerts), merged.teams_webhook)
+            .then(() => this._logAlert(projectId, 'teams'))
+        );
+      }
+    }
+
+    // Émettre les webhooks métriques pour chaque alerte
+    for (const alert of alerts) {
       promises.push(
-        alertService
-          ._sendTeams(alertService._formatTeamsCard(projectId, alerts), merged.teams_webhook)
-          .then(() => this._logAlert(projectId, 'teams'))
+        webhooksService.emitMetricAlert(
+          alert.metric,
+          alert.severity,
+          alert.value,
+          alert.threshold,
+          projectId,
+          projectName || `Projet ${projectId}`
+        )
       );
     }
 
@@ -95,7 +146,7 @@ class NotificationService {
     return stmt.get(projectId) || null;
   }
 
-  upsertSettings({ projectId, email, slackWebhook, teamsWebhook, enabledSlaEmail, enabledSlaSlack, enabledSlaTeams }: any) {
+  upsertSettings({ projectId, email, slackWebhook, teamsWebhook, enabledSlaEmail, enabledSlaSlack, enabledSlaTeams, emailTemplate, slackTemplate, teamsTemplate }: any) {
     const existing = this.getSettings(projectId || null);
     if (existing) {
       this.db
@@ -108,6 +159,9 @@ class NotificationService {
           enabled_sla_email = ?,
           enabled_sla_slack = ?,
           enabled_sla_teams = ?,
+          email_template = ?,
+          slack_template = ?,
+          teams_template = ?,
           updated_at = datetime('now')
         WHERE project_id = ?
       `
@@ -119,14 +173,17 @@ class NotificationService {
           enabledSlaEmail ? 1 : 0,
           enabledSlaSlack ? 1 : 0,
           enabledSlaTeams ? 1 : 0,
+          emailTemplate || null,
+          slackTemplate || null,
+          teamsTemplate || null,
           projectId || null
         );
     } else {
       this.db
         .prepare(
           `
-        INSERT INTO notification_settings (project_id, email, slack_webhook, teams_webhook, enabled_sla_email, enabled_sla_slack, enabled_sla_teams, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        INSERT INTO notification_settings (project_id, email, slack_webhook, teams_webhook, enabled_sla_email, enabled_sla_slack, enabled_sla_teams, email_template, slack_template, teams_template, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `
         )
         .run(
@@ -136,28 +193,30 @@ class NotificationService {
           teamsWebhook || null,
           enabledSlaEmail ? 1 : 0,
           enabledSlaSlack ? 1 : 0,
-          enabledSlaTeams ? 1 : 0
+          enabledSlaTeams ? 1 : 0,
+          emailTemplate || null,
+          slackTemplate || null,
+          teamsTemplate || null
         );
     }
     return this.getSettings(projectId || null);
   }
 
-  async testWebhook(channel: any, url: any) {
+  async testWebhook(channel: any, url: any, template?: string) {
     if (channel === 'slack') {
-      await alertService._sendSlack('✅ Test de connexion — QA Dashboard Slack', url);
+      const text = template || '✅ Test de connexion — QA Dashboard Slack';
+      await alertService._sendSlack(text, url);
       return { ok: true };
     }
     if (channel === 'teams') {
-      await alertService._sendTeams(
-        {
-          '@type': 'MessageCard',
-          '@context': 'https://schema.org/extensions',
-          themeColor: '10B981',
-          summary: 'Test QA Dashboard',
-          sections: [{ activityTitle: '✅ Test de connexion — QA Dashboard Teams' }],
-        },
-        url
-      );
+      const card = {
+        '@type': 'MessageCard',
+        '@context': 'https://schema.org/extensions',
+        themeColor: '10B981',
+        summary: template || 'Test QA Dashboard',
+        sections: [{ activityTitle: template || '✅ Test de connexion — QA Dashboard Teams' }],
+      };
+      await alertService._sendTeams(card, url);
       return { ok: true };
     }
     return { ok: false, error: 'Canal inconnu' };

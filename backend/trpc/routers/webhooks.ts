@@ -18,6 +18,7 @@ const createInput = z.object({
   url: z.string().url('URL invalide'),
   events: z.array(z.string().min(1)).min(1, 'Au moins un event requis'),
   secret: z.string().min(1, 'Secret requis'),
+  filters: z.record(z.string(), z.any()).nullable().optional(),
 });
 
 const updateInput = z.object({
@@ -25,6 +26,7 @@ const updateInput = z.object({
   events: z.array(z.string().min(1)).min(1, 'Au moins un event requis').optional(),
   secret: z.string().min(1, 'Secret requis').optional(),
   enabled: z.boolean().optional(),
+  filters: z.record(z.string(), z.any()).nullable().optional(),
 });
 
 export const webhooksRouter = router({
@@ -36,7 +38,7 @@ export const webhooksRouter = router({
   create: adminProcedure
     .input(createInput)
     .mutation(({ input }) => {
-      const sub = webhooksService.create(input.url, input.events, input.secret);
+      const sub = webhooksService.create(input.url, input.events, input.secret, input.filters);
       if (!sub) {
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Création échouée' });
       }

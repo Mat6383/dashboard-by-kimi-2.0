@@ -22,11 +22,15 @@ const saveSettingsInput = z.object({
   enabledSlaEmail: z.boolean().optional(),
   enabledSlaSlack: z.boolean().optional(),
   enabledSlaTeams: z.boolean().optional(),
+  emailTemplate: z.string().max(2000).nullable().optional(),
+  slackTemplate: z.string().max(2000).nullable().optional(),
+  teamsTemplate: z.string().max(2000).nullable().optional(),
 });
 
 const testInput = z.object({
   channel: z.string().min(1),
   url: z.string().url(),
+  template: z.string().optional(),
 });
 
 export const notificationsRouter = router({
@@ -47,7 +51,7 @@ export const notificationsRouter = router({
   testWebhook: adminProcedure
     .input(testInput)
     .mutation(async ({ input }) => {
-      const result = await notificationService.testWebhook(input.channel, input.url);
+      const result = await notificationService.testWebhook(input.channel, input.url, input.template);
       if (!result.ok) {
         throw new TRPCError({ code: 'BAD_REQUEST', message: result.error || 'Test échoué' });
       }
