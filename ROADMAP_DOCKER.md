@@ -18,11 +18,11 @@
 
 ## ✅ Terminé (suite session)
 
-| #   | Amélioration                                                     | Fichiers touchés                                  | Commit | Date       |
-| --- | ---------------------------------------------------------------- | ------------------------------------------------- | ------ | ---------- |
-| 6   | `.dockerignore` backend + frontend                               | `backend/.dockerignore`, `frontend/.dockerignore` | —      | 2026-04-28 |
-| 7   | `test-docker.sh` avec cache optionnel (`--clean` / `--no-cache`) | `scripts/test-docker.sh`                          | —      | 2026-04-28 |
-| 8   | `depends_on: condition: service_healthy` + `start_period: 30s`   | `docker-compose.yml`, `backend/Dockerfile`        | —      | 2026-04-28 |
+| #   | Amélioration                                                                | Fichiers touchés                                  | Commit | Date       |
+| --- | --------------------------------------------------------------------------- | ------------------------------------------------- | ------ | ---------- |
+| 6   | `.dockerignore` backend + frontend                                          | `backend/.dockerignore`, `frontend/.dockerignore` | —      | 2026-04-28 |
+| 7   | `test-docker.sh` avec cache optionnel (`--clean` / `--no-cache`)            | `scripts/test-docker.sh`                          | —      | 2026-04-28 |
+| 8   | ~~`depends_on: condition: service_healthy`~~ ❌ Bug Docker Compose — retiré | `docker-compose.yml`                              | —      | 2026-04-28 |
 
 ---
 
