@@ -33,7 +33,7 @@ async def test_testmo_get_projects_cached() -> None:
     svc.cache.clear()
 
     with patch.object(svc, "_get", new_callable=AsyncMock) as mock_get:
-        mock_get.return_value = {"projects": [{"id": 1, "name": "P1"}]}
+        mock_get.return_value = {"result": [{"id": 1, "name": "P1"}]}
         data = await svc.get_projects()
         assert data[0]["name"] == "P1"
         assert mock_get.call_count == 1

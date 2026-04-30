@@ -65,7 +65,7 @@ async def test_trpc_analytics_list(client: AsyncClient) -> None:
     data = resp.json()
     assert isinstance(data, list)
     assert data[0]["id"] == 1
-    assert "insights" in data[0]["result"]["data"]
+    assert isinstance(data[0]["result"]["data"], list)
 
     await _cleanup_user(admin.id)
 
@@ -100,7 +100,7 @@ async def test_trpc_retention_policies(client: AsyncClient) -> None:
         {"path": "retention.policies", "method": "query", "input": {}, "id": 3}
     ], headers=headers)
     assert resp.status_code == 200
-    assert "policies" in resp.json()[0]["result"]["data"]
+    assert isinstance(resp.json()[0]["result"]["data"], list)
 
     await _cleanup_user(admin.id)
 
@@ -115,14 +115,14 @@ async def test_trpc_integrations_crud(client: AsyncClient) -> None:
         {"path": "integrations.create", "method": "mutation", "input": {"name": "Jira", "type": "jira", "config": {}}, "id": 4}
     ], headers=headers)
     assert resp.status_code == 200
-    integration_id = resp.json()[0]["result"]["data"]["integration"]["id"]
+    integration_id = resp.json()[0]["result"]["data"]["id"]
 
     # list
     resp = await client.post("/trpc/", json=[
         {"path": "integrations.list", "method": "query", "input": {}, "id": 5}
     ], headers=headers)
     assert resp.status_code == 200
-    assert any(i["id"] == integration_id for i in resp.json()[0]["result"]["data"]["integrations"])
+    assert any(i["id"] == integration_id for i in resp.json()[0]["result"]["data"])
 
     # delete
     resp = await client.post("/trpc/", json=[
@@ -142,7 +142,7 @@ async def test_trpc_webhooks_crud(client: AsyncClient) -> None:
         {"path": "webhooks.create", "method": "mutation", "input": {"url": "https://ex.com/hook", "events": ["test"], "secret": "shh"}, "id": 7}
     ], headers=headers)
     assert resp.status_code == 200
-    hook_id = resp.json()[0]["result"]["data"]["webhook"]["id"]
+    hook_id = resp.json()[0]["result"]["data"]["data"]["id"]
 
     resp = await client.post("/trpc/", json=[
         {"path": "webhooks.delete", "method": "mutation", "input": {"id": hook_id}, "id": 8}

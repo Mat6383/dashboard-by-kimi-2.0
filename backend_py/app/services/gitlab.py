@@ -152,6 +152,41 @@ class GitLabService:
         except Exception:
             return False
 
+    @classmethod
+    def from_config(cls, config: dict[str, Any]) -> "GitLabService":
+        """Create a GitLabService from an integration config dict."""
+        instance = cls.__new__(cls)
+        base = (config.get("url") or config.get("baseUrl", "")).rstrip("/")
+        verify = config.get("verifySsl", True)
+        token = config.get("token", "")
+        write_token = config.get("writeToken") or token
+
+        instance.rest = httpx.AsyncClient(
+            base_url=f"{base}/api/v4",
+            headers={"PRIVATE-TOKEN": token},
+            timeout=settings.api_timeout,
+            verify=verify,
+        )
+        instance.rest_write = httpx.AsyncClient(
+            base_url=f"{base}/api/v4",
+            headers={"PRIVATE-TOKEN": write_token},
+            timeout=settings.api_timeout,
+            verify=verify,
+        )
+        instance.graphql = httpx.AsyncClient(
+            base_url=base,
+            headers={"PRIVATE-TOKEN": write_token},
+            timeout=settings.api_timeout,
+            verify=verify,
+        )
+        instance.cb_rest = CircuitBreaker(
+            name="gitlab_rest", failure_threshold=5, recovery_timeout=30.0
+        )
+        instance.cb_graphql = CircuitBreaker(
+            name="gitlab_graphql", failure_threshold=5, recovery_timeout=30.0
+        )
+        return instance
+
     async def get_current_user(self) -> dict[str, Any]:
         return await self._rest_get("/user")
 

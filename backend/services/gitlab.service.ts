@@ -2,6 +2,7 @@ import axios from 'axios';
 import https from 'https';
 import logger from './logger.service';
 import { instrumentAxios } from './apiTimer.service';
+import integrationService from './integration.service';
 
 class GitLabService {
   baseURL: any;
@@ -15,6 +16,47 @@ class GitLabService {
   writeClient: any;
 
   constructor() {
+    // ── Connector administrable (fallback .env) ────────────
+    let connectorConfig: any = null;
+    try {
+      integrationService.init();
+      const connectors = integrationService.list().filter(
+        (i: any) => i.type === 'gitlab' && i.enabled
+      );
+      if (connectors.length > 0) {
+        const c = connectors[0].config;
+        connectorConfig = {
+          baseURL: c.baseUrl || c.url || process.env.GITLAB_URL,
+          token: c.token || process.env.GITLAB_TOKEN,
+          writeToken:
+            c.writeToken || c.token || process.env.GITLAB_WRITE_TOKEN || process.env.GITLAB_TOKEN,
+          projectId: c.projectId || process.env.GITLAB_PROJECT_ID,
+          verifySsl: c.verifySsl !== false,
+          timeout: parseInt(process.env.API_TIMEOUT || '') || 10000,
+        };
+        logger.info(
+          `[GitLabService] Connector actif utilisé : ${connectors[0].name} (projet ${connectorConfig.projectId})`
+        );
+      }
+    } catch (e: any) {
+      // Pas de connector configuré ou DB indisponible → fallback .env
+    }
+
+    if (connectorConfig) {
+      const svc = GitLabService.fromConfig(connectorConfig);
+      this.baseURL = svc.baseURL;
+      this.token = svc.token;
+      this.writeToken = svc.writeToken;
+      this.projectId = svc.projectId;
+      this.verifySsl = svc.verifySsl;
+      this.timeout = svc.timeout;
+      this.apiDelay = svc.apiDelay;
+      this.client = svc.client;
+      this.writeClient = svc.writeClient;
+      return;
+    }
+
+    // ── Fallback variables d'environnement ─────────────────
     this.baseURL = process.env.GITLAB_URL;
     this.token = process.env.GITLAB_TOKEN;
     // Token d'écriture séparé pour modifier les labels (scope api requis)

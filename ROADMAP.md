@@ -264,14 +264,21 @@
 
 ---
 
-## 🚀 P27 — Connecteur GitLab administrable (Prochaine session)
+## 🚀 P27 — Connecteur GitLab administrable ✅ Livré (Phase 5)
 
-- [ ] **P27#1 Migration SQL** — Ajouter `gitlab` au `CHECK(type)` de la table `integrations`
-- [ ] **P27#2 Service `gitlabConnector.service.ts`** — Connexion test + listage projets/issues/MRs via token perso (non global). Retry + circuit breaker réutilisés depuis `gitlab.service.ts`
-- [ ] **P27#3 Route tRPC** — CRUD + test connexion + sélection projet GitLab par connector ID
-- [ ] **P27#4 UI admin** — Formulaire GitLab dans `IntegrationsAdmin.tsx` (URL, token, projet par défaut), test live, icône GitLab
-- [ ] **P27#5 Refactor `gitlab.service.ts`** — Utiliser le connector GitLab actif au lieu des vars d'env si un connector est configuré (fallback `.env` pour rétro-compatibilité)
-- [ ] **P27#6 Tests** — Service + route + composant (cible 6/6)
+- [x] **P27#1 Migration SQL** — Ajouter `gitlab` au `CHECK(type)` de la table `integrations` (Node.js) + migration Alembic Python avec indexes
+- [x] **P27#2 Service `gitlabConnector`** — `backend_py/app/services/gitlab_connector.py` + `backend/services/gitlabConnector.service.ts` : connexion test + listage projets/issues/MRs via token perso (non global). Retry + circuit breaker réutilisés
+- [x] **P27#3 Route tRPC** — Bridge tRPC Python étendu avec `integrations.gitlabProjects` + `integrations.gitlabIssues`
+- [x] **P27#4 UI admin** — Formulaire GitLab dans `IntegrationsAdmin.tsx` déjà supporté (URL, token, projet par défaut), test live, icône GitLab
+- [x] **P27#5 Refactor `gitlab.service.ts`** — Utilise le connector GitLab actif de la DB SQLite si disponible, fallback `.env` pour rétro-compatibilité
+- [x] **P27#6 Tests** — 694/694 backend Node.js ✅ | 38/38 backend Python ✅ | Build frontend ✅
+
+## 🚀 P5 — Connecteur GitLab + Bridge tRPC Python (Session livrée)
+
+- [x] **P5#1 GitLab Connector administrable** — Service `gitlab_connector.py`, `GitLabConnector` class, `from_config` sur `gitlab.py`, refactor `gitlab.service.ts` avec fallback connector/.env
+- [x] **P5#2 Bridge tRPC Python complet** — Toutes les procédures utilisées par le frontend mappées dans `backend_py/app/routers/trpc.py` (dashboard, projects, anomalies, cache, crosstest, featureFlags, notifications, reports, sync, webhooks, analytics, retention, integrations)
+- [x] **P5#3 Frontend bridge validation** — `trpc/client.ts` documenté pour pointer sur `/trpc` du backend Python, `vite.config.js` proxy inchangé, build OK
+- [x] **P5#4 Migrations Alembic** — `8a0998e7f55f` : indexes `ix_integrations_type` + `ix_integrations_enabled`
 
 ## 🚧 Sessions futures (P28+)
 

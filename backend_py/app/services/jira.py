@@ -98,21 +98,8 @@ class IntegrationService:
         )
 
     async def test_gitlab_connection(self, config: dict[str, Any]) -> dict[str, Any]:
-        import httpx
-        url = config.get("url", "")
-        token = config.get("token", "")
-        if not url or not token:
-            return {"success": False, "error": "Missing url or token"}
-        try:
-            async with httpx.AsyncClient(timeout=30) as client:
-                resp = await client.get(
-                    f"{url.rstrip('/')}/api/v4/user",
-                    headers={"PRIVATE-TOKEN": token},
-                )
-                resp.raise_for_status()
-            return {"success": True, "username": resp.json().get("username")}
-        except Exception as exc:
-            return {"success": False, "error": str(exc)}
+        from app.services.gitlab_connector import gitlab_connector_service
+        return await gitlab_connector_service.test_connection(config)
 
     async def send_generic_webhook(self, config: dict[str, Any], payload: dict[str, Any]) -> dict[str, Any]:
         import httpx

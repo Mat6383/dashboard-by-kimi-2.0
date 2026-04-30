@@ -15,9 +15,9 @@ router = APIRouter()
 @router.websocket("/dashboard")
 async def dashboard_websocket(
     websocket: WebSocket,
-    project_id: int = Query(...),
-    preprod_milestones: str = Query(""),
-    prod_milestones: str = Query(""),
+    project_id: int = Query(..., alias="projectId"),
+    preprod_milestones: str = Query("", alias="preprodMilestones"),
+    prod_milestones: str = Query("", alias="prodMilestones"),
 ):
     await websocket.accept()
     try:

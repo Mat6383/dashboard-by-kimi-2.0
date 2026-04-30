@@ -64,7 +64,7 @@ class TestmoService:
 
         async def _fetch() -> Any:
             data = await self._get("/projects", {"per_page": 100})
-            return data if isinstance(data, list) else data.get("projects", [])
+            return data if isinstance(data, list) else data.get("result", [])
 
         return await self._cached_request(key, _fetch)
 
@@ -76,7 +76,7 @@ class TestmoService:
             if active_only:
                 params["is_closed"] = "0"
             data = await self._get(f"/projects/{project_id}/runs", params)
-            return data if isinstance(data, list) else data.get("runs", [])
+            return data if isinstance(data, list) else data.get("result", [])
 
         return await self._cached_request(key, _fetch)
 
@@ -85,16 +85,15 @@ class TestmoService:
 
         async def _fetch() -> Any:
             data = await self._get(f"/projects/{project_id}/milestones", {"per_page": 100})
-            return data if isinstance(data, list) else data.get("milestones", [])
+            return data if isinstance(data, list) else data.get("result", [])
 
         return await self._cached_request(key, _fetch)
 
-    async def get_automation_runs(self, project_id: int) -> list[dict[str, Any]]:
+    async def get_automation_runs(self, project_id: int) -> dict[str, Any]:
         key = self._cache_key("automation", project_id)
 
         async def _fetch() -> Any:
-            data = await self._get(f"/projects/{project_id}/automation/runs", {"per_page": 100})
-            return data if isinstance(data, list) else data.get("runs", [])
+            return await self._get(f"/projects/{project_id}/automation/runs", {"per_page": 100})
 
         return await self._cached_request(key, _fetch)
 
@@ -102,21 +101,21 @@ class TestmoService:
         key = self._cache_key("run", run_id)
         return await self._cached_request(key, lambda: self._get(f"/runs/{run_id}"))
 
-    async def get_run_results(self, run_id: int, status_filter: str | None = None) -> list[dict[str, Any]]:
+    async def get_run_results(self, run_id: int, status_filter: str | None = None) -> dict[str, Any]:
         key = self._cache_key("results", run_id, status_filter or "all")
         params = {}
         if status_filter:
             params["status"] = status_filter
 
         async def _fetch() -> Any:
-            data = await self._get(f"/runs/{run_id}/results", params)
-            return data if isinstance(data, list) else data.get("results", [])
+            return await self._get(f"/runs/{run_id}/results", params)
 
         return await self._cached_request(key, _fetch)
 
     async def get_project_metrics(self, project_id: int) -> dict[str, Any]:
         """Aggregate ISTQB/ITIL/LEAN KPIs from runs + sessions."""
-        runs = await self.get_project_runs(project_id, active_only=True)
+        runs_data = await self.get_project_runs(project_id, active_only=True)
+        runs = runs_data.get("result", []) if isinstance(runs_data, dict) else runs_data
         if not runs:
             return {
                 "project_id": project_id,
@@ -156,7 +155,8 @@ class TestmoService:
         self, project_id: int, preprod_milestones: list[int] | None = None, prod_milestones: list[int] | None = None
     ) -> dict[str, Any]:
         """Compare bugs found in preprod vs prod using milestone filters."""
-        runs = await self.get_project_runs(project_id)
+        runs_data = await self.get_project_runs(project_id)
+        runs = runs_data.get("result", []) if isinstance(runs_data, dict) else runs_data
         if not runs:
             return {"escape_rate": 0.0, "detection_rate": 0.0, "project_id": project_id}
 
@@ -187,7 +187,8 @@ class TestmoService:
 
     async def get_annual_quality_trends(self, project_id: int) -> list[dict[str, Any]]:
         """Aggregate metrics per year from runs."""
-        runs = await self.get_project_runs(project_id)
+        runs_data = await self.get_project_runs(project_id)
+        runs = runs_data.get("result", []) if isinstance(runs_data, dict) else runs_data
         years: dict[str, dict[str, Any]] = defaultdict(lambda: {"passed": 0, "failed": 0, "blocked": 0, "total": 0})
         for r in runs:
             started = r.get("started_at") or r.get("created_at")
