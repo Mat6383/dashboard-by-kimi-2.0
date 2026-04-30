@@ -251,7 +251,7 @@ class SyncService {
    * @returns {Object} Rapport de synchronisation
    */
   async syncIteration(iterationName: any, options: any = {}, onEvent: any = null) {
-    const { isTest = false, dryRun = false, projectConfig = null, status = null, version = null, versionDeTest = null } = options;
+    const { isTest = false, dryRun = false, projectConfig = null, labelCustom = null, status = null, version = null, versionDeTest = null } = options;
     const stats = { created: 0, updated: 0, skipped: 0, enriched: 0, errors: 0, total: 0 };
 
     // Verrou anti-concurrence — une seule sync par itération à la fois
@@ -288,7 +288,7 @@ class SyncService {
       logger.info('='.repeat(60));
       logger.info(`Sync: Démarrage synchronisation GitLab → Testmo`);
       logger.info(
-        `Sync: Itération="${iterationName}" | Label="${cfg.gitlabLabel}" | Status="${status || '*'}" | Version="${version || '*'}" | VersionDeTest="${versionDeTest || '*'}" | Test=${isTest} | DryRun=${dryRun}`
+        `Sync: Itération="${iterationName}" | Label="${cfg.gitlabLabel}" | LabelCustom="${labelCustom || '*'}" | Status="${status || '*'}" | Version="${version || '*'}" | VersionDeTest="${versionDeTest || '*'}" | Test=${isTest} | DryRun=${dryRun}`
       );
       logger.info('='.repeat(60));
 
@@ -315,9 +315,10 @@ class SyncService {
       // 2. Récupérer les tickets
       logger.info('Sync: [2/4] Récupération tickets GitLab...');
       let issues;
-      const useFilters = status || version || versionDeTest;
+      const useFilters = labelCustom || status || version || versionDeTest;
       if (useFilters && cfg.gitlabProjectId) {
         issues = await gitlabService.getIssuesByFilters(cfg.gitlabProjectId, iteration.id, {
+          labelCustom,
           status,
           version,
           versionDeTest,
@@ -325,17 +326,18 @@ class SyncService {
       } else if (cfg.gitlabProjectId) {
         issues = await gitlabService.getIssuesByLabelAndIterationForProject(
           cfg.gitlabProjectId,
-          cfg.gitlabLabel,
+          labelCustom || cfg.gitlabLabel,
           iteration.id
         );
       } else if (useFilters) {
         issues = await gitlabService.getIssuesByFilters(gitlabService.projectId, iteration.id, {
+          labelCustom,
           status,
           version,
           versionDeTest,
         });
       } else {
-        issues = await gitlabService.getIssuesByLabelAndIteration(cfg.gitlabLabel, iteration.id);
+        issues = await gitlabService.getIssuesByLabelAndIteration(labelCustom || cfg.gitlabLabel, iteration.id);
       }
       stats.total = issues.length;
 
@@ -475,10 +477,10 @@ class SyncService {
    * @returns {Object} { iteration, folder, issues, summary }
    */
   async previewIteration(iterationName: any, projectConfig: any, options: any = {}) {
-    const { status = null, version = null, versionDeTest = null } = options;
+    const { labelCustom = null, status = null, version = null, versionDeTest = null } = options;
     const cfg = this._withProjectConfig(projectConfig);
 
-    logger.info(`Preview: Début pour "${iterationName}" (projet: ${projectConfig.label}, status="${status || '*'}", version="${version || '*'}", versionDeTest="${versionDeTest || '*'}")`);
+    logger.info(`Preview: Début pour "${iterationName}" (projet: ${projectConfig.label}, labelCustom="${labelCustom || '*'}", status="${status || '*'}", version="${version || '*'}", versionDeTest="${versionDeTest || '*'}")`);
 
     // 1. Trouver l'itération
     let iteration;
@@ -500,9 +502,10 @@ class SyncService {
     // 2. Récupérer les tickets
     let issues;
     try {
-      const useFilters = status || version || versionDeTest;
+      const useFilters = labelCustom || status || version || versionDeTest;
       if (useFilters && cfg.gitlabProjectId) {
         issues = await gitlabService.getIssuesByFilters(cfg.gitlabProjectId, iteration.id, {
+          labelCustom,
           status,
           version,
           versionDeTest,
@@ -510,17 +513,18 @@ class SyncService {
       } else if (cfg.gitlabProjectId) {
         issues = await gitlabService.getIssuesByLabelAndIterationForProject(
           cfg.gitlabProjectId,
-          cfg.gitlabLabel,
+          labelCustom || cfg.gitlabLabel,
           iteration.id
         );
       } else if (useFilters) {
         issues = await gitlabService.getIssuesByFilters(gitlabService.projectId, iteration.id, {
+          labelCustom,
           status,
           version,
           versionDeTest,
         });
       } else {
-        issues = await gitlabService.getIssuesByLabelAndIteration(cfg.gitlabLabel, iteration.id);
+        issues = await gitlabService.getIssuesByLabelAndIteration(labelCustom || cfg.gitlabLabel, iteration.id);
       }
     } catch (err: any) {
       throw new Error(`Erreur récupération tickets: ${err.message}`);

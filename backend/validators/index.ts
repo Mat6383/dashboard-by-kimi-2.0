@@ -48,6 +48,7 @@ const runResultsQuery = z.object({
 const syncPreviewBody = z.object({
   projectId: z.string().min(1, '"projectId" requis'),
   iterationName: z.string().min(1, '"iterationName" requis'),
+  labelCustom: z.string().optional(),
   status: z.string().optional(),
   version: z.string().optional(),
   versionDeTest: z.string().optional(),

@@ -320,7 +320,7 @@ const apiService = {
   async previewSync(
     projectId: string,
     iterationName: string,
-    filters: { status?: string; version?: string; versionDeTest?: string } = {}
+    filters: { labelCustom?: string; status?: string; version?: string; versionDeTest?: string } = {}
   ): Promise<SyncPreviewResult> {
     return apiCall('Preview Sync', async () => {
       const response = await apiClient.post(

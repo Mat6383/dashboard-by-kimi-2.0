@@ -664,6 +664,7 @@ class GitLabService {
 
   /**
    * Récupère les issues d'une itération avec filtres optionnels :
+   * - label custom (insensible à la casse)
    * - status natif GitLab (Work Item status)
    * - Version Prod (custom field)
    * - Version de test (custom field)
@@ -671,13 +672,14 @@ class GitLabService {
    * @param {number|string} projectId  - ID du projet GitLab
    * @param {number|string} iterationId - ID de l'itération
    * @param {Object}        options
-   * @param {string}        options.status         - Nom du status natif (ex: "Test TODO")
-   * @param {string}        options.version        - Valeur Version Prod (ex: "R06 - Pilot")
-   * @param {string}        options.versionDeTest  - Valeur Version de test
+   * @param {string}        options.labelCustom      - Label à matcher (insensible à la casse)
+   * @param {string}        options.status           - Nom du status natif (ex: "Test TODO")
+   * @param {string}        options.version          - Valeur Version Prod (ex: "R06 - Pilot")
+   * @param {string}        options.versionDeTest    - Valeur Version de test
    * @returns {Array} Issues filtrées
    */
   async getIssuesByFilters(projectId: any, iterationId: any, options: any = {}) {
-    const { status, version, versionDeTest } = options;
+    const { labelCustom, status, version, versionDeTest } = options;
 
     try {
       // 1. Récupérer toutes les issues de l'itération (sans filtre label)
@@ -690,20 +692,23 @@ class GitLabService {
       if (!allIssues.length) return [];
 
       // 2. Si aucun filtre avancé, retourner tel quel
-      if (!status && !version && !versionDeTest) {
+      if (!labelCustom && !status && !version && !versionDeTest) {
         logger.info(`GitLab: ${allIssues.length} ticket(s) pour iteration_id=${iterationId} (project=${projectId})`);
         return allIssues;
       }
 
-      // 3. Récupérer status + custom fields via GraphQL
+      // 3. Récupérer labels + status + custom fields via GraphQL
       const ids = allIssues.map((i: any) => `gid://gitlab/WorkItem/${i.id}`);
       const query = `
-        query GetStatusAndVersions($ids: [ID!]!) {
+        query GetLabelsStatusAndVersions($ids: [ID!]!) {
           nodes(ids: $ids) {
             ... on WorkItem {
               id
               widgets {
                 type
+                ... on WorkItemWidgetLabels {
+                  labels { nodes { title } }
+                }
                 ... on WorkItemWidgetStatus {
                   status { id name }
                 }
@@ -722,8 +727,11 @@ class GitLabService {
       const infoByGid = new Map();
 
       for (const node of data.nodes || []) {
-        const info: any = { statusName: null, versionProd: null, versionTest: null };
+        const info: any = { labels: [], statusName: null, versionProd: null, versionTest: null };
         for (const widget of node?.widgets || []) {
+          if (widget.labels?.nodes) {
+            info.labels = widget.labels.nodes.map((n: any) => n.title);
+          }
           if (widget.status) {
             info.statusName = widget.status.name;
           }
@@ -742,11 +750,16 @@ class GitLabService {
       }
 
       // 4. Filtrer en mémoire
+      const labelCustomLower = labelCustom ? labelCustom.toLowerCase() : null;
       const filtered = allIssues.filter((issue: any) => {
         const gid = `gid://gitlab/WorkItem/${issue.id}`;
         const info = infoByGid.get(gid);
         if (!info) return false;
 
+        if (labelCustomLower) {
+          const hasLabel = info.labels.some((l: string) => l.toLowerCase() === labelCustomLower);
+          if (!hasLabel) return false;
+        }
         if (status && info.statusName !== status) return false;
         if (version && info.versionProd !== version) return false;
         if (versionDeTest && info.versionTest !== versionDeTest) return false;
@@ -755,7 +768,7 @@ class GitLabService {
       });
 
       logger.info(
-        `GitLab: ${filtered.length}/${allIssues.length} ticket(s) après filtre (status="${status || '*'}", version="${version || '*'}", versionDeTest="${versionDeTest || '*'}")`
+        `GitLab: ${filtered.length}/${allIssues.length} ticket(s) après filtre (label="${labelCustom || '*'}", status="${status || '*'}", version="${version || '*'}", versionDeTest="${versionDeTest || '*'}")`
       );
       return filtered;
     } catch (error: any) {

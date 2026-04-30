@@ -44,6 +44,7 @@ export default function Dashboard6({ isDark }) {
   const [iterSearch, setIterSearch] = useState('');
   const [selectedIter, setSelectedIter] = useState('');
   const [loadingIters, setLoadingIters] = useState(false);
+  const [labelCustomFilter, setLabelCustomFilter] = useState('TESTMO');
   const [statusFilter, setStatusFilter] = useState('');
   const [versionFilter, setVersionFilter] = useState('');
   const [versionDeTestFilter, setVersionDeTestFilter] = useState('');
@@ -153,6 +154,7 @@ export default function Dashboard6({ isDark }) {
 
     try {
       const filters: any = {};
+      if (labelCustomFilter.trim()) filters.labelCustom = labelCustomFilter.trim();
       if (statusFilter.trim()) filters.status = statusFilter.trim();
       if (versionFilter.trim()) filters.version = versionFilter.trim();
       if (versionDeTestFilter.trim()) filters.versionDeTest = versionDeTestFilter.trim();
@@ -181,6 +183,7 @@ export default function Dashboard6({ isDark }) {
     abortCtrlRef.current = ctrl;
 
     const body: any = { projectId: selectedProject, iterationName: selectedIter };
+    if (labelCustomFilter.trim()) body.labelCustom = labelCustomFilter.trim();
     if (statusFilter.trim()) body.status = statusFilter.trim();
     if (versionFilter.trim()) body.version = versionFilter.trim();
     if (versionDeTestFilter.trim()) body.versionDeTest = versionDeTestFilter.trim();
@@ -411,6 +414,16 @@ export default function Dashboard6({ isDark }) {
 
               {/* Filtres avancés */}
               <div className="d6-config-row" style={{ marginTop: '0.5rem' }}>
+                <div className="d6-field">
+                  <label>Label custom</label>
+                  <input
+                    className="d6-input"
+                    placeholder="Ex: TESTMO"
+                    value={labelCustomFilter}
+                    onChange={(e) => setLabelCustomFilter(e.target.value)}
+                    disabled={state === 'syncing' || state === 'analyzing'}
+                  />
+                </div>
                 <div className="d6-field">
                   <label>Status GitLab</label>
                   <input
