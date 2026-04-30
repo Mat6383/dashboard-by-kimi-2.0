@@ -26,6 +26,8 @@ import autoSyncJob from './jobs/autoSyncJob';
 import metricsSnapshotJob from './jobs/metricsSnapshotJob';
 import auditPruneJob from './jobs/auditPruneJob';
 import backupJob from './jobs/backupJob';
+import analyticsJob from './jobs/analyticsJob';
+import retentionJob from './jobs/retentionJob';
 import gracefulShutdown from './bootstrap/gracefulShutdown';
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { appRouter } from './trpc/router';
@@ -36,6 +38,9 @@ import commentsService from './services/comments.service';
 import metricSnapshotsService from './services/metricSnapshots.service';
 import usersService from './services/users.service';
 import auditService from './services/audit.service';
+import analyticsService from './services/analytics.service';
+import retentionService from './services/retention.service';
+import integrationService from './services/integration.service';
 import './services/webhooks.service';
 
 import healthRoutes from './routes/health.routes';
@@ -152,6 +157,8 @@ if (process.env.NODE_ENV !== 'test') {
   metricsSnapshotJob.start();
   auditPruneJob.start();
   backupJob.start();
+  analyticsJob.start();
+  retentionJob.start();
 
   server = app.listen(PORT, () => {
     logger.info(`Server ready on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);

@@ -126,8 +126,8 @@
 
 | Métrique             | Actuel       | Cible |
 | -------------------- | ------------ | ----- |
-| Tests backend        | 491 / 491 ✅ | 500+  |
-| Tests frontend       | 156 / 156 ✅ | 170+  |
+| Tests backend        | 595 / 595 ✅ | 600+  |
+| Tests frontend       | 217 / 217 ✅ | 230+  |
 | Couverture backend   | 80 % ✅      | 70 %  |
 | Couverture frontend  | 87 % ✅      | 50 %  |
 | Vulnérabilités npm   | 0 ✅         | 0     |
@@ -264,11 +264,11 @@
 
 ---
 
-## 🚧 Sessions futures (P26+)
+## 🚧 Sessions futures (P27+)
 
-- [ ] **P26 — Analytics & Insights IA** : Détection de patterns dans les données de test, recommandations auto
-- [ ] **P26 — Data Retention & Archivage** : Politique de rétention, archivage auto des vieilles données, GDPR cleanup
-- [ ] **P26 — Intégrations tierces** : Jira, Azure DevOps, ou autre outil de test
+- [x] **P26 — Analytics & Insights IA** : Table `analytics_insights`, service de détection patterns (baisse pass rate, stagnation, blocage, échappement), job cron quotidien 3h, route tRPC, composant `AnalyticsPanel`, tests 6/6 ✅
+- [x] **P26 — Data Retention & Archivage** : Tables `retention_policies` + `archived_snapshots`, cycle d'archivage auto par entité, job cron hebdomadaire, UI admin `/admin/retention`, tests 4/4 ✅
+- [x] **P26 — Intégrations tierces** : Table `integrations`, connecteur Jira (test + création tickets), webhook générique HMAC-SHA256, UI admin `/admin/integrations`, tests 6/6 ✅
 - [x] **Option B** — Tests de charge & Performance : k6, 50 users simultanés, mesure p95/p99, corrections goulots d'étranglement ✅
 - [x] **P23** — Améliorations UX : raccourcis clavier, drag-and-drop tableaux, mode compact ✅
 - [x] **P24** — Alerting avancé : webhooks personnalisés par métrique, templates d'alerte configurables

@@ -44,6 +44,9 @@ function getDashboardRoutes(isAdmin, t) {
     routes.push({ path: '/notifications', label: t('dashboard.notifications') });
     routes.push({ path: '/admin/audit', label: t('dashboard.auditLogs') });
     routes.push({ path: '/admin/feature-flags', label: t('dashboard.featureFlags') });
+    routes.push({ path: '/admin/analytics', label: t('dashboard.analytics') });
+    routes.push({ path: '/admin/retention', label: t('dashboard.retention') });
+    routes.push({ path: '/admin/integrations', label: t('dashboard.integrations') });
   }
   return routes;
 }

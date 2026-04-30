@@ -23,13 +23,36 @@ vi.mock('../hooks/mutations/useNotifications', () => ({
   }),
 }));
 
+const mockInvalidate = vi.fn();
+
 vi.mock('../trpc/client', () => ({
   trpc: {
     notifications: {
       settings: {
         useQuery: () => mockUseQuery(),
       },
+      saveSettings: {
+        useMutation: () => ({ mutate: vi.fn(), mutateAsync: vi.fn(), isPending: false }),
+      },
     },
+    webhooks: {
+      list: {
+        useQuery: () => ({ data: [], isLoading: false }),
+      },
+      create: {
+        useMutation: () => ({ mutate: vi.fn(), isPending: false }),
+      },
+      update: {
+        useMutation: () => ({ mutate: vi.fn(), isPending: false }),
+      },
+      delete: {
+        useMutation: () => ({ mutate: vi.fn(), isPending: false }),
+      },
+    },
+    useUtils: () => ({
+      webhooks: { list: { invalidate: mockInvalidate } },
+      notifications: { settings: { invalidate: mockInvalidate } },
+    }),
   },
 }));
 

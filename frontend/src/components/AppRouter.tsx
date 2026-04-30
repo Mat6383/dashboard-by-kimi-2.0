@@ -24,6 +24,9 @@ const CrossTestDashboard = lazy(() => import('./CrossTestDashboard'));
 const AutoSyncDashboard = lazy(() => import('./AutoSyncDashboard'));
 const MultiProjectDashboard = lazy(() => import('./MultiProjectDashboard'));
 const FeatureFlagsAdmin = lazy(() => import('./FeatureFlagsAdmin'));
+const AnalyticsPanel = lazy(() => import('./AnalyticsPanel'));
+const RetentionAdmin = lazy(() => import('./RetentionAdmin'));
+const IntegrationsAdmin = lazy(() => import('./IntegrationsAdmin'));
 
 function LoadingFallback() {
   const { t } = useTranslation();
@@ -108,6 +111,9 @@ export default function AppRouter({
         <Route path="/compare" element={<CompareDashboard isDark={darkMode} />} />
         <Route path="/admin/audit" element={<AuditLogViewer isDark={darkMode} />} />
         <Route path="/admin/feature-flags" element={<FeatureFlagsAdmin isDark={darkMode} />} />
+        <Route path="/admin/analytics" element={<AnalyticsPanel projectId={projectId} isDark={darkMode} />} />
+        <Route path="/admin/retention" element={<RetentionAdmin isDark={darkMode} />} />
+        <Route path="/admin/integrations" element={<IntegrationsAdmin isDark={darkMode} />} />
         <Route
           path="/configuration"
           element={
