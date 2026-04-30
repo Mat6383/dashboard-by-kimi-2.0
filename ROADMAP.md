@@ -286,6 +286,7 @@
 - [x] **P28#2 Fix route `/compare`** — Déplacement de `router.get('/compare')` avant `router.get('/:projectId')` dans `dashboard.routes.ts` pour éviter le match dynamique qui causait `NaN` sur `projectId`
 - [x] **P28#3 Fix `/projects` response** — Normalisation `projectsRaw?.result || []` dans `projects.routes.ts` pour retourner un tableau au lieu d'un objet `{ result: [...] }`
 - [x] **P28#4 Untrack fichiers générés** — Suppression de `__pycache__/` et `db-data/*.db` de l'index Git (déjà dans `.gitignore`)
+- [x] **P28#5 Label custom insensible à la casse** — Champ `labelCustom` dans le front (prérempli `TESTMO`) et le back. Récupération des labels via GraphQL + filtre en mémoire insensible à la casse. Additionnable avec les autres filtres (status, version, versionDeTest).
 
 ## 🚧 Sessions futures (P29+)
 
