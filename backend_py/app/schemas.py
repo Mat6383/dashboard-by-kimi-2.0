@@ -330,6 +330,100 @@ class ReportResponse(BaseModel):
     message: str | None = None
 
 
+# ── Analytics ───────────────────────────────────────────
+
+class AnalyticsInsightOut(BaseModel):
+    id: int
+    project_id: int
+    type: str
+    title: str
+    message: str
+    confidence: float
+    data: dict[str, Any] | None = None
+    read: bool
+    created_at: datetime | None = None
+
+
+class AnalyticsListResponse(BaseModel):
+    insights: list[AnalyticsInsightOut]
+
+
+class AnalyticsMarkReadPayload(BaseModel):
+    id: int
+
+
+class AnalyticsAnalyzePayload(BaseModel):
+    project_id: int
+
+
+# ── Retention ───────────────────────────────────────────
+
+class RetentionPolicyOut(BaseModel):
+    entity_type: str
+    retention_days: int
+    auto_archive: bool
+    auto_delete: bool
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class RetentionPolicyUpdate(BaseModel):
+    entity_type: str
+    retention_days: int | None = None
+    auto_archive: bool | None = None
+    auto_delete: bool | None = None
+
+
+class RetentionArchiveOut(BaseModel):
+    id: int
+    entity_type: str
+    entity_id: str | None = None
+    project_id: int | None = None
+    data: dict[str, Any] | None = None
+    archived_at: datetime | None = None
+
+
+class RetentionCycleResponse(BaseModel):
+    archived: int
+    deleted: int
+
+
+# ── Integrations ────────────────────────────────────────
+
+class IntegrationOut(BaseModel):
+    id: int
+    name: str
+    type: str
+    config: dict[str, Any] = Field(validation_alias="config_json")
+    enabled: bool
+    last_sync_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class IntegrationCreate(BaseModel):
+    name: str
+    type: str  # jira | azure_devops | generic_webhook | gitlab
+    config: dict[str, Any] = Field(default_factory=dict)
+    enabled: bool = True
+
+
+class IntegrationUpdate(BaseModel):
+    name: str | None = None
+    type: str | None = None
+    config: dict[str, Any] | None = None
+    enabled: bool | None = None
+
+
+class JiraIssueCreate(BaseModel):
+    id: int
+    summary: str
+    description: str
+    issue_type: str = "Bug"
+
+
 # ── Cache / Backup / Metrics ────────────────────────────
 
 class CacheClearResponse(BaseModel):

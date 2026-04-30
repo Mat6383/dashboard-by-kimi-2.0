@@ -46,6 +46,17 @@ backend/db/*.db
 backend/db/*.db-journal
 backend/db/*.db-shm
 backend/db/*.db-wal
+backend_py/db-data/*.db
+backend_py/db-data/*.db-journal
+backend_py/db-data/*.db-shm
+backend_py/db-data/*.db-wal
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+*.egg-info/
 
 # Coverage reports
 coverage/

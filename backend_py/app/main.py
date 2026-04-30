@@ -20,6 +20,7 @@ from app.database import init_databases
 from app.jobs.scheduler import start_scheduler, stop_scheduler
 from app.routers import (
     anomalies,
+    analytics,
     audit,
     auth,
     backups,
@@ -30,13 +31,16 @@ from app.routers import (
     export,
     feature_flags,
     health,
+    integrations,
     metrics,
     notifications,
     pdf,
     projects,
     reports,
+    retention,
     runs,
     sync,
+    trpc,
     webhooks,
     websocket,
 )
@@ -134,4 +138,8 @@ app.include_router(cache.router, prefix="/api/cache", tags=["cache"])
 app.include_router(backups.router, prefix="/api/admin/backups", tags=["backups"])
 app.include_router(docs.router, prefix="/api/docs", tags=["docs"])
 app.include_router(metrics.router, prefix="/api/metrics", tags=["metrics"])
+app.include_router(analytics.router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(retention.router, prefix="/api/retention", tags=["retention"])
+app.include_router(integrations.router, prefix="/api/integrations", tags=["integrations"])
+app.include_router(trpc.router, prefix="/trpc", tags=["trpc"])
 app.include_router(websocket.router, prefix="/ws", tags=["websocket"])

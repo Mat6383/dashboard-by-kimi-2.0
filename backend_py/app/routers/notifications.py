@@ -1,4 +1,4 @@
-"""Notification settings & tests."""
+"""Notification settings & active alerting."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from app.schemas import (
     NotificationSettingOut,
     NotificationTestPayload,
 )
+from app.services.alerting import alerting_service
 
 router = APIRouter()
 
@@ -50,5 +51,7 @@ async def update_settings(payload: NotificationSettingCreate, db: DBMain, admin=
 
 @router.post("/test")
 async def test_notification(payload: NotificationTestPayload, db: DBMain, admin=Depends(require_admin)):
-    # Placeholder: in a real implementation this would send an actual test message
-    return {"status": "sent", "channel": payload.channel, "destination": payload.destination}
+    result = await alerting_service.send_test(payload.channel, payload.destination)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Send failed"))
+    return result
