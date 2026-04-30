@@ -83,4 +83,57 @@ describe('useAuth', () => {
     expect(result.current.user?.email).toBe('callback@test.com');
     expect(result.current.isAdmin).toBe(false);
   });
+
+  it('consumeCallbackToken retourne false si pas de token', () => {
+    const { result } = renderHook(() => useAuth());
+    const ok = result.current.consumeCallbackToken(null);
+    expect(ok).toBe(false);
+  });
+
+  it('loginWithGitLab redirige vers GitLab', () => {
+    const hrefSpy = vi.fn();
+    const originalLocation = window.location;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: {
+        ...originalLocation,
+        set href(v) {
+          hrefSpy(v);
+        },
+      },
+    });
+    const { result } = renderHook(() => useAuth());
+    result.current.loginWithGitLab();
+    expect(hrefSpy).toHaveBeenCalled();
+    Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+  });
+
+  it('setToken supprime le token si null', () => {
+    localStorage.setItem('qa_dashboard_token', 'tok');
+    const { result } = renderHook(() => useAuth());
+    result.current.setToken(null);
+    expect(localStorage.getItem('qa_dashboard_token')).toBeNull();
+  });
+
+  it('fetchMe gère une réponse non-success', async () => {
+    localStorage.setItem('qa_dashboard_token', 'fake-jwt');
+    mockGet.mockResolvedValue({
+      data: { success: false, data: null },
+    });
+
+    const { result } = renderHook(() => useAuth());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it('fetchMe loggue un warning sur erreur réseau', async () => {
+    localStorage.setItem('qa_dashboard_token', 'fake-jwt');
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    mockGet.mockRejectedValue(new Error('Network down'));
+
+    const { result } = renderHook(() => useAuth());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('fetchMe error'), 'Network down');
+    warnSpy.mockRestore();
+  });
 });

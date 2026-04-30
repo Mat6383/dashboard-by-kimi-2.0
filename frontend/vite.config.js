@@ -69,7 +69,7 @@ export default defineConfig(({ mode }) => {
           'src/**/*.test.{js,jsx}',
           'src/**/*.spec.{js,jsx}',
           'src/styles/**',
-          'src/utils/docxGenerator.js',
+          'src/utils/docxGenerator.ts',
         ],
       },
     },

@@ -7,12 +7,12 @@
 import { createTRPCReact, httpBatchLink } from '@trpc/react-query';
 import type { AppRouter } from '~server/trpc/router';
 
-function getBaseUrl() {
+export function getBaseUrl() {
   if (typeof window !== 'undefined') return '';
   return import.meta.env.VITE_API_URL || 'http://localhost:3001';
 }
 
-function generateRequestId(): string {
+export function generateRequestId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 

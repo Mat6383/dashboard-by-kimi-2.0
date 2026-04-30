@@ -52,4 +52,28 @@ describe('Health Routes', () => {
     expect(typeof res.body.disk.usagePercent).toBe('number');
     expect(res.body.apiStats).toBeDefined();
   });
+
+  it('GET /api/health/ready utilise le cache aux appels suivants', async () => {
+    const res1 = await request(app).get('/api/health/ready');
+    expect(res1.status).toBe(200);
+    const res2 = await request(app).get('/api/health/ready');
+    expect(res2.status).toBe(200);
+    expect(res2.body.checks.syncHistoryDB.status).toBe('OK');
+  });
+
+  it('GET /api/health/ready gère une erreur DB', async () => {
+    const syncHistoryService = require('../../services/syncHistory.service');
+    const originalDb = syncHistoryService.db;
+    syncHistoryService.db = null;
+    syncHistoryService.initDb = jest.fn(() => {
+      throw new Error('DB init fail');
+    });
+
+    const res = await request(app).get('/api/health/ready');
+    expect(res.status).toBe(503);
+    expect(res.body.checks.syncHistoryDB.status).toBe('FAIL');
+
+    syncHistoryService.db = originalDb;
+    delete syncHistoryService.initDb;
+  });
 });
