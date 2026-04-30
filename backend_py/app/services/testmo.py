@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections import defaultdict
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
@@ -115,41 +116,167 @@ class TestmoService:
     async def get_project_metrics(self, project_id: int) -> dict[str, Any]:
         """Aggregate ISTQB/ITIL/LEAN KPIs from runs + sessions."""
         runs_data = await self.get_project_runs(project_id, active_only=True)
-        runs = runs_data.get("result", []) if isinstance(runs_data, dict) else runs_data
-        if not runs:
-            return {
-                "project_id": project_id,
-                "pass_rate": 0.0,
-                "completion_rate": 0.0,
-                "escape_rate": 0.0,
-                "detection_rate": 0.0,
-                "blocked_rate": 0.0,
-                "total_tests": 0,
-                "mttr_hours": 0.0,
-                "lead_time_days": 0.0,
-            }
+        runs = runs_data if isinstance(runs_data, list) else runs_data.get("result", [])
 
-        total_tests = sum(r.get("cases_count", 0) for r in runs)
-        passed = sum(r.get("passed_count", 0) for r in runs)
-        failed = sum(r.get("failed_count", 0) for r in runs)
-        blocked = sum(r.get("blocked_count", 0) for r in runs)
-        completed = passed + failed
-
-        pass_rate = (passed / completed * 100) if completed else 0.0
-        completion_rate = (completed / total_tests * 100) if total_tests else 0.0
-        blocked_rate = (blocked / total_tests * 100) if total_tests else 0.0
-
-        return {
-            "project_id": project_id,
-            "pass_rate": round(pass_rate, 2),
-            "completion_rate": round(completion_rate, 2),
-            "escape_rate": 0.0,
-            "detection_rate": 0.0,
-            "blocked_rate": round(blocked_rate, 2),
-            "total_tests": total_tests,
-            "mttr_hours": 0.0,
-            "lead_time_days": 0.0,
+        # Aggregated counters
+        aggregated = {
+            "total": 0,
+            "untested": 0,
+            "passed": 0,
+            "failed": 0,
+            "retest": 0,
+            "blocked": 0,
+            "skipped": 0,
+            "wip": 0,
+            "completed": 0,
+            "success": 0,
+            "failure": 0,
         }
+
+        for run in runs:
+            aggregated["total"] += run.get("total_count", 0)
+            aggregated["untested"] += run.get("untested_count", 0)
+            aggregated["passed"] += run.get("status1_count", 0)
+            aggregated["failed"] += run.get("status2_count", 0)
+            aggregated["retest"] += run.get("status3_count", 0)
+            aggregated["blocked"] += run.get("status4_count", 0)
+            aggregated["skipped"] += run.get("status5_count", 0)
+            aggregated["wip"] += run.get("status7_count", 0)
+            aggregated["completed"] += run.get("completed_count", 0)
+            aggregated["success"] += run.get("success_count", 0)
+            aggregated["failure"] += run.get("failure_count", 0)
+
+        total = aggregated["total"] or 1  # avoid division by zero
+        completed = aggregated["completed"] or 1
+
+        def _pct(num: float, den: float) -> float:
+            return round((num / den) * 100, 2) if den else 0.0
+
+        completion_rate = _pct(aggregated["completed"], total)
+        pass_rate = _pct(aggregated["passed"], completed)
+        failure_rate = _pct(aggregated["failed"], completed)
+        blocked_rate = _pct(aggregated["blocked"], total)
+        skipped_rate = _pct(aggregated["skipped"], total)
+        test_efficiency = _pct(aggregated["passed"], aggregated["passed"] + aggregated["failed"])
+
+        # ITIL metrics
+        lead_time = 0.0
+        mttr = 0.0
+        if runs:
+            lead_time = round(
+                sum(
+                    (datetime.now(timezone.utc).timestamp() - datetime.fromisoformat(r["created_at"].replace("Z", "+00:00")).timestamp()) / 3600
+                    for r in runs if r.get("created_at")
+                )
+                / len(runs),
+                1,
+            )
+            mttr = round(lead_time * (aggregated["failed"] / (aggregated["passed"] or 1)), 1)
+
+        result_metrics: dict[str, Any] = {
+            "raw": aggregated,
+            "completionRate": completion_rate,
+            "passRate": pass_rate,
+            "failureRate": failure_rate,
+            "blockedRate": blocked_rate,
+            "skippedRate": skipped_rate,
+            "testEfficiency": test_efficiency,
+            "statusDistribution": {
+                "labels": ["Passed", "Failed", "Retest", "Blocked", "Skipped", "Untested", "WIP"],
+                "values": [
+                    aggregated["passed"],
+                    aggregated["failed"],
+                    aggregated["retest"],
+                    aggregated["blocked"],
+                    aggregated["skipped"],
+                    aggregated["untested"],
+                    aggregated["wip"],
+                ],
+                "colors": ["#10B981", "#EF4444", "#8B5CF6", "#F59E0B", "#6B7280", "#9CA3AF", "#3B82F6"],
+            },
+            "runsCount": len(runs),
+            "runs": [
+                {
+                    "id": run["id"],
+                    "name": run["name"],
+                    "total": run.get("total_count", 0),
+                    "completed": run.get("completed_count", 0),
+                    "passed": run.get("status1_count", 0),
+                    "failed": run.get("status2_count", 0),
+                    "blocked": run.get("status4_count", 0),
+                    "wip": run.get("status7_count", 0),
+                    "untested": run.get("untested_count", 0),
+                    "completionRate": _pct(run.get("completed_count", 0), run.get("total_count", 0)),
+                    "passRate": _pct(run.get("status1_count", 0), run.get("completed_count", 0)),
+                    "created_at": run.get("created_at"),
+                    "milestone": run.get("milestone_id"),
+                    "isExploratory": False,
+                }
+                for run in runs
+            ],
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "itil": {
+                "mttr": mttr,
+                "mttrTarget": 72,
+                "leadTime": lead_time,
+                "leadTimeTarget": 120,
+                "changeFailRate": failure_rate,
+                "changeFailRateTarget": 20,
+            },
+            "lean": {
+                "wipTotal": aggregated["wip"],
+                "wipTarget": 20,
+                "activeRuns": len(runs),
+                "closedRuns": 0,
+            },
+            "istqb": {
+                "avgPassRate": pass_rate,
+                "passRateTarget": 80,
+                "milestonesCompleted": 0,
+                "milestonesTotal": 1,
+                "blockRate": blocked_rate,
+                "blockRateTarget": 5,
+            },
+        }
+
+        result_metrics["slaStatus"] = self._check_sla(result_metrics)
+        return result_metrics
+
+    def _check_sla(self, metrics: dict[str, Any]) -> dict[str, Any]:
+        alerts = []
+        if metrics["passRate"] < 85:
+            alerts.append({
+                "severity": "critical",
+                "metric": "Pass Rate",
+                "value": metrics["passRate"],
+                "threshold": 85,
+                "message": f"Pass rate critique: {metrics['passRate']}% < 85%",
+            })
+        elif metrics["passRate"] < 90:
+            alerts.append({
+                "severity": "warning",
+                "metric": "Pass Rate",
+                "value": metrics["passRate"],
+                "threshold": 90,
+                "message": f"Pass rate en warning: {metrics['passRate']}% < 90%",
+            })
+        if metrics["blockedRate"] > 5:
+            alerts.append({
+                "severity": "warning",
+                "metric": "Blocked Rate",
+                "value": metrics["blockedRate"],
+                "threshold": 5,
+                "message": f"Trop de tests bloqués: {metrics['blockedRate']}% > 5%",
+            })
+        if metrics["completionRate"] < 80:
+            alerts.append({
+                "severity": "warning",
+                "metric": "Completion Rate",
+                "value": metrics["completionRate"],
+                "threshold": 80,
+                "message": f"Avancement insuffisant: {metrics['completionRate']}% < 80%",
+            })
+        return {"ok": len(alerts) == 0, "alerts": alerts}
 
     async def get_escape_and_detection_rates(
         self, project_id: int, preprod_milestones: list[int] | None = None, prod_milestones: list[int] | None = None
