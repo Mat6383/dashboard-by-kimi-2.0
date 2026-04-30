@@ -10,7 +10,8 @@ import { validateParams, projectIdParam } from '../validators';
  */
 router.get('/', async (req, res) => {
   try {
-    const projects = await testmoService.getProjects();
+    const projectsRaw = await testmoService.getProjects();
+    const projects = Array.isArray(projectsRaw) ? projectsRaw : projectsRaw?.result || [];
 
     res.json({
       success: true,

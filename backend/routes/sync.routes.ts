@@ -85,7 +85,7 @@ router.get('/:projectId/iterations', validateParams(syncProjectIdParam), async (
  */
 router.post('/preview', validateBody(syncPreviewBody), async (req, res) => {
   try {
-    const { projectId, iterationName } = req.body;
+    const { projectId, iterationName, status, version, versionDeTest } = req.body;
 
     const project = PROJECTS.find((p) => p.id === projectId);
     if (!project) {
@@ -99,7 +99,7 @@ router.post('/preview', validateBody(syncPreviewBody), async (req, res) => {
     }
 
     logger.info(`Preview: ${project.label} / "${iterationName}"`);
-    const preview = await syncService.previewIteration(iterationName, project);
+    const preview = await syncService.previewIteration(iterationName, project, { status, version, versionDeTest });
 
     // Enregistrer le preview en historique
     syncHistoryService.addRun(project.label, iterationName, 'preview', {
@@ -121,7 +121,7 @@ router.post('/preview', validateBody(syncPreviewBody), async (req, res) => {
  * Exécute la synchronisation avec streaming SSE
  */
 router.post('/execute', validateBody(syncExecuteBody), auditAction('sync.execute'), async (req, res) => {
-  const { projectId, iterationName } = req.body;
+  const { projectId, iterationName, status, version, versionDeTest } = req.body;
 
   const project = PROJECTS.find((p) => p.id === projectId);
   if (!project) {
@@ -155,7 +155,7 @@ router.post('/execute', validateBody(syncExecuteBody), auditAction('sync.execute
   try {
     logger.info(`Execute: ${project.label} / "${iterationName}"`);
 
-    const stats = await syncService.syncIteration(iterationName, { projectConfig: project }, (type: any, data: any) =>
+    const stats = await syncService.syncIteration(iterationName, { projectConfig: project, status, version, versionDeTest }, (type: any, data: any) =>
       send(type, data)
     );
 

@@ -44,6 +44,9 @@ export default function Dashboard6({ isDark }) {
   const [iterSearch, setIterSearch] = useState('');
   const [selectedIter, setSelectedIter] = useState('');
   const [loadingIters, setLoadingIters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('');
+  const [versionFilter, setVersionFilter] = useState('');
+  const [versionDeTestFilter, setVersionDeTestFilter] = useState('');
   const [preview, setPreview] = useState(null); // { iteration, folder, issues, summary }
   const [logLines, setLogLines] = useState([]); // événements SSE
   const [finalStats, setFinalStats] = useState(null);
@@ -149,7 +152,11 @@ export default function Dashboard6({ isDark }) {
     setState('analyzing');
 
     try {
-      const data = await apiService.previewSync(selectedProject, selectedIter);
+      const filters: any = {};
+      if (statusFilter.trim()) filters.status = statusFilter.trim();
+      if (versionFilter.trim()) filters.version = versionFilter.trim();
+      if (versionDeTestFilter.trim()) filters.versionDeTest = versionDeTestFilter.trim();
+      const data = await apiService.previewSync(selectedProject, selectedIter, filters);
       setPreview(data);
       setState('preview');
     } catch (err) {
@@ -173,10 +180,15 @@ export default function Dashboard6({ isDark }) {
     const ctrl = new AbortController();
     abortCtrlRef.current = ctrl;
 
+    const body: any = { projectId: selectedProject, iterationName: selectedIter };
+    if (statusFilter.trim()) body.status = statusFilter.trim();
+    if (versionFilter.trim()) body.version = versionFilter.trim();
+    if (versionDeTestFilter.trim()) body.versionDeTest = versionDeTestFilter.trim();
+
     fetch(`${API_BASE}/sync/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ projectId: selectedProject, iterationName: selectedIter }),
+      body: JSON.stringify(body),
       signal: ctrl.signal,
     })
       .then(async (response) => {
@@ -394,6 +406,40 @@ export default function Dashboard6({ isDark }) {
                   >
                     <RefreshCw size={14} className={loadingIters ? 'd6-spinner' : ''} />
                   </button>
+                </div>
+              </div>
+
+              {/* Filtres avancés */}
+              <div className="d6-config-row" style={{ marginTop: '0.5rem' }}>
+                <div className="d6-field">
+                  <label>Status GitLab</label>
+                  <input
+                    className="d6-input"
+                    placeholder="Ex: Test TODO"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    disabled={state === 'syncing' || state === 'analyzing'}
+                  />
+                </div>
+                <div className="d6-field">
+                  <label>Version Prod</label>
+                  <input
+                    className="d6-input"
+                    placeholder="Ex: R06 - Pilot"
+                    value={versionFilter}
+                    onChange={(e) => setVersionFilter(e.target.value)}
+                    disabled={state === 'syncing' || state === 'analyzing'}
+                  />
+                </div>
+                <div className="d6-field">
+                  <label>Version de test</label>
+                  <input
+                    className="d6-input"
+                    placeholder="Ex: R06 - run 1"
+                    value={versionDeTestFilter}
+                    onChange={(e) => setVersionDeTestFilter(e.target.value)}
+                    disabled={state === 'syncing' || state === 'analyzing'}
+                  />
                 </div>
               </div>
 

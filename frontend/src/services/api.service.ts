@@ -317,9 +317,17 @@ const apiService = {
   /**
    * Lance un aperçu (dry-run) de synchronisation
    */
-  async previewSync(projectId: string, iterationName: string): Promise<SyncPreviewResult> {
+  async previewSync(
+    projectId: string,
+    iterationName: string,
+    filters: { status?: string; version?: string; versionDeTest?: string } = {}
+  ): Promise<SyncPreviewResult> {
     return apiCall('Preview Sync', async () => {
-      const response = await apiClient.post('/sync/preview', { project_id: projectId, iteration_name: iterationName }, { timeout: 60000 });
+      const response = await apiClient.post(
+        '/sync/preview',
+        { project_id: projectId, iteration_name: iterationName, ...filters },
+        { timeout: 60000 }
+      );
       return response.data.data;
     });
   },

@@ -663,6 +663,108 @@ class GitLabService {
   }
 
   /**
+   * Récupère les issues d'une itération avec filtres optionnels :
+   * - status natif GitLab (Work Item status)
+   * - Version Prod (custom field)
+   * - Version de test (custom field)
+   *
+   * @param {number|string} projectId  - ID du projet GitLab
+   * @param {number|string} iterationId - ID de l'itération
+   * @param {Object}        options
+   * @param {string}        options.status         - Nom du status natif (ex: "Test TODO")
+   * @param {string}        options.version        - Valeur Version Prod (ex: "R06 - Pilot")
+   * @param {string}        options.versionDeTest  - Valeur Version de test
+   * @returns {Array} Issues filtrées
+   */
+  async getIssuesByFilters(projectId: any, iterationId: any, options: any = {}) {
+    const { status, version, versionDeTest } = options;
+
+    try {
+      // 1. Récupérer toutes les issues de l'itération (sans filtre label)
+      const allIssues = await this._getPaginated(`/projects/${projectId}/issues`, {
+        iteration_id: iterationId,
+        state: 'all',
+        scope: 'all',
+      });
+
+      if (!allIssues.length) return [];
+
+      // 2. Si aucun filtre avancé, retourner tel quel
+      if (!status && !version && !versionDeTest) {
+        logger.info(`GitLab: ${allIssues.length} ticket(s) pour iteration_id=${iterationId} (project=${projectId})`);
+        return allIssues;
+      }
+
+      // 3. Récupérer status + custom fields via GraphQL
+      const ids = allIssues.map((i: any) => `gid://gitlab/WorkItem/${i.id}`);
+      const query = `
+        query GetStatusAndVersions($ids: [ID!]!) {
+          nodes(ids: $ids) {
+            ... on WorkItem {
+              id
+              widgets {
+                type
+                ... on WorkItemWidgetStatus {
+                  status { id name }
+                }
+                ... on WorkItemWidgetCustomFields {
+                  customFieldValues {
+                    customField { id name }
+                    ... on WorkItemSelectFieldValue { selectedOptions { value } }
+                  }
+                }
+              }
+            }
+          }
+        }`;
+
+      const data = await this.executeGraphQL(query, { ids });
+      const infoByGid = new Map();
+
+      for (const node of data.nodes || []) {
+        const info: any = { statusName: null, versionProd: null, versionTest: null };
+        for (const widget of node?.widgets || []) {
+          if (widget.status) {
+            info.statusName = widget.status.name;
+          }
+          if (Array.isArray(widget.customFieldValues)) {
+            for (const cf of widget.customFieldValues) {
+              if (cf.customField?.name === 'Version Prod') {
+                info.versionProd = cf.selectedOptions?.[0]?.value || null;
+              }
+              if (cf.customField?.name === 'Version de test') {
+                info.versionTest = cf.selectedOptions?.[0]?.value || null;
+              }
+            }
+          }
+        }
+        infoByGid.set(node.id, info);
+      }
+
+      // 4. Filtrer en mémoire
+      const filtered = allIssues.filter((issue: any) => {
+        const gid = `gid://gitlab/WorkItem/${issue.id}`;
+        const info = infoByGid.get(gid);
+        if (!info) return false;
+
+        if (status && info.statusName !== status) return false;
+        if (version && info.versionProd !== version) return false;
+        if (versionDeTest && info.versionTest !== versionDeTest) return false;
+
+        return true;
+      });
+
+      logger.info(
+        `GitLab: ${filtered.length}/${allIssues.length} ticket(s) après filtre (status="${status || '*'}", version="${version || '*'}", versionDeTest="${versionDeTest || '*'}")`
+      );
+      return filtered;
+    } catch (error: any) {
+      logger.error(`GitLab: Erreur getIssuesByFilters:`, error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Convertit time_estimate (secondes) en format Testmo
    * Ex: 1800 → "30m", 3600 → "1h", 5400 → "1h 30m"
    *
@@ -786,6 +888,11 @@ wrapMethod(instance, 'findIteration', gitlabBreaker, {
 });
 wrapMethod(instance, 'getIssuesByLabelAndIteration', gitlabBreaker, {
   label: 'gitlab.getIssuesByLabelAndIteration',
+  maxRetries: 2,
+  baseDelayMs: 600,
+});
+wrapMethod(instance, 'getIssuesByFilters', gitlabBreaker, {
+  label: 'gitlab.getIssuesByFilters',
   maxRetries: 2,
   baseDelayMs: 600,
 });

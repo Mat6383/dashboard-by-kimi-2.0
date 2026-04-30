@@ -58,6 +58,57 @@ router.get('/multi', async (req, res) => {
 });
 
 /**
+ * Comparaison multi-projets (radar chart data)
+ */
+router.get('/compare', async (req, res) => {
+  try {
+    const projectIds = ((req.query.projectIds || '') as string)
+      .split(',')
+      .map(Number)
+      .filter((id) => !isNaN(id) && id > 0);
+
+    if (projectIds.length < 2) {
+      return res.status(400).json({ success: false, error: 'Au moins 2 projectIds requis' });
+    }
+    if (projectIds.length > 4) {
+      return res.status(400).json({ success: false, error: 'Maximum 4 projets comparables' });
+    }
+
+    const comparisons = await Promise.all(
+      projectIds.map(async (id) => {
+        try {
+          const metrics = await testmoService.getProjectMetrics(id);
+          return {
+            projectId: id,
+            projectName: (metrics as any).projectName || `Projet ${id}`,
+            passRate: metrics.passRate ?? 0,
+            completionRate: metrics.completionRate ?? 0,
+            escapeRate: (metrics as any).escapeRate ?? 0,
+            detectionRate: (metrics as any).detectionRate ?? 0,
+            blockedRate: metrics.blockedRate ?? 0,
+          };
+        } catch (err: any) {
+          logger.warn(`[Compare] Échec metrics projet ${id}:`, err.message);
+          return {
+            projectId: id,
+            projectName: `Projet ${id}`,
+            passRate: 0,
+            completionRate: 0,
+            escapeRate: 0,
+            detectionRate: 0,
+            blockedRate: 0,
+          };
+        }
+      })
+    );
+
+    res.json({ success: true, data: comparisons, timestamp: new Date().toISOString() });
+  } catch (error) {
+    res.status(500).json(safeErrorResponse(error, 'GET /api/dashboard/compare'));
+  }
+});
+
+/**
  * Métriques ISTQB complètes d'un projet
  * ISTQB Section 5.4.2: Test Summary Report
  * Endpoint principal du dashboard
@@ -153,57 +204,6 @@ router.get('/:projectId/trends', validateParams(projectIdParam), async (req, res
     res.json({ success: true, data: trends, timestamp: new Date().toISOString() });
   } catch (error) {
     res.status(500).json(safeErrorResponse(error, `GET /api/dashboard/${req.params.projectId}/trends`));
-  }
-});
-
-/**
- * Comparaison multi-projets (radar chart data)
- */
-router.get('/compare', async (req, res) => {
-  try {
-    const projectIds = ((req.query.projectIds || '') as string)
-      .split(',')
-      .map(Number)
-      .filter((id) => !isNaN(id) && id > 0);
-
-    if (projectIds.length < 2) {
-      return res.status(400).json({ success: false, error: 'Au moins 2 projectIds requis' });
-    }
-    if (projectIds.length > 4) {
-      return res.status(400).json({ success: false, error: 'Maximum 4 projets comparables' });
-    }
-
-    const comparisons = await Promise.all(
-      projectIds.map(async (id) => {
-        try {
-          const metrics = await testmoService.getProjectMetrics(id);
-          return {
-            projectId: id,
-            projectName: (metrics as any).projectName || `Projet ${id}`,
-            passRate: metrics.passRate ?? 0,
-            completionRate: metrics.completionRate ?? 0,
-            escapeRate: (metrics as any).escapeRate ?? 0,
-            detectionRate: (metrics as any).detectionRate ?? 0,
-            blockedRate: metrics.blockedRate ?? 0,
-          };
-        } catch (err: any) {
-          logger.warn(`[Compare] Échec metrics projet ${id}:`, err.message);
-          return {
-            projectId: id,
-            projectName: `Projet ${id}`,
-            passRate: 0,
-            completionRate: 0,
-            escapeRate: 0,
-            detectionRate: 0,
-            blockedRate: 0,
-          };
-        }
-      })
-    );
-
-    res.json({ success: true, data: comparisons, timestamp: new Date().toISOString() });
-  } catch (error) {
-    res.status(500).json(safeErrorResponse(error, 'GET /api/dashboard/compare'));
   }
 });
 
