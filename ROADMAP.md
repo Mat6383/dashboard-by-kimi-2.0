@@ -7,7 +7,7 @@
 ## Version actuelle
 
 **Branch :** `main`  
-**Commits récents :** P0→P26 livrés (avril 2026)  
+**Commits récents :** P0→P28 livrés (avril 2026)  
 **Tests :** 595/595 backend ✅ | 217/217 frontend ✅ | Build ✅ | TypeCheck backend & frontend ✅ | Lint 0 ✅
 
 ---
@@ -280,7 +280,14 @@
 - [x] **P5#3 Frontend bridge validation** — `trpc/client.ts` documenté pour pointer sur `/trpc` du backend Python, `vite.config.js` proxy inchangé, build OK
 - [x] **P5#4 Migrations Alembic** — `8a0998e7f55f` : indexes `ix_integrations_type` + `ix_integrations_enabled`
 
-## 🚧 Sessions futures (P28+)
+## 🚀 P28 — Sync GitLab avancée & Corrections (Session actuelle)
+
+- [x] **P28#1 Filtres sync GitLab → Testmo** — Champs `status`, `version` (Version Prod), `versionDeTest` (Version de test) dans le front (`Dashboard6.tsx`) et le back (`sync.routes.ts`, `sync.service.ts`, `gitlab.service.ts`). Filtrage via GraphQL des work items GitLab. Fallback label `test::TODO` conservé.
+- [x] **P28#2 Fix route `/compare`** — Déplacement de `router.get('/compare')` avant `router.get('/:projectId')` dans `dashboard.routes.ts` pour éviter le match dynamique qui causait `NaN` sur `projectId`
+- [x] **P28#3 Fix `/projects` response** — Normalisation `projectsRaw?.result || []` dans `projects.routes.ts` pour retourner un tableau au lieu d'un objet `{ result: [...] }`
+- [x] **P28#4 Untrack fichiers générés** — Suppression de `__pycache__/` et `db-data/*.db` de l'index Git (déjà dans `.gitignore`)
+
+## 🚧 Sessions futures (P29+)
 
 - [x] **P26 — Analytics & Insights IA** : Table `analytics_insights`, service de détection patterns (baisse pass rate, stagnation, blocage, échappement), job cron quotidien 3h, route tRPC, composant `AnalyticsPanel`, tests 6/6 ✅
 - [x] **P26 — Data Retention & Archivage** : Tables `retention_policies` + `archived_snapshots`, cycle d'archivage auto par entité, job cron hebdomadaire, UI admin `/admin/retention`, tests 4/4 ✅
