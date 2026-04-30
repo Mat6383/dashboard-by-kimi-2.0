@@ -7,8 +7,8 @@
 ## Version actuelle
 
 **Branch :** `main`  
-**Commits récents :** P0→P16 livrés (avril 2026)  
-**Tests :** 489/491 backend ✅ (2 health préexistants) | 162/162 frontend ✅ | Build ✅ | TypeCheck backend & frontend ✅
+**Commits récents :** P0→P26 livrés (avril 2026)  
+**Tests :** 595/595 backend ✅ | 217/217 frontend ✅ | Build ✅ | TypeCheck backend & frontend ✅ | Lint 0 ✅
 
 ---
 
@@ -126,8 +126,8 @@
 
 | Métrique             | Actuel       | Cible |
 | -------------------- | ------------ | ----- |
-| Tests backend        | 595 / 595 ✅ | 600+  |
-| Tests frontend       | 217 / 217 ✅ | 230+  |
+| Tests backend        | 595 / 595 ✅ | 610+  |
+| Tests frontend       | 217 / 217 ✅ | 240+  |
 | Couverture backend   | 80 % ✅      | 70 %  |
 | Couverture frontend  | 87 % ✅      | 50 %  |
 | Vulnérabilités npm   | 0 ✅         | 0     |
@@ -264,7 +264,16 @@
 
 ---
 
-## 🚧 Sessions futures (P27+)
+## 🚀 P27 — Connecteur GitLab administrable (Prochaine session)
+
+- [ ] **P27#1 Migration SQL** — Ajouter `gitlab` au `CHECK(type)` de la table `integrations`
+- [ ] **P27#2 Service `gitlabConnector.service.ts`** — Connexion test + listage projets/issues/MRs via token perso (non global). Retry + circuit breaker réutilisés depuis `gitlab.service.ts`
+- [ ] **P27#3 Route tRPC** — CRUD + test connexion + sélection projet GitLab par connector ID
+- [ ] **P27#4 UI admin** — Formulaire GitLab dans `IntegrationsAdmin.tsx` (URL, token, projet par défaut), test live, icône GitLab
+- [ ] **P27#5 Refactor `gitlab.service.ts`** — Utiliser le connector GitLab actif au lieu des vars d'env si un connector est configuré (fallback `.env` pour rétro-compatibilité)
+- [ ] **P27#6 Tests** — Service + route + composant (cible 6/6)
+
+## 🚧 Sessions futures (P28+)
 
 - [x] **P26 — Analytics & Insights IA** : Table `analytics_insights`, service de détection patterns (baisse pass rate, stagnation, blocage, échappement), job cron quotidien 3h, route tRPC, composant `AnalyticsPanel`, tests 6/6 ✅
 - [x] **P26 — Data Retention & Archivage** : Tables `retention_policies` + `archived_snapshots`, cycle d'archivage auto par entité, job cron hebdomadaire, UI admin `/admin/retention`, tests 4/4 ✅

@@ -53,4 +53,20 @@ describe('IntegrationService', () => {
     const result = await integrationService.sendWebhook({}, { event: 'test' });
     expect(result.success).toBe(false);
   });
+
+  test('create avec type gitlab', () => {
+    const created = integrationService.create({
+      name: 'GitLab Staging',
+      type: 'gitlab',
+      config: { baseUrl: 'https://gitlab.example.com', token: 'glpat-xxx' },
+      enabled: true,
+    });
+    expect(created.id).toBeDefined();
+    expect(created.type).toBe('gitlab');
+  });
+
+  test('testGitLabConnection échoue sans credentials', async () => {
+    const result = await integrationService.testGitLabConnection({});
+    expect(result.success).toBe(false);
+  });
 });

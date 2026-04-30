@@ -18,7 +18,7 @@ export const integrationsRouter = router({
   create: publicProcedure
     .input(z.object({
       name: z.string().min(1),
-      type: z.enum(['jira', 'azure_devops', 'generic_webhook']),
+      type: z.enum(['jira', 'azure_devops', 'generic_webhook', 'gitlab']),
       config: z.record(z.string(), z.any()),
       enabled: z.boolean().optional(),
     }))
@@ -60,6 +60,9 @@ export const integrationsRouter = router({
       }
       if (integration.type === 'generic_webhook') {
         return integrationService.sendWebhook(integration.config, { event: 'test', timestamp: new Date().toISOString() });
+      }
+      if (integration.type === 'gitlab') {
+        return integrationService.testGitLabConnection(integration.config);
       }
       return { success: false, message: 'Type non supporté pour le test' };
     }),

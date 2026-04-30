@@ -644,6 +644,70 @@ class GitLabService {
     }
   }
 
+  /**
+   * Factory — crée une instance GitLabService configurée depuis un objet.
+   * Utilisé par le connector administrable et les tests.
+   */
+  static fromConfig(config: {
+    baseURL: string;
+    token: string;
+    writeToken?: string;
+    projectId?: string;
+    verifySsl?: boolean;
+    timeout?: number;
+  }): GitLabService {
+    const svc = new (GitLabService as any)();
+    svc.baseURL = config.baseURL;
+    svc.token = config.token;
+    svc.writeToken = config.writeToken || config.token;
+    svc.projectId = config.projectId || null;
+    svc.verifySsl = config.verifySsl !== false;
+    svc.timeout = config.timeout || 10000;
+    svc.apiDelay = 300;
+
+    const httpsAgent =
+      svc.verifySsl === false ? new https.Agent({ rejectUnauthorized: false }) : undefined;
+
+    svc.client = axios.create({
+      baseURL: `${svc.baseURL}/api/v4`,
+      timeout: svc.timeout,
+      headers: {
+        'PRIVATE-TOKEN': svc.token,
+        'Content-Type': 'application/json',
+      },
+      ...(httpsAgent && { httpsAgent }),
+    });
+
+    svc.writeClient = axios.create({
+      baseURL: `${svc.baseURL}/api/v4`,
+      timeout: svc.timeout,
+      headers: {
+        'PRIVATE-TOKEN': svc.writeToken,
+        'Content-Type': 'application/json',
+      },
+      ...(httpsAgent && { httpsAgent }),
+    });
+
+    instrumentAxios(svc.client, 'gitlab');
+    instrumentAxios(svc.writeClient, 'gitlab-write');
+
+    svc.client.interceptors.response.use(
+      (response: any) => {
+        logger.info(`GitLab API Success: ${response.config.method.toUpperCase()} ${response.config.url}`);
+        return response;
+      },
+      (error: any) => {
+        logger.error(`GitLab API Error: ${error.response?.status} ${error.config?.url}`, {
+          status: error.response?.status,
+          data: error.response?.data,
+        });
+        return Promise.reject(error);
+      }
+    );
+
+    return svc;
+  }
+
   static formatEstimate(seconds: any) {
     if (!seconds || seconds <= 0) return '';
     const hours = Math.floor(seconds / 3600);

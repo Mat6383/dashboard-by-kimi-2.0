@@ -4,17 +4,31 @@ import { useIntegrations } from '../hooks/queries/useIntegrations';
 import { trpc } from '../trpc/client';
 import { Plug, Plus, Trash2, TestTube, Globe, Webhook, CheckCircle, XCircle } from 'lucide-react';
 
+const GitLabIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 32 32" fill="currentColor">
+    <path d="M31.46 12.6l-2.1-6.47a1.1 1.1 0 00-2.1 0l-2.1 6.47H17.5l-2.1-6.47a1.1 1.1 0 00-2.1 0l-2.1 6.47H6.83L4.74 6.13a1.1 1.1 0 00-2.1 0L.54 12.6a1.42 1.42 0 000 1l4.4 13.54a1.1 1.1 0 001 .76h20.12a1.1 1.1 0 001-.76l4.4-13.54a1.42 1.42 0 000-1z"/>
+  </svg>
+);
+
 const typeIcons: Record<string, React.ReactNode> = {
   jira: <Globe size={16} />,
   azure_devops: <Plug size={16} />,
   generic_webhook: <Webhook size={16} />,
+  gitlab: <GitLabIcon />,
 };
 
 export default function IntegrationsAdmin({ isDark }: { isDark: boolean }) {
   const { t } = useTranslation();
   const { data: integrations, isLoading } = useIntegrations();
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', type: 'jira' as const, config: '{}', enabled: true });
+  const configTemplates: Record<string, string> = {
+    jira: JSON.stringify({ baseUrl: 'https://jira.example.com', username: '', apiToken: '', projectKey: '' }, null, 2),
+    azure_devops: JSON.stringify({ org: '', project: '', pat: '' }, null, 2),
+    generic_webhook: JSON.stringify({ url: '', secret: '' }, null, 2),
+    gitlab: JSON.stringify({ baseUrl: 'https://gitlab.example.com', token: '', projectId: '' }, null, 2),
+  };
+
+  const [form, setForm] = useState({ name: '', type: 'jira' as const, config: configTemplates['jira'], enabled: true });
   const create = trpc.integrations.create.useMutation();
   const deleteMutation = trpc.integrations.delete.useMutation();
   const testConnection = trpc.integrations.testConnection.useMutation();
@@ -29,7 +43,7 @@ export default function IntegrationsAdmin({ isDark }: { isDark: boolean }) {
           onSuccess: () => {
             utils.integrations.list.invalidate();
             setShowForm(false);
-            setForm({ name: '', type: 'jira', config: '{}', enabled: true });
+            setForm({ name: '', type: 'jira', config: configTemplates['jira'], enabled: true });
           },
         }
       );
@@ -61,10 +75,17 @@ export default function IntegrationsAdmin({ isDark }: { isDark: boolean }) {
             <h3>{t('integrations.new', 'Nouvelle intégration')}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
               <input placeholder={t('integrations.name', 'Nom')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as any })}>
+              <select
+                value={form.type}
+                onChange={(e) => {
+                  const newType = e.target.value;
+                  setForm({ ...form, type: newType as any, config: configTemplates[newType] || '{}' });
+                }}
+              >
                 <option value="jira">Jira</option>
                 <option value="azure_devops">Azure DevOps</option>
                 <option value="generic_webhook">Webhook générique</option>
+                <option value="gitlab">GitLab</option>
               </select>
               <textarea placeholder="Config JSON" rows={6} value={form.config} onChange={(e) => setForm({ ...form, config: e.target.value })} />
               <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

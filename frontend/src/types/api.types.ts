@@ -26,6 +26,18 @@ export interface FeatureFlagUpdateInput {
   rolloutPercentage?: number;
 }
 
+// ─── Integrations ────────────────────────────────────────────────────────────
+export interface Integration {
+  id: number;
+  name: string;
+  type: 'jira' | 'azure_devops' | 'generic_webhook' | 'gitlab';
+  config: Record<string, unknown>;
+  enabled: boolean;
+  last_sync_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ─── Webhooks ────────────────────────────────────────────────────────────────
 export interface WebhookSubscription {
   id: number;

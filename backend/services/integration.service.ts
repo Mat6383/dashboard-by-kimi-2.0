@@ -8,7 +8,7 @@ const DB_PATH = path.join(DB_DIR, 'sync-history.db');
 
 interface IntegrationInput {
   name: string;
-  type: 'jira' | 'azure_devops' | 'generic_webhook';
+  type: 'jira' | 'azure_devops' | 'generic_webhook' | 'gitlab';
   config: Record<string, unknown>;
   enabled?: boolean;
 }
@@ -155,6 +155,19 @@ class IntegrationService {
     } catch (e: any) {
       return { success: false, message: e.message };
     }
+  }
+
+  /**
+   * Teste la connectivité d'une intégration GitLab
+   */
+  async testGitLabConnection(config: any): Promise<{ success: boolean; message: string }> {
+    const { default: gitlabConnectorService } = await import('./gitlabConnector.service');
+    return gitlabConnectorService.testConnection({
+      baseUrl: config.baseUrl,
+      token: config.token,
+      projectId: config.projectId,
+      verifySsl: config.verifySsl,
+    });
   }
 
   /**
