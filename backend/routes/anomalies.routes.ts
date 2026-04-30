@@ -27,4 +27,3 @@ router.get('/:projectId', validateParams(projectIdParam), async (req, res) => {
 });
 
 export default router;
-module.exports = exports.default;

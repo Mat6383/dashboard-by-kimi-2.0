@@ -148,4 +148,3 @@ class AuditService {
 }
 
 export default new AuditService();
-module.exports = exports.default;

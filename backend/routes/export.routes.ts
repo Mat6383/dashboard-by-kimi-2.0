@@ -78,4 +78,3 @@ router.post('/excel', requireAuth, auditAction('export.excel'), async (req, res)
 });
 
 export default router;
-module.exports = exports.default;

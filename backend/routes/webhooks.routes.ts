@@ -105,4 +105,3 @@ router.delete('/:id', requireAuth, requireRole('admin'), validateParams(webhookI
 });
 
 export default router;
-module.exports = exports.default;

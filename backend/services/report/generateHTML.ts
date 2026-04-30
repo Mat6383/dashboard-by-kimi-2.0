@@ -329,4 +329,3 @@ ${
 }
 
 export default generateHTML;
-module.exports = exports.default;

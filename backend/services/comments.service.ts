@@ -99,4 +99,3 @@ class CommentsService {
 }
 
 export default new CommentsService();
-module.exports = exports.default;

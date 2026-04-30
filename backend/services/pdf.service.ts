@@ -338,4 +338,3 @@ class PdfService {
 }
 
 export default new PdfService();
-module.exports = exports.default;

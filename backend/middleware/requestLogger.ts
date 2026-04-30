@@ -10,4 +10,3 @@ function requestLogger(req: any, res: any, next: any) {
 }
 
 export default requestLogger;
-module.exports = exports.default;

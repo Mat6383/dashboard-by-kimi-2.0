@@ -421,20 +421,8 @@ wrapMethod(statusSyncService, 'syncRunStatusToGitLab', statusSyncBreaker, {
 });
 
 export default statusSyncService;
-module.exports.statusSyncBreaker = statusSyncBreaker;
 // Legacy (conservé pour rétrocompatibilité pendant transition)
-module.exports.STATUS_TO_LABEL = STATUS_TO_LABEL;
-module.exports.ALL_TEST_LABELS = ALL_TEST_LABELS;
 // Courant
-module.exports.STATUS_ID_TO_NAME = STATUS_ID_TO_NAME;
-module.exports.STATUS_TO_GITLAB_STATUS = STATUS_TO_GITLAB_STATUS;
-module.exports.GITLAB_STATUS_TODO = GITLAB_STATUS_TODO;
-module.exports.GITLAB_STATUS_OK = GITLAB_STATUS_OK;
-module.exports.GITLAB_STATUS_KO = GITLAB_STATUS_KO;
-module.exports.GITLAB_STATUS_WIP = GITLAB_STATUS_WIP;
-module.exports.GITLAB_STATUS_RETEST = GITLAB_STATUS_RETEST;
-module.exports.VERSION_FIELD_KEY = VERSION_FIELD_KEY;
-module.exports.StatusSyncService = StatusSyncService;
 export {
   statusSyncBreaker,
   STATUS_TO_LABEL,
@@ -453,24 +441,3 @@ export {
   computeLabelChanges,
   computeStatusChange,
 };
-module.exports.buildCommentText = buildCommentText;
-module.exports.isCommentDuplicate = isCommentDuplicate;
-module.exports.computeLabelChanges = computeLabelChanges;
-module.exports.computeStatusChange = computeStatusChange;
-module.exports = exports.default;
-module.exports.statusSyncBreaker = exports.statusSyncBreaker;
-module.exports.STATUS_TO_LABEL = exports.STATUS_TO_LABEL;
-module.exports.ALL_TEST_LABELS = exports.ALL_TEST_LABELS;
-module.exports.STATUS_ID_TO_NAME = exports.STATUS_ID_TO_NAME;
-module.exports.STATUS_TO_GITLAB_STATUS = exports.STATUS_TO_GITLAB_STATUS;
-module.exports.GITLAB_STATUS_TODO = exports.GITLAB_STATUS_TODO;
-module.exports.GITLAB_STATUS_OK = exports.GITLAB_STATUS_OK;
-module.exports.GITLAB_STATUS_KO = exports.GITLAB_STATUS_KO;
-module.exports.GITLAB_STATUS_WIP = exports.GITLAB_STATUS_WIP;
-module.exports.GITLAB_STATUS_RETEST = exports.GITLAB_STATUS_RETEST;
-module.exports.VERSION_FIELD_KEY = exports.VERSION_FIELD_KEY;
-module.exports.StatusSyncService = exports.StatusSyncService;
-module.exports.buildCommentText = exports.buildCommentText;
-module.exports.isCommentDuplicate = exports.isCommentDuplicate;
-module.exports.computeLabelChanges = exports.computeLabelChanges;
-module.exports.computeStatusChange = exports.computeStatusChange;

@@ -27,13 +27,13 @@ router = APIRouter()
 @router.get("/projects")
 async def sync_projects(db: DBMain):
     projects = await sync_service.list_sync_projects()
-    return {"projects": projects}
+    return {"success": True, "data": projects}
 
 
 @router.get("/{project_id}/iterations")
 async def get_iterations(project_id: int | str, search: str | None = Query(None), db: DBMain = None):
     iterations = await sync_service.list_iterations(project_id, search)
-    return {"iterations": iterations}
+    return {"success": True, "data": iterations}
 
 
 @router.post("/preview")
@@ -41,7 +41,7 @@ async def sync_preview(payload: SyncPreviewPayload, db: DBMain):
     preview = await sync_service.preview_sync(
         payload.project_id, payload.iteration_name, payload.run_id, payload.version
     )
-    return {"preview": preview}
+    return {"success": True, "data": preview}
 
 
 @router.post("/execute")
@@ -97,18 +97,18 @@ async def sync_status_to_gitlab(request: Request, payload: SyncStatusPayload, db
 @router.get("/history")
 async def sync_history(db: DBMain):
     history = await sync_service.get_history(db)
-    return {"history": history}
+    return {"success": True, "data": history}
 
 
 @router.get("/auto-config")
 async def get_auto_config():
-    return {"config": sync_service.get_auto_config()}
+    return {"success": True, "data": sync_service.get_auto_config()}
 
 
 @router.put("/auto-config")
 async def update_auto_config(payload: dict, db: DBMain):
     updated = await sync_service.update_auto_config(payload)
-    return {"config": updated}
+    return {"success": True, "data": updated}
 
 
 @router.post("/test-api", dependencies=[Depends(require_admin_token)])

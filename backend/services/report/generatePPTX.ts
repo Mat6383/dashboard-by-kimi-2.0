@@ -432,4 +432,3 @@ async function generatePPTX(data: any, recommendations: any, complement: any, la
   return pres;
 }
 export default generatePPTX;
-module.exports = exports.default;

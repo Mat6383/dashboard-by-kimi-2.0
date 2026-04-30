@@ -33,4 +33,3 @@ class JwtService {
 }
 
 export default new JwtService();
-module.exports = exports.default;

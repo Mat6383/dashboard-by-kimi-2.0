@@ -174,4 +174,3 @@ router.get('/:key', (req, res) => {
 });
 
 export default router;
-module.exports = exports.default;

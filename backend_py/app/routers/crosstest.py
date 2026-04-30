@@ -25,20 +25,20 @@ router = APIRouter()
 async def get_iterations(search: str | None = Query(None), db: DBMain = None):
     project_id = settings.gitlab_project_id
     if not project_id:
-        return {"iterations": []}
+        return {"success": True, "data": []}
     iterations = await gitlab_service.get_project_iterations(project_id, search)
-    return {"iterations": iterations}
+    return {"success": True, "data": iterations}
 
 
 @router.get("/issues/{iteration_id}")
 async def get_issues(iteration_id: str, db: DBMain):
     project_id = settings.gitlab_project_id
     if not project_id:
-        return {"issues": []}
+        return {"success": True, "data": []}
     issues = await gitlab_service.get_issues_by_label_and_iteration(
         project_id, "CrossTest", iteration_id
     )
-    return {"issues": issues}
+    return {"success": True, "data": issues}
 
 
 @router.get("/comments")
@@ -49,7 +49,11 @@ async def get_comments(issue_iid: int | None = Query(None), db: DBComments = Non
     stmt = stmt.order_by(CrossTestComment.created_at.desc())
     result = await db.execute(stmt)
     rows = result.scalars().all()
-    return {"comments": [CrossTestCommentOut.model_validate(r) for r in rows]}
+    comments_dict = {}
+    for r in rows:
+        comment_out = CrossTestCommentOut.model_validate(r)
+        comments_dict[comment_out.issue_iid] = comment_out
+    return {"success": True, "data": comments_dict}
 
 
 @router.post("/comments")
@@ -64,7 +68,7 @@ async def create_comment(payload: CrossTestCommentCreate, db: DBComments):
     db.add(comment)
     await db.commit()
     await db.refresh(comment)
-    return {"status": "created", "comment": CrossTestCommentOut.model_validate(comment)}
+    return {"success": True, "data": CrossTestCommentOut.model_validate(comment)}
 
 
 @router.put("/comments/{iid}")
@@ -79,7 +83,7 @@ async def update_comment(iid: int, payload: CrossTestCommentUpdate, db: DBCommen
         comment.milestone_context = payload.milestone_context
     await db.commit()
     await db.refresh(comment)
-    return {"status": "updated", "comment": CrossTestCommentOut.model_validate(comment)}
+    return {"success": True, "data": CrossTestCommentOut.model_validate(comment)}
 
 
 @router.delete("/comments/{iid}")
@@ -89,4 +93,4 @@ async def delete_comment(iid: int, db: DBComments):
     if result.rowcount == 0:
         raise HTTPException(status_code=404, detail="Comment not found")
     await db.commit()
-    return {"status": "deleted"}
+    return {"success": True, "deleted": True}

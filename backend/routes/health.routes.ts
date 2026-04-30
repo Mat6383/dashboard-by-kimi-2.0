@@ -195,4 +195,3 @@ router.get('/circuit-breakers', (_req, res) => {
 });
 
 export default router;
-module.exports = exports.default;

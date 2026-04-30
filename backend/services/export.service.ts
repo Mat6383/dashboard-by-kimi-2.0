@@ -252,4 +252,3 @@ class ExportService {
 }
 
 export default new ExportService();
-module.exports = exports.default;

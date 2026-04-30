@@ -104,4 +104,3 @@ class SyncHistoryService {
 }
 
 export default new SyncHistoryService();
-module.exports = exports.default;

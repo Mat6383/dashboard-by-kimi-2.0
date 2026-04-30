@@ -285,4 +285,3 @@ class FeatureFlagsService {
 }
 
 export default new FeatureFlagsService();
-module.exports = exports.default;

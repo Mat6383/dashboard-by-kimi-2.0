@@ -25,7 +25,7 @@ async def get_project_runs(project_id: int, active: bool = Query(False), db: DBM
 @router.get("/{project_id}/milestones")
 async def get_project_milestones(project_id: int, db: DBMain):
     milestones = await testmo_service.get_project_milestones(project_id)
-    return {"milestones": milestones}
+    return {"success": True, "data": {"result": milestones}}
 
 
 @router.get("/{project_id}/automation")

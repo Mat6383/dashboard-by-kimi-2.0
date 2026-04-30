@@ -1533,14 +1533,5 @@ wrapMethod(testmoService, 'healthCheck', testmoBreaker, {
 });
 
 export default testmoService;
-module.exports._calculatePercentage = _calculatePercentage;
 export { _calculatePercentage, aggregateSessions, globalMetrics, testmoBreaker };
-module.exports.aggregateSessions = aggregateSessions;
-module.exports.globalMetrics = globalMetrics;
-module.exports.testmoBreaker = testmoBreaker;
 // isCaseEnriched est déjà accessible via TestmoService.prototype sur l'instance exportée
-module.exports = exports.default;
-module.exports._calculatePercentage = exports._calculatePercentage;
-module.exports.aggregateSessions = exports.aggregateSessions;
-module.exports.globalMetrics = exports.globalMetrics;
-module.exports.testmoBreaker = exports.testmoBreaker;

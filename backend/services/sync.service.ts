@@ -655,4 +655,3 @@ class SyncService {
 }
 
 export default new SyncService();
-module.exports = exports.default;

@@ -95,4 +95,3 @@ class EmailService {
 }
 
 export default new EmailService();
-module.exports = exports.default;

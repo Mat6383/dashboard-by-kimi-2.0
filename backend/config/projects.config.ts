@@ -97,4 +97,3 @@ const PROJECTS = [
 ];
 
 export default PROJECTS;
-module.exports = exports.default;

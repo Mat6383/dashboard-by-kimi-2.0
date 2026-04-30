@@ -23,4 +23,3 @@ class ReportService {
 }
 
 export default ReportService;
-module.exports = exports.default;

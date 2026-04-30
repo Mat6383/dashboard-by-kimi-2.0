@@ -82,7 +82,7 @@ async def get_quality_rates(
 @router.get("/{project_id}/annual-trends")
 async def get_annual_trends(project_id: int, db: DBMain):
     trends = await _safe_testmo_call(testmo_service.get_annual_quality_trends(project_id))
-    return {"trends": trends}
+    return {"success": True, "data": trends}
 
 
 @router.get("/{project_id}/trends")

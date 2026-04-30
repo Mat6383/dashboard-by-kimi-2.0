@@ -33,4 +33,3 @@ router.post('/generate', requireAuth, auditAction('export.pdf'), async (req, res
 });
 
 export default router;
-module.exports = exports.default;

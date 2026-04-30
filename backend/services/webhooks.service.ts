@@ -226,4 +226,3 @@ class WebhooksService {
 }
 
 export default new WebhooksService();
-module.exports = exports.default;

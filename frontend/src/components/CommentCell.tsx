@@ -60,7 +60,8 @@ export default function CommentCell({ issue, comment, milestoneTitle, onSaved, o
     setShowConfirm(false);
     setSaving(true);
     try {
-      await apiService.deleteCrosstestComment(issue.iid);
+      if (!comment?.id) return;
+      await apiService.deleteCrosstestComment(comment.id);
       onDeleted(issue.iid);
     } catch (err) {
       console.error('Erreur suppression commentaire:', err);

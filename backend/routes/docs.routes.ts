@@ -16,4 +16,3 @@ router.use(
 );
 
 export default router;
-module.exports = exports.default;

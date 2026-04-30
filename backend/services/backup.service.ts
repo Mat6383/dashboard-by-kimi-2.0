@@ -427,4 +427,3 @@ class BackupService {
 }
 
 export default new BackupService();
-module.exports = exports.default;

@@ -9,8 +9,7 @@
  * @version 2.0.0
  */
 
-import dotenv from 'dotenv';
-dotenv.config();
+import './bootstrap/dotenv';
 import express from 'express';
 import passport from 'passport';
 import cookieParser from 'cookie-parser';
@@ -176,4 +175,3 @@ if (process.env.NODE_ENV !== 'test') {
 
 export { server };
 export default app;
-module.exports = exports.default;

@@ -129,4 +129,3 @@ router.get('/me', requireAuth, (req, res) => {
 });
 
 export default router;
-module.exports = exports.default;

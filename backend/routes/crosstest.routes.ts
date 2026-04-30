@@ -121,4 +121,3 @@ router.delete('/comments/:iid', validateParams(iidParam), (req, res) => {
 });
 
 export default router;
-module.exports = exports.default;

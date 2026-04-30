@@ -75,4 +75,3 @@ class AlertService {
 }
 
 export default new AlertService();
-module.exports = exports.default;

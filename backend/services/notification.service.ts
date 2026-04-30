@@ -243,4 +243,3 @@ class NotificationService {
 }
 
 export default new NotificationService();
-module.exports = exports.default;

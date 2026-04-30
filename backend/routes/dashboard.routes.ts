@@ -280,4 +280,3 @@ router.get('/:projectId/stream', validateParams(projectIdParam), validateQuery(m
 });
 
 export default router;
-module.exports = exports.default;

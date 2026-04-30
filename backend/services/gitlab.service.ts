@@ -798,6 +798,3 @@ wrapMethod(instance, 'healthCheck', gitlabBreaker, { label: 'gitlab.healthCheck'
 
 export { GitLabService, gitlabBreaker };
 export default instance;
-module.exports = exports.default;
-module.exports.GitLabService = exports.GitLabService;
-module.exports.gitlabBreaker = exports.gitlabBreaker;

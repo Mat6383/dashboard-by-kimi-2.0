@@ -76,43 +76,84 @@ export const dashboardRouter = router({
     .input(milestonesInput)
     .query(async ({ input }) => {
       logger.info(`Récupération métriques pour projet ${input.projectId}`);
-      const metrics = await testmoService.getProjectMetrics(
-        input.projectId,
-        input.preprodMilestones || null,
-        input.prodMilestones || null
-      );
+      try {
+        const metrics = await testmoService.getProjectMetrics(
+          input.projectId,
+          input.preprodMilestones || null,
+          input.prodMilestones || null
+        );
 
-      if (!(metrics as any).slaStatus.ok) {
-        logger.warn('Alertes SLA détectées:', {
-          projectId: input.projectId,
-          alerts: (metrics as any).slaStatus.alerts,
-        });
-        notificationService.dispatch(input.projectId, (metrics as any).slaStatus.alerts).catch(() => {
-          /* silencieux */
-        });
+        if (!(metrics as any).slaStatus.ok) {
+          logger.warn('Alertes SLA détectées:', {
+            projectId: input.projectId,
+            alerts: (metrics as any).slaStatus.alerts,
+          });
+          notificationService.dispatch(input.projectId, (metrics as any).slaStatus.alerts).catch(() => {
+            /* silencieux */
+          });
+        }
+
+        return { success: true as const, data: metrics, timestamp: new Date().toISOString() };
+      } catch (err: any) {
+        logger.warn(`[Metrics] Échec projet ${input.projectId}:`, err.message);
+        return {
+          success: true as const,
+          data: {
+            projectId: input.projectId,
+            projectName: `Projet ${input.projectId}`,
+            completionRate: 0,
+            passRate: 0,
+            failureRate: 0,
+            blockedRate: 0,
+            testEfficiency: 0,
+            totalTests: 0,
+            completedTests: 0,
+            passedTests: 0,
+            failedTests: 0,
+            blockedTests: 0,
+            untestedTests: 0,
+            escapeRate: 0,
+            detectionRate: 0,
+            slaStatus: { ok: false, alerts: [{ severity: 'error', message: 'Données indisponibles' }] },
+            timestamp: new Date().toISOString(),
+          },
+          timestamp: new Date().toISOString(),
+        };
       }
-
-      return { success: true as const, data: metrics, timestamp: new Date().toISOString() };
     }),
 
   qualityRates: publicProcedure
     .input(milestonesInput)
     .query(async ({ input }) => {
       logger.info(`Récupération Quality Rates pour projet ${input.projectId}`);
-      const rates = await testmoService.getEscapeAndDetectionRates(
-        input.projectId,
-        input.preprodMilestones as any,
-        input.prodMilestones as any
-      );
-      return { success: true as const, data: rates, timestamp: new Date().toISOString() };
+      try {
+        const rates = await testmoService.getEscapeAndDetectionRates(
+          input.projectId,
+          input.preprodMilestones as any,
+          input.prodMilestones as any
+        );
+        return { success: true as const, data: rates, timestamp: new Date().toISOString() };
+      } catch (err: any) {
+        logger.warn(`[QualityRates] Échec projet ${input.projectId}:`, err.message);
+        return {
+          success: true as const,
+          data: { escapeRate: 0, detectionRate: 0, preprodRuns: 0, prodRuns: 0, error: err.message },
+          timestamp: new Date().toISOString(),
+        };
+      }
     }),
 
   annualTrends: publicProcedure
     .input(projectIdInput)
     .query(async ({ input }) => {
       logger.info(`Récupération Annual Trends pour projet ${input.projectId}`);
-      const trends = await testmoService.getAnnualQualityTrends(input.projectId);
-      return { success: true as const, data: trends, timestamp: new Date().toISOString() };
+      try {
+        const trends = await testmoService.getAnnualQualityTrends(input.projectId);
+        return { success: true as const, data: trends, timestamp: new Date().toISOString() };
+      } catch (err: any) {
+        logger.warn(`[AnnualTrends] Échec projet ${input.projectId}:`, err.message);
+        return { success: true as const, data: [], timestamp: new Date().toISOString() };
+      }
     }),
 
   trends: publicProcedure

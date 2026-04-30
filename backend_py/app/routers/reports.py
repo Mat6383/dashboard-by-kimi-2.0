@@ -14,8 +14,11 @@ router = APIRouter()
 @router.post("/generate")
 async def generate_report(payload: ReportPayload, db: DBMain, user=Depends(require_auth)):
     result = await report_service.generate(payload.model_dump())
-    return ReportResponse(
-        html=result.get("html"),
-        pptx_base64=result.get("pptx_base64"),
-        message="Report generated successfully",
-    )
+    return {
+        "success": True,
+        "data": {
+            "html": result.get("html"),
+            "pptx_base64": result.get("pptx_base64"),
+            "message": "Report generated successfully",
+        },
+    }

@@ -211,4 +211,3 @@ async function collectReportData(testmoService: any, projectId: any, runIds: any
   };
 }
 export default collectReportData;
-module.exports = exports.default;

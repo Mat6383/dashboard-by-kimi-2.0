@@ -314,4 +314,3 @@ router.put('/auto-config', validateBody(autoConfigBody), auditAction('sync.confi
 });
 
 export default router;
-module.exports = exports.default;

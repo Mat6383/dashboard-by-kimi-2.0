@@ -102,4 +102,3 @@ class MetricSnapshotsService {
 }
 
 export default new MetricSnapshotsService();
-module.exports = exports.default;

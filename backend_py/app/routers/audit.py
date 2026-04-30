@@ -33,8 +33,9 @@ async def get_audit_logs(
     rows = result.scalars().all()
 
     return {
-        "logs": [AuditLogOut.model_validate(r) for r in rows],
-        "page": page,
-        "page_size": page_size,
+        "success": True,
+        "data": [AuditLogOut.model_validate(r) for r in rows],
         "total": total,
+        "limit": page_size,
+        "offset": (page - 1) * page_size,
     }

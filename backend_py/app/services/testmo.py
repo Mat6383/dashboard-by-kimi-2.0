@@ -305,11 +305,15 @@ class TestmoService:
         escape_rate = (prod_bugs / total_bugs * 100) if total_bugs else 0.0
 
         return {
-            "escape_rate": round(escape_rate, 2),
-            "detection_rate": round(detection_rate, 2),
-            "project_id": project_id,
-            "preprod_bugs": preprod_bugs,
-            "prod_bugs": prod_bugs,
+            "escapeRate": round(escape_rate, 2),
+            "detectionRate": round(detection_rate, 2),
+            "projectId": project_id,
+            "bugsInTest": preprod_bugs,
+            "bugsInProd": prod_bugs,
+            "totalBugs": total_bugs,
+            "preprodMilestone": str(preprod_milestones[0]) if preprod_milestones else "N/A",
+            "prodMilestone": str(prod_milestones[0]) if prod_milestones else "N/A",
+            "message": None,
         }
 
     async def get_annual_quality_trends(self, project_id: int) -> list[dict[str, Any]]:
@@ -331,12 +335,21 @@ class TestmoService:
         for year in sorted(years.keys()):
             y = years[year]
             completed = y["passed"] + y["failed"]
+            bugs_in_test = y["failed"]
+            bugs_in_prod = y["blocked"]
+            total_bugs = bugs_in_test + bugs_in_prod
             trends.append({
-                "year": year,
-                "pass_rate": round(y["passed"] / completed * 100, 2) if completed else 0.0,
-                "completion_rate": round(completed / y["total"] * 100, 2) if y["total"] else 0.0,
-                "blocked_rate": round(y["blocked"] / y["total"] * 100, 2) if y["total"] else 0.0,
-                "total_tests": y["total"],
+                "version": year,
+                "date": f"{year}-01-01",
+                "passRate": round(y["passed"] / completed * 100, 2) if completed else 0.0,
+                "completionRate": round(completed / y["total"] * 100, 2) if y["total"] else 0.0,
+                "blockedRate": round(y["blocked"] / y["total"] * 100, 2) if y["total"] else 0.0,
+                "totalTests": y["total"],
+                "bugsInTest": bugs_in_test,
+                "bugsInProd": bugs_in_prod,
+                "totalBugs": total_bugs,
+                "detectionRate": round(bugs_in_test / total_bugs * 100, 2) if total_bugs else 0.0,
+                "escapeRate": round(bugs_in_prod / total_bugs * 100, 2) if total_bugs else 0.0,
             })
         return trends
 

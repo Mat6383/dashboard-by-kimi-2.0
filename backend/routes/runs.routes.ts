@@ -46,4 +46,3 @@ router.get('/:runId/results', validateParams(runIdParam), validateQuery(runResul
 });
 
 export default router;
-module.exports = exports.default;

@@ -53,4 +53,3 @@ router.post('/test', requireAuth, requireRole('admin'), auditAction('notificatio
 });
 
 export default router;
-module.exports = exports.default;

@@ -65,14 +65,17 @@ const Dashboard4 = ({
     await exportPDF(dashboardRef.current, `QA_Dashboard_${project.name}_${new Date().toLocaleDateString('fr-FR')}.pdf`);
   }, [exportPDF, project]);
 
+  const handleExportPDFRef = useRef(handleExportPDF);
+  handleExportPDFRef.current = handleExportPDF;
+
   React.useEffect(() => {
     if (setExportHandler) {
-      setExportHandler(() => handleExportPDF);
+      setExportHandler(() => handleExportPDFRef.current);
     }
     return () => {
       if (setExportHandler) setExportHandler(null);
     };
-  }, [setExportHandler, handleExportPDF]);
+  }, [setExportHandler]);
 
   if (!metrics || !project) {
     return (

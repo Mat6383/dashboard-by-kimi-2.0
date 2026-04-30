@@ -8,4 +8,3 @@ function requestIdMiddleware(req: any, res: any, next: any) {
 }
 
 export default requestIdMiddleware;
-module.exports = exports.default;

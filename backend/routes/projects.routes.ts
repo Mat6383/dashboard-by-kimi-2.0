@@ -83,4 +83,3 @@ router.get('/:projectId/automation', validateParams(projectIdParam), async (req,
 });
 
 export default router;
-module.exports = exports.default;

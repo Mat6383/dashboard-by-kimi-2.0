@@ -76,4 +76,3 @@ router.post('/generate', validateBody(reportsGenerateBody), auditAction('report.
 });
 
 export default router;
-module.exports = exports.default;

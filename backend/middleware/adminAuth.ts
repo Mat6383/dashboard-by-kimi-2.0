@@ -25,4 +25,3 @@ function requireAdminAuth(req: any, res: any, next: any) {
 }
 
 export default requireAdminAuth;
-module.exports = exports.default;
