@@ -1,0 +1,114 @@
+/**
+ * ================================================
+ * DESIGN TOKENS — QA Dashboard
+ * ================================================
+ * Tokens sémantiques unifiés : couleurs, typographie,
+ * espacements, ombres, border-radius et animations.
+ */
+
+:root {
+  /* ==================================================
+     Semantic Colors (Backgrounds & Surfaces)
+     ================================================== */
+  --surface-default: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-muted: #f9fafb;
+  --surface-inverse: #111827;
+
+  /* ==================================================
+     Semantic Text Colors
+     ================================================== */
+  --text-default: #111827;
+  --text-inverse: #ffffff;
+  --text-primary: #3b82f6;
+  --text-success: #10b981;
+  --text-warning: #f59e0b;
+  --text-danger: #ef4444;
+  --text-secondary: #8b5cf6;
+
+  /* ==================================================
+     Button / Action Colors
+     ================================================== */
+  --action-primary-bg: #3b82f6;
+  --action-primary-bg-hover: #2563eb;
+  --action-primary-text: #ffffff;
+
+  --action-success-bg: #10b981;
+  --action-success-bg-hover: #059669;
+  --action-success-text: #ffffff;
+
+  --action-secondary-bg: #8b5cf6;
+  --action-secondary-bg-hover: #7c3aed;
+  --action-secondary-text: #ffffff;
+
+  --action-warning-bg: #f59e0b;
+  --action-warning-text: #92400e;
+  --action-warning-surface: #fef3c7;
+  --action-warning-border: #fcd34d;
+
+  --action-danger-bg: #ef4444;
+  --action-danger-text: #ffffff;
+
+  --action-auth-bg: #fc6d26;
+  --action-auth-text: #ffffff;
+
+  /* ==================================================
+     Status Surfaces (subtle backgrounds)
+     ================================================== */
+  --status-ok-bg: rgba(16, 185, 129, 0.12);
+  --status-ok-text: #10b981;
+
+  --status-info-bg-light: rgba(59, 130, 246, 0.06);
+  --status-info-bg-dark: rgba(59, 130, 246, 0.1);
+  --status-info-border: rgba(59, 130, 246, 0.2);
+
+  /* ==================================================
+     Toast Colors
+     ================================================== */
+  --toast-error-bg: #ef4444;
+  --toast-error-text: #ffffff;
+  --toast-success-bg: #10b981;
+  --toast-success-text: #ffffff;
+  --toast-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+  /* ==================================================
+     Typography Scale
+     ================================================== */
+  --font-display: 1.75rem;
+  --font-h1: 1.5rem;
+  --font-h2: 1.25rem;
+  --font-h3: 1.125rem;
+  --font-body: 1rem;
+  --font-small: 0.875rem;
+  --font-label: 0.75rem;
+  --font-caption: 0.625rem;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ==================================================
+     Easing Tokens
+     ================================================== */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ==================================================
+     Shadows (unified)
+     ================================================== */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --shadow-button-primary: 0 2px 4px rgba(59, 130, 246, 0.3);
+  --shadow-button-success: 0 2px 4px rgba(16, 185, 129, 0.3);
+  --shadow-button-secondary: 0 2px 4px rgba(139, 92, 246, 0.3);
+}
+
+/* ==================================================
+   Dark-theme token overrides
+   ================================================== */
+.app.dark-theme {
+  --surface-default: #0b1120;
+  --surface-elevated: #111827;
+  --surface-muted: #0f172a;
+  --text-default: #e2e8f0;
+}

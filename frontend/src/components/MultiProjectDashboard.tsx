@@ -76,17 +76,17 @@ export default function MultiProjectDashboard({ isDark: _isDark }) {
               {summaries.map((s) => (
                 <tr key={s.projectId}>
                   <td className="mpd-project-name">{s.projectName}</td>
-                  <td className={getPassRateClass(s.passRate)}>
+                  <td className={`${getPassRateClass(s.passRate)} tabular-nums`}>
                     {s.passRate !== null ? `${s.passRate.toFixed(1)}%` : '—'}
                   </td>
-                  <td className={getCompletionRateClass(s.completionRate)}>
+                  <td className={`${getCompletionRateClass(s.completionRate)} tabular-nums`}>
                     {s.completionRate !== null ? `${s.completionRate.toFixed(1)}%` : '—'}
                   </td>
-                  <td className={getBlockedRateClass(s.blockedRate)}>
+                  <td className={`${getBlockedRateClass(s.blockedRate)} tabular-nums`}>
                     {s.blockedRate !== null ? `${s.blockedRate.toFixed(1)}%` : '—'}
                   </td>
-                  <td>{s.escapeRate !== null ? `${s.escapeRate.toFixed(1)}%` : '—'}</td>
-                  <td>{s.detectionRate !== null ? `${s.detectionRate.toFixed(1)}%` : '—'}</td>
+                  <td className="tabular-nums">{s.escapeRate !== null ? `${s.escapeRate.toFixed(1)}%` : '—'}</td>
+                  <td className="tabular-nums">{s.detectionRate !== null ? `${s.detectionRate.toFixed(1)}%` : '—'}</td>
                   <td>
                     {s.slaStatus?.ok ? (
                       <span className="mpd-sla-ok">

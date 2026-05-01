@@ -23,6 +23,7 @@ import apiService from './services/api.service';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import AppLayout from './components/AppLayout';
 import AppRouter from './components/AppRouter';
+import FocusRestorer from './components/FocusRestorer';
 import './styles/App.css';
 
 function App() {
@@ -160,7 +161,9 @@ function App() {
   }
 
   return (
-    <AppLayout
+    <>
+      <FocusRestorer />
+      <AppLayout
       darkMode={isDark}
       tvMode={tvMode}
       toggleDarkMode={toggleDark}
@@ -217,6 +220,7 @@ function App() {
         />
       )}
     </AppLayout>
+    </>
   );
 }
 

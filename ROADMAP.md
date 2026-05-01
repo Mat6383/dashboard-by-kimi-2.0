@@ -290,6 +290,56 @@
 
 ## 🚧 Sessions futures (P29+)
 
+### 🎨 P29 — Audit UI/UX & Design System (Session en cours)
+
+> Basé sur l'audit complet disponible dans [`docs/UI_UX_AUDIT.md`](./docs/UI_UX_AUDIT.md).  
+> Score global actuel : **6.0 / 10** — Objectif : **8.5 / 10**.
+
+#### 🔴 P29#1 — Accessibilité critique
+
+- [x] Remplacer l'emoji ⚠️ dans le banner circuit breaker par `<AlertTriangle>` (Lucide)
+- [x] Ajouter des **skip-links** (`Skip to main content`) en haut de `AppLayout`
+- [x] Ajouter `role="alert"` + `aria-live="polite"` sur le composant `Toast`
+- [x] Restaurer le focus sur le bouton déclencheur après fermeture d'un modal (déjà géré par `useFocusTrap` + ajout dans `MobileDrawer`)
+- [x] Vérifier et corriger le contraste des bordures en dark mode (`--border-color: #475569`)
+
+#### 🟠 P29#2 — Design Tokens & Cohérence visuelle
+
+- [x] Créer un **fichier de design tokens** (`styles/tokens.css`) : couleurs, ombres, typographie, espacements
+- [x] Éliminer les **raw hex** des composants (`Dashboard4.tsx`, `Toast.tsx`, `AppLayout.tsx`) → utiliser `var(--*)`
+- [x] Définir une **échelle typographique formelle** (Display / H1 / H2 / Body / Label / Caption)
+- [x] Ajouter `font-variant-numeric: tabular-nums` sur les colonnes de données numériques
+- [x] Uniformiser les ombres et border-radius via les tokens
+
+#### 🟠 P29#3 — Responsive & Mobile polish
+
+- [x] Refactoriser le header desktop surchargé (>15 éléments) : grouper les exports dans un menu dropdown
+- [x] Corriger le `grid-template-columns: repeat(auto-fit, minmax(500px, 1fr))` pour éviter le scroll horizontal mobile
+- [x] Ajouter `touch-action: manipulation` sur les boutons interactifs globaux
+- [x] Ajouter `min-h-dvh` en remplacement de `min-height: 100vh` sur `.app`
+- [x] Vérifier que tous les dashboards respectent le `max-width: 1600px` du `.app-main`
+
+#### 🟡 P29#4 — Motion & Animation
+
+- [x] Ajouter le support **`prefers-reduced-motion`** dans `App.css` (désactiver/transitions réduites)
+- [x] Définir des **tokens d'easing** (ease-out pour enter, ease-in pour exit) — `tokens.css`
+- [x] Remplacer les hover-only interactions de `Dashboard4` par des états `:active` / `:focus-visible` universels — `.btn-action-*`
+- [x] Ajouter la fermeture du `MobileDrawer` avec la touche **Escape**
+
+#### 🟡 P29#5 — Navigation & Information Architecture
+
+- [x] Ajouter un **breadcrumb** sur les pages admin profondes (`/admin/*`)
+- [x] Implémenter la **restauration du focus** au changement de route (screen readers)
+- [x] Séparer les actions primaires (exports) du drawer mobile (FAB mobile `ExportFAB`)
+
+#### 🟢 P29#6 — Charts & Dataviz accessibles
+
+- [x] Ajouter des **`aria-label`** résumant les données clés sur chaque chart (`StatusChart`)
+- [x] Fournir une **alternative tabulaire** (visually hidden) pour les screen readers
+- [x] Vérifier la lisibilité des palettes rouge/vert pour les utilisateurs daltoniens (labels textuels + légende détaillée existants)
+
+---
+
 - [x] **P26 — Analytics & Insights IA** : Table `analytics_insights`, service de détection patterns (baisse pass rate, stagnation, blocage, échappement), job cron quotidien 3h, route tRPC, composant `AnalyticsPanel`, tests 6/6 ✅
 - [x] **P26 — Data Retention & Archivage** : Tables `retention_policies` + `archived_snapshots`, cycle d'archivage auto par entité, job cron hebdomadaire, UI admin `/admin/retention`, tests 4/4 ✅
 - [x] **P26 — Intégrations tierces** : Table `integrations`, connecteur Jira (test + création tickets), webhook générique HMAC-SHA256, UI admin `/admin/integrations`, tests 6/6 ✅

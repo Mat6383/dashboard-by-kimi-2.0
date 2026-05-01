@@ -36,6 +36,7 @@ import { DashboardProvider } from './contexts/DashboardContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { TRPCProvider } from './trpc/provider';
 import './i18n';
+import './styles/tokens.css';
 import App from './App';
 
 // Enregistrement du Service Worker pour PWA

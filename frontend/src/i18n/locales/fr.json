@@ -65,7 +65,8 @@
       "standards": "Standards: ISTQB | LEAN | ITIL"
     },
     "menu": "Menu",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "skipToContent": "Aller au contenu principal"
   },
   "dashboard": {
     "standard": "Dashboard 1 (Standard)",

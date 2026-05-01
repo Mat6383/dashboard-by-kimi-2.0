@@ -120,7 +120,7 @@ const Dashboard4 = ({
           padding: '0.75rem 1.5rem',
           backgroundColor: 'var(--bg-color)',
           borderRadius: '16px',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+          boxShadow: 'var(--shadow-card)',
         }}
       >
         <header style={{ display: 'none' }}>{/* Ancien header masqué */}</header>
@@ -133,14 +133,14 @@ const Dashboard4 = ({
               gap: '0.75rem',
               marginBottom: '1rem',
               padding: '0.75rem 1.5rem',
-              backgroundColor: isDark ? 'rgba(59,130,246,0.1)' : 'rgba(59,130,246,0.06)',
+              backgroundColor: isDark ? 'var(--status-info-bg-dark)' : 'var(--status-info-bg-light)',
               borderRadius: '10px',
-              border: '1px solid rgba(59,130,246,0.2)',
+              border: '1px solid var(--status-info-border)',
               flexWrap: 'wrap',
               textAlign: 'center',
             }}
           >
-            <span style={{ fontSize: '1.35rem', fontWeight: 700, color: '#3B82F6' }}>{project?.name}</span>
+            <span style={{ fontSize: 'var(--font-h1)', fontWeight: 700, color: 'var(--text-primary)' }}>{project?.name}</span>
             {latestRun && (
               <>
                 <span style={{ color: 'var(--text-muted)', fontSize: '1.35rem' }}>—</span>
@@ -154,8 +154,8 @@ const Dashboard4 = ({
                     fontSize: '0.95rem',
                     fontWeight: 700,
                     textTransform: 'uppercase',
-                    backgroundColor: 'rgba(16,185,129,0.12)',
-                    color: '#10B981',
+                    backgroundColor: 'var(--status-ok-bg)',
+                    color: 'var(--status-ok-text)',
                   }}
                 >
                   En cours
@@ -167,70 +167,13 @@ const Dashboard4 = ({
 
         {/* Boutons d'action */}
         <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setShowClosureModal(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              backgroundColor: '#3B82F6',
-              color: 'white',
-              border: 'none',
-              padding: '0.4rem 0.8rem',
-              borderRadius: '6px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#2563EB')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#3B82F6')}
-          >
+          <button className="btn-action btn-action-primary" onClick={() => setShowClosureModal(true)}>
             <CheckSquare size={16} /> Clôture de Test
           </button>
-          <button
-            onClick={() => setShowQuickClosureModal(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              backgroundColor: '#10B981',
-              color: 'white',
-              border: 'none',
-              padding: '0.4rem 0.8rem',
-              borderRadius: '6px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              boxShadow: '0 2px 4px rgba(16, 185, 129, 0.3)',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#059669')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#10B981')}
-          >
+          <button className="btn-action btn-action-success" onClick={() => setShowQuickClosureModal(true)}>
             <CheckSquare size={16} /> Quick Clôture DOCX
           </button>
-          <button
-            onClick={() => setShowReportGenerator(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              backgroundColor: '#8B5CF6',
-              color: 'white',
-              border: 'none',
-              padding: '0.4rem 0.8rem',
-              borderRadius: '6px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontSize: '0.9rem',
-              boxShadow: '0 2px 4px rgba(139, 92, 246, 0.3)',
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#7C3AED')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#8B5CF6')}
-          >
+          <button className="btn-action btn-action-secondary" onClick={() => setShowReportGenerator(true)}>
             <CheckSquare size={16} /> Rapport HTML / PPTX
           </button>
         </div>

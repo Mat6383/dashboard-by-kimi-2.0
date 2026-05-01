@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   RefreshCw,
   AlertCircle,
+  AlertTriangle,
   Activity,
   CheckCircle2,
   Database,
@@ -18,12 +19,15 @@ import {
   Globe,
   LayoutTemplate,
   Menu,
+  ChevronDown,
 } from 'lucide-react';
 import { useGlobalShortcuts } from '../hooks/useGlobalShortcuts';
 import { useIsMobile } from '../hooks/useMediaQuery';
 import MobileDrawer from './MobileDrawer';
 import MobileBottomNav from './MobileBottomNav';
 import ShortcutHelpOverlay from './ShortcutHelpOverlay';
+import Breadcrumb from './Breadcrumb';
+import ExportFAB from './ExportFAB';
 
 function getDashboardRoutes(isAdmin, t) {
   const routes = [
@@ -53,9 +57,9 @@ function getDashboardRoutes(isAdmin, t) {
 
 function BackendStatus({ status, t }) {
   const config = {
-    checking: { Icon: Activity, color: '#F59E0B', text: t('layout.backendStatus.checking') },
-    ok: { Icon: CheckCircle2, color: '#10B981', text: t('layout.backendStatus.ok') },
-    error: { Icon: AlertCircle, color: '#EF4444', text: t('layout.backendStatus.error') },
+    checking: { Icon: Activity, color: 'var(--text-warning)', text: t('layout.backendStatus.checking') },
+    ok: { Icon: CheckCircle2, color: 'var(--text-success)', text: t('layout.backendStatus.ok') },
+    error: { Icon: AlertCircle, color: 'var(--text-danger)', text: t('layout.backendStatus.error') },
   };
   const { Icon, color, text } = config[status] || config.checking;
 
@@ -120,24 +124,43 @@ export default function AppLayout({
   };
 
   const [showHelp, setShowHelp] = React.useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setExportMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [exportMenuOpen]);
   useGlobalShortcuts({ onHelp: () => setShowHelp((prev) => !prev) });
   return (
     <div className={`app ${tvMode ? 'tv-mode' : ''} ${darkMode ? 'dark-theme' : ''}`}>
+      {/* Skip Link */}
+      <a href="#main-content" className="skip-link">
+        {t('layout.skipToContent')}
+      </a>
+
       {/* Banner mode dégradé */}
       {circuitBreakers?.some((b) => b.state === 'OPEN') && (
         <div
           style={{
-            backgroundColor: '#FEF3C7',
-            color: '#92400E',
+            backgroundColor: 'var(--action-warning-surface)',
+            color: 'var(--action-warning-text)',
             padding: '8px 16px',
             textAlign: 'center',
             fontSize: '0.875rem',
             fontWeight: 600,
-            borderBottom: '1px solid #FCD34D',
+            borderBottom: '1px solid var(--action-warning-border)',
           }}
           role="alert"
         >
-          ⚠️ {t('layout.degradedMode')} (
+          <AlertTriangle size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '6px' }} />
+          {t('layout.degradedMode')} (
           {circuitBreakers
             .filter((b) => b.state === 'OPEN')
             .map((b) => b.name)
@@ -149,7 +172,7 @@ export default function AppLayout({
       {/* Header */}
       <header className="app-header" role="banner">
         <div className="header-left">
-          <Database size={32} color="#3B82F6" />
+          <Database size={32} color="var(--text-primary)" />
           <div className="header-title">
             <h1>{t('layout.title')}</h1>
             {!isMobile && <p className="header-subtitle">{t('layout.subtitle')}</p>}
@@ -256,56 +279,45 @@ export default function AppLayout({
             </select>
           </div>
 
-          {/* Export PDF Dashboard 4 */}
-          {currentPath === '/global-view' && exportHandler && (
-            <button
-              className="btn-icon"
-              style={{ backgroundColor: '#3B82F6', color: 'white', marginRight: '8px', border: 'none' }}
-              onClick={exportHandler}
-              title={t('layout.exportPdf')}
-              type="button"
-            >
-              <Download size={16} />
-            </button>
-          )}
-
-          {/* Export PDF Backend */}
-          {currentPath === '/global-view' && onExportPdfBackend && (
-            <button
-              className="btn-icon"
-              style={{ backgroundColor: '#8B5CF6', color: 'white', marginRight: '8px', border: 'none' }}
-              onClick={onExportPdfBackend}
-              title={t('layout.exportPdfBackend')}
-              type="button"
-            >
-              <Download size={16} />
-            </button>
-          )}
-
-          {/* Export CSV */}
-          {currentPath === '/global-view' && onExportCSV && (
-            <button
-              className="btn-icon"
-              style={{ backgroundColor: '#10B981', color: 'white', marginRight: '8px', border: 'none' }}
-              onClick={onExportCSV}
-              title={t('layout.exportCsv')}
-              type="button"
-            >
-              <FileText size={16} />
-            </button>
-          )}
-
-          {/* Export Excel */}
-          {currentPath === '/global-view' && onExportExcel && (
-            <button
-              className="btn-icon"
-              style={{ backgroundColor: '#3B82F6', color: 'white', marginRight: '8px', border: 'none' }}
-              onClick={onExportExcel}
-              title={t('layout.exportExcel')}
-              type="button"
-            >
-              <FileSpreadsheet size={16} />
-            </button>
+          {/* Export Dropdown */}
+          {currentPath === '/global-view' && (exportHandler || onExportPdfBackend || onExportCSV || onExportExcel) && (
+            <div className="export-dropdown" ref={exportMenuRef}>
+              <button
+                className="btn-icon"
+                onClick={() => setExportMenuOpen((prev) => !prev)}
+                title={t('layout.export')}
+                type="button"
+                aria-haspopup="true"
+                aria-expanded={exportMenuOpen}
+              >
+                <Download size={16} />
+                <ChevronDown size={14} />
+              </button>
+              {exportMenuOpen && (
+                <div className="export-dropdown-menu" role="menu">
+                  {exportHandler && (
+                    <button className="export-dropdown-item" onClick={() => { exportHandler(); setExportMenuOpen(false); }} role="menuitem" type="button">
+                      <Download size={14} /> {t('layout.exportPdf')}
+                    </button>
+                  )}
+                  {onExportPdfBackend && (
+                    <button className="export-dropdown-item" onClick={() => { onExportPdfBackend(); setExportMenuOpen(false); }} role="menuitem" type="button">
+                      <Download size={14} /> {t('layout.exportPdfBackend')}
+                    </button>
+                  )}
+                  {onExportCSV && (
+                    <button className="export-dropdown-item" onClick={() => { onExportCSV(); setExportMenuOpen(false); }} role="menuitem" type="button">
+                      <FileText size={14} /> {t('layout.exportCsv')}
+                    </button>
+                  )}
+                  {onExportExcel && (
+                    <button className="export-dropdown-item" onClick={() => { onExportExcel(); setExportMenuOpen(false); }} role="menuitem" type="button">
+                      <FileSpreadsheet size={14} /> {t('layout.exportExcel')}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           {/* Toggle Vocabulaire Métier */}
@@ -336,7 +348,7 @@ export default function AppLayout({
                 alignItems: 'center',
                 gap: '4px',
                 marginRight: '8px',
-                color: '#10B981',
+                color: 'var(--text-success)',
                 fontSize: '0.75rem',
                 fontWeight: 600,
               }}
@@ -354,7 +366,7 @@ export default function AppLayout({
                 alignItems: 'center',
                 gap: '4px',
                 marginRight: '8px',
-                color: '#EF4444',
+                color: 'var(--text-danger)',
                 fontSize: '0.75rem',
                 fontWeight: 600,
               }}
@@ -419,7 +431,7 @@ export default function AppLayout({
               onClick={onLogin}
               title={t('auth.login')}
               type="button"
-              style={{ marginLeft: '8px', backgroundColor: '#FC6D26', color: '#fff', border: 'none' }}
+              style={{ marginLeft: '8px', backgroundColor: 'var(--action-auth-bg)', color: 'var(--action-auth-text)', border: 'none' }}
             >
               <LogIn size={16} />
               {t('layout.loginGitLab')}
@@ -492,17 +504,17 @@ export default function AppLayout({
               </button>
             )}
             {currentPath === '/global-view' && onExportPdfBackend && (
-              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center', backgroundColor: '#8B5CF6', color: 'white' }} onClick={onExportPdfBackend} type="button">
+              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center', backgroundColor: 'var(--action-secondary-bg)', color: 'var(--action-secondary-text)' }} onClick={onExportPdfBackend} type="button">
                 <Download size={16} /> {t('layout.exportPdfBackend')}
               </button>
             )}
             {currentPath === '/global-view' && onExportCSV && (
-              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center', backgroundColor: '#10B981', color: 'white' }} onClick={onExportCSV} type="button">
+              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center', backgroundColor: 'var(--action-success-bg)', color: 'var(--action-success-text)' }} onClick={onExportCSV} type="button">
                 <FileText size={16} /> {t('layout.exportCsv')}
               </button>
             )}
             {currentPath === '/global-view' && onExportExcel && (
-              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center', backgroundColor: '#3B82F6', color: 'white' }} onClick={onExportExcel} type="button">
+              <button className="btn-icon" style={{ width: '100%', justifyContent: 'center', backgroundColor: 'var(--action-primary-bg)', color: 'var(--action-primary-text)' }} onClick={onExportExcel} type="button">
                 <FileSpreadsheet size={16} /> {t('layout.exportExcel')}
               </button>
             )}
@@ -551,7 +563,7 @@ export default function AppLayout({
                 </button>
               </div>
             ) : (
-              <button className="btn-toggle" onClick={onLogin} type="button" style={{ width: '100%', justifyContent: 'center', backgroundColor: '#FC6D26', color: '#fff', border: 'none' }}>
+              <button className="btn-toggle" onClick={onLogin} type="button" style={{ width: '100%', justifyContent: 'center', backgroundColor: 'var(--action-auth-bg)', color: 'var(--action-auth-text)', border: 'none' }}>
                 <LogIn size={16} />
                 {t('layout.loginGitLab')}
               </button>
@@ -563,14 +575,25 @@ export default function AppLayout({
         </MobileDrawer>
       )}
 
+      {/* Breadcrumb admin */}
+      <Breadcrumb />
+
       {/* Main Content */}
-      <main className="app-main" role="main">
+      <main id="main-content" className="app-main" role="main" tabIndex={-1}>
         {children}
       </main>
 
       <ShortcutHelpOverlay isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
       {isMobile && <MobileBottomNav isAdmin={isAdmin} />}
+      {isMobile && currentPath === '/global-view' && (
+        <ExportFAB
+          onExportPdf={exportHandler}
+          onExportPdfBackend={onExportPdfBackend}
+          onExportCSV={onExportCSV}
+          onExportExcel={onExportExcel}
+        />
+      )}
 
       {/* Footer */}
       <footer className="app-footer" role="contentinfo">

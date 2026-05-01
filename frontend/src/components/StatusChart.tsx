@@ -165,15 +165,39 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
     }
   } satisfies ChartOptions<'bar'>;
 
+  const totalTests = values.reduce((a, b) => a + b, 0);
+  const summaryText = labels.map((label, i) => `${label}: ${values[i]} (${((values[i] / totalTests) * 100).toFixed(1)}%)`).join(', ');
+
   return (
     <div className="status-chart-container">
-      <div className="chart-wrapper">
+      <div className="chart-wrapper" aria-label={`Graphique de répartition des statuts. ${summaryText}`} role="img">
         {chartType === 'doughnut' ? (
           <Doughnut data={doughnutData} options={doughnutOptions} />
         ) : (
           <Bar data={barData} options={barOptions} />
         )}
       </div>
+
+      {/* Alternative tabulaire pour les lecteurs d'écran */}
+      <table className="sr-only">
+        <caption>{useBusiness ? 'Répartition des statuts de tests (données)' : 'Test status distribution data'}</caption>
+        <thead>
+          <tr>
+            <th>Statut</th>
+            <th>Nombre</th>
+            <th>Pourcentage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {labels.map((label, index) => (
+            <tr key={index}>
+              <td>{label}</td>
+              <td>{values[index]}</td>
+              <td>{((values[index] / totalTests) * 100).toFixed(1)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       {/* Statistiques détaillées */}
       <div className="status-details">
@@ -185,7 +209,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
               label={label}
               value={values[index]}
               color={colors[index]}
-              total={values.reduce((a, b) => a + b, 0)}
+              total={totalTests}
             />
           ))}
         </div>

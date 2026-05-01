@@ -18,15 +18,15 @@ const Toast = ({ message, type = 'error', onClose, duration = 5000 }) => {
     if (!message) return null;
 
     return (
-        <div style={{
+        <div role="alert" aria-live="polite" style={{
             position: 'fixed',
             bottom: '20px',
             right: '20px',
-            backgroundColor: type === 'error' ? '#EF4444' : '#10B981',
+            backgroundColor: type === 'error' ? 'var(--toast-error-bg)' : 'var(--toast-success-bg)',
             color: 'white',
             padding: '12px 20px',
             borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            boxShadow: 'var(--toast-shadow)',
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
