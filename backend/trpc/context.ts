@@ -53,5 +53,23 @@ export function createTRPCContext({ req, res }: CreateExpressContextOptions): Co
     }
   }
 
+  // Fallback X-Admin-Token pour tests e2e
+  if (!user) {
+    const adminToken = process.env.ADMIN_API_TOKEN;
+    const provided = req.headers['x-admin-token'];
+    if (adminToken && provided && provided === adminToken) {
+      user = {
+        id: 0,
+        gitlab_id: 0,
+        email: 'admin@system',
+        name: 'Admin',
+        avatar: null,
+        role: 'admin',
+        created_at: new Date().toISOString(),
+        last_login: new Date().toISOString(),
+      } as User;
+    }
+  }
+
   return { user, requestId, req, res };
 }

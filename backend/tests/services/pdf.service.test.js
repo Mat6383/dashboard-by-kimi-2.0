@@ -27,7 +27,7 @@ jest.mock('puppeteer', () => ({
 
 // On réinitialise le singleton avant chaque test
 delete require.cache[require.resolve('../../services/pdf.service')];
-const pdfService = require('../../services/pdf.service');
+const pdfService = require('../../services/pdf.service').default;
 
 beforeEach(() => {
   jest.clearAllMocks();

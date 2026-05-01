@@ -18,7 +18,7 @@ jest.mock('../../services/logger.service', () => ({
 }));
 
 process.env.JWT_SECRET = 'test-secret';
-const app = require('../../server');
+const app = require('../../server').default;
 
 jest.mock('../../services/testmo.service', () => ({
   getRunDetails: jest.fn(() => Promise.resolve({ id: 1, name: 'R01' })),
@@ -39,57 +39,65 @@ jest.mock('../../services/testmo.service', () => ({
 }));
 
 jest.mock('../../services/gitlab.service', () => ({
-  healthCheck: jest.fn(() => Promise.resolve({ ok: true })),
-  searchIterations: jest.fn(() => Promise.resolve([{ id: 1, title: 'R01', state: 'active', web_url: 'http://gl/1' }])),
-  getIssuesByLabelAndIterationForProject: jest.fn(() =>
-    Promise.resolve([
-      {
-        iid: 1,
-        title: 'Issue 1',
-        web_url: 'http://gl/1',
-        state: 'opened',
-        assignees: [{ name: 'Alice' }],
-        labels: ['CrossTest::OK', 'bug'],
-        created_at: '2024-01-01T00:00:00Z',
-        closed_at: null,
-      },
-    ])
-  ),
+  __esModule: true,
+  default: {
+    healthCheck: jest.fn(() => Promise.resolve({ ok: true })),
+    searchIterations: jest.fn(() =>
+      Promise.resolve([{ id: 1, title: 'R01', state: 'active', web_url: 'http://gl/1' }])
+    ),
+    getIssuesByLabelAndIterationForProject: jest.fn(() =>
+      Promise.resolve([
+        {
+          iid: 1,
+          title: 'Issue 1',
+          web_url: 'http://gl/1',
+          state: 'opened',
+          assignees: [{ name: 'Alice' }],
+          labels: ['CrossTest::OK', 'bug'],
+          created_at: '2024-01-01T00:00:00Z',
+          closed_at: null,
+        },
+      ])
+    ),
+  },
 }));
 
 jest.mock('../../services/featureFlags.service', () => ({
-  getAll: jest.fn(() => ({ darkMode: true, betaFeature: false })),
-  getAllDetails: jest.fn(() => [
-    {
-      key: 'darkMode',
-      enabled: true,
-      description: 'Dark theme',
+  __esModule: true,
+  default: {
+    getAll: jest.fn(() => ({ darkMode: true, betaFeature: false })),
+    getAllDetails: jest.fn(() => [
+      {
+        key: 'darkMode',
+        enabled: true,
+        description: 'Dark theme',
+        rolloutPercentage: 100,
+        updatedAt: '2024-01-01T00:00:00Z',
+        createdAt: '2024-01-01T00:00:00Z',
+      },
+      {
+        key: 'betaFeature',
+        enabled: false,
+        description: 'Beta',
+        rolloutPercentage: 0,
+        updatedAt: '2024-01-01T00:00:00Z',
+        createdAt: '2024-01-01T00:00:00Z',
+      },
+    ]),
+    getByKey: jest.fn((key) => ({
+      key,
+      enabled: key === 'darkMode',
+      description: 'Test',
       rolloutPercentage: 100,
       updatedAt: '2024-01-01T00:00:00Z',
       createdAt: '2024-01-01T00:00:00Z',
-    },
-    {
-      key: 'betaFeature',
-      enabled: false,
-      description: 'Beta',
-      rolloutPercentage: 0,
-      updatedAt: '2024-01-01T00:00:00Z',
-      createdAt: '2024-01-01T00:00:00Z',
-    },
-  ]),
-  getByKey: jest.fn((key) => ({
-    key,
-    enabled: key === 'darkMode',
-    description: 'Test',
-    rolloutPercentage: 100,
-    updatedAt: '2024-01-01T00:00:00Z',
-    createdAt: '2024-01-01T00:00:00Z',
-  })),
-  isEnabled: jest.fn((key) => key === 'darkMode'),
-  set: jest.fn(() => true),
-  create: jest.fn(() => true),
-  update: jest.fn(() => true),
-  delete: jest.fn(() => true),
+    })),
+    isEnabled: jest.fn((key) => key === 'darkMode'),
+    set: jest.fn(() => true),
+    create: jest.fn(() => true),
+    update: jest.fn(() => true),
+    delete: jest.fn(() => true),
+  },
 }));
 
 jest.mock('../../services/comments.service', () => ({
@@ -107,30 +115,36 @@ jest.mock('../../services/comments.service', () => ({
 }));
 
 jest.mock('../../services/syncHistory.service', () => ({
-  getHistory: jest.fn(() => [{ id: 1, project_name: 'Alpha', iteration_name: 'R01', mode: 'preview' }]),
-  addRun: jest.fn(),
-  initDb: jest.fn(),
-  _initialized: true,
-  db: null,
+  __esModule: true,
+  default: {
+    getHistory: jest.fn(() => [{ id: 1, project_name: 'Alpha', iteration_name: 'R01', mode: 'preview' }]),
+    addRun: jest.fn(),
+    initDb: jest.fn(),
+    _initialized: true,
+    db: null,
+  },
 }));
 
 jest.mock('../../services/auto-sync-config.service', () => ({
-  getConfig: jest.fn(() => ({
-    enabled: false,
-    runId: null,
-    iterationName: '',
-    gitlabProjectId: '',
-    version: '',
-  })),
-  updateConfig: jest.fn((patch) => ({
-    enabled: false,
-    runId: null,
-    iterationName: '',
-    gitlabProjectId: '',
-    version: '',
-    ...patch,
-    updatedAt: new Date().toISOString(),
-  })),
+  __esModule: true,
+  default: {
+    getConfig: jest.fn(() => ({
+      enabled: false,
+      runId: null,
+      iterationName: '',
+      gitlabProjectId: '',
+      version: '',
+    })),
+    updateConfig: jest.fn((patch) => ({
+      enabled: false,
+      runId: null,
+      iterationName: '',
+      gitlabProjectId: '',
+      version: '',
+      ...patch,
+      updatedAt: new Date().toISOString(),
+    })),
+  },
 }));
 
 jest.mock('../../services/report.service', () => {
@@ -153,27 +167,33 @@ jest.mock('../../services/report.service', () => {
 });
 
 jest.mock('../../services/sync.service', () => ({
-  previewIteration: jest.fn(() =>
-    Promise.resolve({
-      iteration: { id: 1, title: 'R01' },
-      folder: { id: 10 },
-      issues: [],
-      summary: { toCreate: 1, toUpdate: 0, toSkip: 0, total: 1 },
-    })
-  ),
-  syncIteration: jest.fn((iterationName, options, onEvent) => {
-    if (onEvent) onEvent('done', { created: 1, updated: 0, skipped: 0 });
-    return Promise.resolve({ created: 1, updated: 0, skipped: 0 });
-  }),
-  testTestmoApi: jest.fn(() => Promise.resolve({ success: true })),
-  cleanupTestFolder: jest.fn(() => Promise.resolve({ success: true })),
+  __esModule: true,
+  default: {
+    previewIteration: jest.fn(() =>
+      Promise.resolve({
+        iteration: { id: 1, title: 'R01' },
+        folder: { id: 10 },
+        issues: [],
+        summary: { toCreate: 1, toUpdate: 0, toSkip: 0, total: 1 },
+      })
+    ),
+    syncIteration: jest.fn((iterationName, options, onEvent) => {
+      if (onEvent) onEvent('done', { created: 1, updated: 0, skipped: 0 });
+      return Promise.resolve({ created: 1, updated: 0, skipped: 0 });
+    }),
+    testTestmoApi: jest.fn(() => Promise.resolve({ success: true })),
+    cleanupTestFolder: jest.fn(() => Promise.resolve({ success: true })),
+  },
 }));
 
 jest.mock('../../services/status-sync.service', () => ({
-  syncRunStatusToGitLab: jest.fn((runId, iterationName, gitlabProjectId, onEvent, dryRun, version) => {
-    if (onEvent) onEvent('done', { updated: 5 });
-    return Promise.resolve();
-  }),
+  __esModule: true,
+  default: {
+    syncRunStatusToGitLab: jest.fn((runId, iterationName, gitlabProjectId, onEvent, dryRun, version) => {
+      if (onEvent) onEvent('done', { updated: 5 });
+      return Promise.resolve();
+    }),
+  },
 }));
 
 jest.mock('../../services/apiTimer.service', () => ({
@@ -191,7 +211,7 @@ describe('Routes Coverage Integration Tests', () => {
     process.env.ADMIN_API_TOKEN = 'test-admin-token';
     process.env.JWT_SECRET = 'test-secret';
 
-    const usersService = require('../../services/users.service');
+    const usersService = require('../../services/users.service').default;
     usersService.init();
     const admin = usersService.upsertFromGitLab({
       id: '100',
@@ -254,7 +274,7 @@ describe('Routes Coverage Integration Tests', () => {
 
   describe('POST /api/feature-flags/admin', () => {
     it('creates a flag for admin', async () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
       featureFlagsService.getByKey.mockReturnValueOnce(null);
       const res = await request(app)
         .post('/api/feature-flags/admin')
@@ -265,7 +285,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 409 for duplicate key', async () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
       featureFlagsService.getByKey.mockReturnValueOnce({ key: 'existing' });
       const res = await request(app)
         .post('/api/feature-flags/admin')
@@ -302,7 +322,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 404 for unknown flag', async () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
       featureFlagsService.getByKey.mockReturnValueOnce(null);
       const res = await request(app)
         .put('/api/feature-flags/admin/ghost')
@@ -328,7 +348,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 404 for unknown flag', async () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
       featureFlagsService.getByKey.mockReturnValueOnce(null);
       const res = await request(app).delete('/api/feature-flags/admin/ghost').set('Authorization', adminToken);
       expect(res.status).toBe(404);
@@ -462,7 +482,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 500 when getHistory throws', async () => {
-      const syncHistory = require('../../services/syncHistory.service');
+      const syncHistory = require('../../services/syncHistory.service').default;
       syncHistory.getHistory.mockImplementationOnce(() => {
         throw new Error('DB locked');
       });
@@ -502,7 +522,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 500 when searchIterations throws', async () => {
-      const gitlab = require('../../services/gitlab.service');
+      const gitlab = require('../../services/gitlab.service').default;
       gitlab.searchIterations.mockRejectedValueOnce(new Error('GitLab down'));
       const res = await request(app).get('/api/sync/neo-pilot/iterations');
       expect(res.status).toBe(500);
@@ -531,7 +551,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 500 when previewIteration throws', async () => {
-      const syncService = require('../../services/sync.service');
+      const syncService = require('../../services/sync.service').default;
       syncService.previewIteration.mockRejectedValueOnce(new Error('Sync failed'));
       const res = await request(app).post('/api/sync/preview').send({ projectId: 'neo-pilot', iterationName: 'R01' });
       expect(res.status).toBe(500);
@@ -559,7 +579,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('streams SSE error when syncIteration throws', async () => {
-      const syncService = require('../../services/sync.service');
+      const syncService = require('../../services/sync.service').default;
       syncService.syncIteration.mockRejectedValueOnce(new Error('Sync crash'));
       const res = await request(app).post('/api/sync/execute').send({ projectId: 'neo-pilot', iterationName: 'R01' });
       expect(res.status).toBe(200);
@@ -575,7 +595,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 500 when syncIteration throws', async () => {
-      const syncService = require('../../services/sync.service');
+      const syncService = require('../../services/sync.service').default;
       syncService.syncIteration.mockRejectedValueOnce(new Error('Sync failed'));
       const res = await request(app).post('/api/sync/iteration').send({ iteration: 'R01 - run 1' });
       expect(res.status).toBe(500);
@@ -593,7 +613,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('streams SSE error when syncRunStatusToGitLab throws', async () => {
-      const statusSync = require('../../services/status-sync.service');
+      const statusSync = require('../../services/status-sync.service').default;
       statusSync.syncRunStatusToGitLab.mockRejectedValueOnce(new Error('Status sync crash'));
       const res = await request(app)
         .post('/api/sync/status-to-gitlab')
@@ -616,7 +636,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 500 when testTestmoApi throws', async () => {
-      const syncService = require('../../services/sync.service');
+      const syncService = require('../../services/sync.service').default;
       syncService.testTestmoApi.mockRejectedValueOnce(new Error('Testmo unreachable'));
       const res = await request(app).post('/api/sync/test-api').set('X-Admin-Token', 'test-admin-token');
       expect(res.status).toBe(500);
@@ -637,7 +657,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 500 when cleanupTestFolder throws', async () => {
-      const syncService = require('../../services/sync.service');
+      const syncService = require('../../services/sync.service').default;
       syncService.cleanupTestFolder.mockRejectedValueOnce(new Error('Cleanup failed'));
       const res = await request(app).delete('/api/sync/test-cleanup').set('X-Admin-Token', 'test-admin-token');
       expect(res.status).toBe(500);
@@ -661,7 +681,7 @@ describe('Routes Coverage Integration Tests', () => {
     });
 
     it('returns 500 when updateConfig throws', async () => {
-      const autoSync = require('../../services/auto-sync-config.service');
+      const autoSync = require('../../services/auto-sync-config.service').default;
       autoSync.updateConfig.mockImplementationOnce(() => {
         throw new Error('Config write failed');
       });

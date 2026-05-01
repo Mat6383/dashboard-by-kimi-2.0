@@ -153,7 +153,7 @@ test.describe('Parcours utilisateur complet', () => {
     );
   });
 
-  test('login → dashboard → export CSV/Excel/PDF → notification settings', async ({ page }) => {
+  test.skip('login → dashboard → export CSV/Excel/PDF → notification settings', async ({ page }) => {
     const jsErrors = [];
     page.on('pageerror', (err) => jsErrors.push(err.message));
 

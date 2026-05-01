@@ -10,6 +10,16 @@ jest.mock('../../services/logger.service', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../services/gitlab.service', () => ({
+  __esModule: true,
+  default: {
+    healthCheck: jest.fn(() => Promise.resolve({ ok: true, responseTimeMs: 50 })),
+  },
+  gitlabBreaker: {
+    getStatus: jest.fn(() => ({ name: 'gitlab', state: 'CLOSED', failures: 0 })),
+  },
+}));
+
 describe('Health Routes', () => {
   let app;
 
@@ -17,7 +27,7 @@ describe('Health Routes', () => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
     process.env.ADMIN_API_TOKEN = 'admin-test-token';
-    app = require('../../server');
+    app = require('../../server').default;
   });
 
   it('GET /api/health returns liveness probe', async () => {
@@ -62,7 +72,7 @@ describe('Health Routes', () => {
   });
 
   it('GET /api/health/ready gère une erreur DB', async () => {
-    const syncHistoryService = require('../../services/syncHistory.service');
+    const syncHistoryService = require('../../services/syncHistory.service').default;
     const originalDb = syncHistoryService.db;
     syncHistoryService.db = null;
     syncHistoryService.initDb = jest.fn(() => {

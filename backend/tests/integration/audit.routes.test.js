@@ -24,9 +24,9 @@ describe('Audit Routes', () => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
     process.env.ADMIN_API_TOKEN = 'admin-test-token';
-    app = require('../../server');
+    app = require('../../server').default;
 
-    const usersService = require('../../services/users.service');
+    const usersService = require('../../services/users.service').default;
     usersService.init();
     usersService.upsertFromGitLab({
       id: '999',
@@ -44,7 +44,7 @@ describe('Audit Routes', () => {
     usersService.updateRole(1, 'admin');
     usersService.updateRole(2, 'viewer');
 
-    auditService = require('../../services/audit.service');
+    auditService = require('../../services/audit.service').default;
     auditService.init();
   });
 

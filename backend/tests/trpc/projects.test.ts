@@ -19,7 +19,7 @@ describe('tRPC projects router', () => {
     const caller = createTestCaller();
     const result = await caller.projects.list();
     expect(result.success).toBe(true);
-    expect(result.data).toEqual([{ id: 1, name: 'Alpha' }]);
+    expect(result.data.result).toEqual([{ id: 1, name: 'Alpha' }]);
   });
 
   it('returns runs for a project', async () => {

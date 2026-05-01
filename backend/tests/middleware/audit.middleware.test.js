@@ -27,7 +27,7 @@ describe('Audit Middleware', () => {
     process.env.ADMIN_API_TOKEN = 'admin-test-token';
 
     const { auditAction } = require('../../middleware/audit.middleware');
-    auditService = require('../../services/audit.service');
+    auditService = require('../../services/audit.service').default;
     auditService.init();
 
     app = express();

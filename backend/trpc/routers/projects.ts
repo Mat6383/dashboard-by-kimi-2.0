@@ -20,7 +20,7 @@ const runsInput = z.object({
 export const projectsRouter = router({
   list: publicProcedure.query(async () => {
     const projects = await testmoService.getProjects();
-    return { success: true as const, data: projects, timestamp: new Date().toISOString() };
+    return { success: true as const, data: { result: projects }, timestamp: new Date().toISOString() };
   }),
 
   runs: publicProcedure

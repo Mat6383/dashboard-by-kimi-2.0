@@ -11,16 +11,19 @@ jest.mock('../../services/logger.service', () => ({
 }));
 
 jest.mock('../../services/backup.service', () => ({
-  runBackup: jest.fn(),
-  listBackups: jest.fn(),
+  __esModule: true,
+  default: {
+    runBackup: jest.fn(),
+    listBackups: jest.fn(),
+  },
 }));
 
-const backupService = require('../../services/backup.service');
+const backupService = require('../../services/backup.service').default;
 
 // Setup env before requiring the server
 process.env.JWT_SECRET = 'test-secret';
 process.env.ADMIN_API_TOKEN = 'admin-test-token';
-const app = require('../../server');
+const app = require('../../server').default;
 
 describe('Backups Admin Routes', () => {
   beforeEach(() => {

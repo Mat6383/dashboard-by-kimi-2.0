@@ -26,7 +26,7 @@ describe('AuditService', () => {
 
   beforeEach(() => {
     jest.resetModules();
-    auditService = require('../../services/audit.service');
+    auditService = require('../../services/audit.service').default;
     auditService.init();
   });
 

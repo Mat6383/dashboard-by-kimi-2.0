@@ -45,7 +45,7 @@ describe('EmailService', () => {
 
   function getService() {
     jest.resetModules();
-    return require('../services/email.service');
+    return require('../services/email.service').default;
   }
 
   describe('avec configuration SMTP complète', () => {

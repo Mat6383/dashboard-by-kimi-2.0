@@ -15,7 +15,7 @@ describe('SQLite Services', () => {
 
   describe('SyncHistoryService', () => {
     it('adds a run and retrieves it', () => {
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       const id = syncHistoryService.addRun('Alpha', 'R01', 'preview', {
         created: 2,
@@ -31,7 +31,7 @@ describe('SQLite Services', () => {
     });
 
     it('returns null when DB is unavailable during addRun', () => {
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       syncHistoryService.db = null;
       syncHistoryService._initialized = true;
@@ -40,14 +40,14 @@ describe('SQLite Services', () => {
     });
 
     it('returns empty array when DB is unavailable during getHistory', () => {
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.db = null;
       syncHistoryService._initialized = true;
       expect(syncHistoryService.getHistory(10)).toEqual([]);
     });
 
     it('returns null when DB prepare throws during addRun', () => {
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
       syncHistoryService.db.prepare = jest.fn(() => {
@@ -59,7 +59,7 @@ describe('SQLite Services', () => {
     });
 
     it('returns empty array when DB prepare throws during getHistory', () => {
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
       syncHistoryService.db.prepare = jest.fn(() => {
@@ -75,7 +75,7 @@ describe('SQLite Services', () => {
       BetterSqlite3.mockImplementationOnce(() => {
         throw new Error('Cannot open DB');
       });
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService._initialized = false;
       syncHistoryService.db = null;
       syncHistoryService.initDb();
@@ -87,7 +87,7 @@ describe('SQLite Services', () => {
 
   describe('CommentsService', () => {
     it('upserts and gets a comment', () => {
-      const commentsService = require('../../services/comments.service');
+      const commentsService = require('../../services/comments.service').default;
       commentsService.init();
       const row = commentsService.upsert(1, 'Comment 1', 'R01');
       expect(row.comment).toBe('Comment 1');
@@ -97,7 +97,7 @@ describe('SQLite Services', () => {
     });
 
     it('deletes a comment', () => {
-      const commentsService = require('../../services/comments.service');
+      const commentsService = require('../../services/comments.service').default;
       commentsService.init();
       commentsService.upsert(1, 'To delete', null);
       expect(commentsService.delete(1)).toBe(true);
@@ -105,7 +105,7 @@ describe('SQLite Services', () => {
     });
 
     it('throws when DB prepare throws during getAll', () => {
-      const commentsService = require('../../services/comments.service');
+      const commentsService = require('../../services/comments.service').default;
       commentsService.init();
       const originalPrepare = commentsService.db.prepare.bind(commentsService.db);
       commentsService.db.prepare = jest.fn(() => {
@@ -116,7 +116,7 @@ describe('SQLite Services', () => {
     });
 
     it('throws when DB prepare throws during upsert', () => {
-      const commentsService = require('../../services/comments.service');
+      const commentsService = require('../../services/comments.service').default;
       commentsService.init();
       const originalPrepare = commentsService.db.prepare.bind(commentsService.db);
       commentsService.db.prepare = jest.fn(() => {
@@ -127,7 +127,7 @@ describe('SQLite Services', () => {
     });
 
     it('throws when DB prepare throws during delete', () => {
-      const commentsService = require('../../services/comments.service');
+      const commentsService = require('../../services/comments.service').default;
       commentsService.init();
       const originalPrepare = commentsService.db.prepare.bind(commentsService.db);
       commentsService.db.prepare = jest.fn(() => {
@@ -143,7 +143,7 @@ describe('SQLite Services', () => {
       BetterSqlite3.mockImplementationOnce(() => {
         throw new Error('Cannot open DB');
       });
-      const commentsService = require('../../services/comments.service');
+      const commentsService = require('../../services/comments.service').default;
       expect(() => commentsService.init()).toThrow('Cannot open DB');
       BetterSqlite3.mockImplementation(originalImpl);
     });
@@ -151,8 +151,8 @@ describe('SQLite Services', () => {
 
   describe('FeatureFlagsService', () => {
     it('gets all flags as map', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       featureFlagsService.set('flagA', true);
       const flags = featureFlagsService.getAll();
@@ -160,8 +160,8 @@ describe('SQLite Services', () => {
     });
 
     it('gets all flags with details', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       featureFlagsService.create('detailFlag', { enabled: true, description: 'Test', rolloutPercentage: 50 });
       const flags = featureFlagsService.getAllDetails();
@@ -174,8 +174,8 @@ describe('SQLite Services', () => {
     });
 
     it('checks if a flag is enabled', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       featureFlagsService.set('flagA', true);
       expect(featureFlagsService.isEnabled('flagA')).toBe(true);
@@ -184,16 +184,16 @@ describe('SQLite Services', () => {
     });
 
     it('sets a flag', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       expect(featureFlagsService.set('flagB', true)).toBe(true);
       expect(featureFlagsService.isEnabled('flagB')).toBe(true);
     });
 
     it('creates a flag', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       expect(
         featureFlagsService.create('newFlag', { enabled: false, description: 'Desc', rolloutPercentage: 75 })
@@ -206,8 +206,8 @@ describe('SQLite Services', () => {
     });
 
     it('updates a flag', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       featureFlagsService.create('updateFlag', { enabled: false });
       expect(
@@ -220,15 +220,15 @@ describe('SQLite Services', () => {
     });
 
     it('returns false when updating non-existing flag', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       expect(featureFlagsService.update('ghost', { enabled: true })).toBe(false);
     });
 
     it('deletes a flag', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       featureFlagsService.create('delFlag');
       expect(featureFlagsService.delete('delFlag')).toBe(true);
@@ -237,16 +237,16 @@ describe('SQLite Services', () => {
     });
 
     it('returns false when DB is unavailable during set', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.db = null;
       syncHistoryService._initialized = true;
       expect(featureFlagsService.set('flagX', true)).toBe(false);
     });
 
     it('returns default when DB prepare throws during isEnabled', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
       syncHistoryService.db.prepare = jest.fn(() => {
@@ -258,8 +258,8 @@ describe('SQLite Services', () => {
     });
 
     it('returns empty object when DB prepare throws during getAll', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
       syncHistoryService.db.prepare = jest.fn(() => {
@@ -270,8 +270,8 @@ describe('SQLite Services', () => {
     });
 
     it('returns empty array when DB prepare throws during getAllDetails', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
       syncHistoryService.db.prepare = jest.fn(() => {
@@ -282,8 +282,8 @@ describe('SQLite Services', () => {
     });
 
     it('returns false when DB prepare throws during set', () => {
-      const featureFlagsService = require('../../services/featureFlags.service');
-      const syncHistoryService = require('../../services/syncHistory.service');
+      const featureFlagsService = require('../../services/featureFlags.service').default;
+      const syncHistoryService = require('../../services/syncHistory.service').default;
       syncHistoryService.initDb();
       const originalPrepare = syncHistoryService.db.prepare.bind(syncHistoryService.db);
       syncHistoryService.db.prepare = jest.fn(() => {

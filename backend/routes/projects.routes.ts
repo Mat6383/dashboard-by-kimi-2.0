@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 
     res.json({
       success: true,
-      data: projects,
+      data: { result: projects },
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

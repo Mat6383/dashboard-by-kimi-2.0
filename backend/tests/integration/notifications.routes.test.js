@@ -24,9 +24,9 @@ describe('Notifications Routes', () => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
     process.env.ADMIN_API_TOKEN = 'admin-test-token';
-    app = require('../../server');
+    app = require('../../server').default;
 
-    const usersService = require('../../services/users.service');
+    const usersService = require('../../services/users.service').default;
     usersService.init();
     const user = usersService.upsertFromGitLab({
       id: '100',
@@ -69,7 +69,7 @@ describe('Notifications Routes', () => {
   });
 
   it('returns 403 for viewer on admin routes', async () => {
-    const usersService = require('../../services/users.service');
+    const usersService = require('../../services/users.service').default;
     const viewer = usersService.upsertFromGitLab({
       id: '101',
       emails: [{ value: 'viewer@test.com' }],

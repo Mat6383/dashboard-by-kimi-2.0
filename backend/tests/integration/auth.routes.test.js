@@ -24,9 +24,9 @@ describe('Auth Routes', () => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
     process.env.ADMIN_API_TOKEN = 'admin-test-token';
-    app = require('../../server');
+    app = require('../../server').default;
 
-    const usersService = require('../../services/users.service');
+    const usersService = require('../../services/users.service').default;
     usersService.init();
     user = usersService.upsertFromGitLab({
       id: '999',
@@ -69,7 +69,7 @@ describe('Auth Routes', () => {
     delete process.env.GITLAB_CLIENT_ID;
     delete process.env.GITLAB_CLIENT_SECRET;
     jest.resetModules();
-    const freshApp = require('../../server');
+    const freshApp = require('../../server').default;
     const res = await request(freshApp).get('/api/auth/gitlab');
     expect(res.status).toBe(501);
   });

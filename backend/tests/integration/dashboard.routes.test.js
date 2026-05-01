@@ -42,7 +42,7 @@ describe('Dashboard SSE Stream', () => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
     process.env.ADMIN_API_TOKEN = 'admin-test-token';
-    app = require('../../server');
+    app = require('../../server').default;
     testmoService = require('../../services/testmo.service');
     sockets = new Set();
   });

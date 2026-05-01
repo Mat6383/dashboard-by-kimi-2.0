@@ -78,9 +78,9 @@ describe('Export Routes', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
-    app = require('../../server');
+    app = require('../../server').default;
 
-    const usersService = require('../../services/users.service');
+    const usersService = require('../../services/users.service').default;
     usersService.init();
     const user = usersService.upsertFromGitLab({
       id: '300',

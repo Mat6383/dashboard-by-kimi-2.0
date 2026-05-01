@@ -4,7 +4,7 @@
  */
 
 const request = require('supertest');
-const app = require('../../server');
+const app = require('../../server').default;
 
 // Mocker le service Testmo pour éviter les appels réseau
 jest.mock('../../services/testmo.service', () => {

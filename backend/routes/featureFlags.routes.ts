@@ -3,7 +3,7 @@ const router = express.Router();
 import featureFlagsService from '../services/featureFlags.service';
 import { safeErrorResponse } from '../utils/errorResponse';
 import { auditAction } from '../middleware/audit.middleware';
-import { requireAuth, requireRole } from '../middleware/auth.middleware';
+import { requireAuthOrAdmin, requireRole } from '../middleware/auth.middleware';
 
 import {
   validateParams,
@@ -34,7 +34,7 @@ router.get('/', (req, res) => {
  * Liste détaillée des flags (métadonnées complètes).
  * Admin uniquement.
  */
-router.get('/admin', requireAuth, requireRole('admin'), (req, res) => {
+router.get('/admin', requireAuthOrAdmin, requireRole('admin'), (req, res) => {
   try {
     const flags = featureFlagsService.getAllDetails();
     res.json({ success: true, data: flags, timestamp: new Date().toISOString() });
@@ -50,7 +50,7 @@ router.get('/admin', requireAuth, requireRole('admin'), (req, res) => {
  */
 router.post(
   '/admin',
-  requireAuth,
+  requireAuthOrAdmin,
   requireRole('admin'),
   validateBody(featureFlagCreateBody),
   auditAction('feature-flag.create', { captureBody: true }),
@@ -87,7 +87,7 @@ router.post(
  */
 router.put(
   '/admin/:key',
-  requireAuth,
+  requireAuthOrAdmin,
   requireRole('admin'),
   validateParams(featureFlagKeyParam),
   validateBody(featureFlagUpdateBody),
@@ -128,7 +128,7 @@ router.put(
  */
 router.delete(
   '/admin/:key',
-  requireAuth,
+  requireAuthOrAdmin,
   requireRole('admin'),
   validateParams(featureFlagKeyParam),
   auditAction('feature-flag.delete', { captureParams: true }),

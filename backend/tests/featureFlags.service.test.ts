@@ -12,7 +12,10 @@ jest.mock('../services/syncHistory.service', () => ({
 }));
 
 jest.mock('../services/webhooks.service', () => ({
-  trigger: jest.fn(),
+  __esModule: true,
+  default: {
+    trigger: jest.fn(),
+  },
 }));
 
 jest.mock('../services/logger.service', () => ({
@@ -218,7 +221,7 @@ describe('FeatureFlagsService', () => {
   });
 
   test('_notifyChange appelle webhooksService.trigger', () => {
-    const webhooks = require('../services/webhooks.service');
+    const webhooks = require('../services/webhooks.service').default;
     (featureFlagsService as any)._notifyChange('flag1', 'updated', { enabled: true });
     expect(webhooks.trigger).toHaveBeenCalledWith('feature-flag.changed', { key: 'flag1', action: 'updated', enabled: true });
   });

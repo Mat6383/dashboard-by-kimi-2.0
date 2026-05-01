@@ -120,29 +120,31 @@ async def test_webhooks_crud(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_crosstest_comments_crud(client: AsyncClient) -> None:
+    import random
     admin = await _make_admin()
     headers = await _admin_headers(admin)
+    issue_iid = random.randint(10000, 99999)
 
     # create
     resp = await client.post("/api/crosstest/comments", json={
-        "issue_iid": 99,
+        "issue_iid": issue_iid,
         "gitlab_project_id": 63,
         "comment": "Initial comment",
     }, headers=headers)
     assert resp.status_code == 200
-    comment_id = resp.json()["comment"]["id"]
+    comment_id = resp.json()["data"]["id"]
 
     # list
-    resp = await client.get("/api/crosstest/comments?issue_iid=99", headers=headers)
+    resp = await client.get(f"/api/crosstest/comments?issue_iid={issue_iid}", headers=headers)
     assert resp.status_code == 200
-    assert any(c["id"] == comment_id for c in resp.json()["comments"])
+    assert str(comment_id) in resp.json()["data"] or any(c["id"] == comment_id for c in resp.json()["data"].values())
 
     # update
     resp = await client.put(f"/api/crosstest/comments/{comment_id}", json={
         "comment": "Updated comment",
     }, headers=headers)
     assert resp.status_code == 200
-    assert resp.json()["comment"]["comment"] == "Updated comment"
+    assert resp.json()["data"]["comment"] == "Updated comment"
 
     # delete
     resp = await client.delete(f"/api/crosstest/comments/{comment_id}", headers=headers)
@@ -166,7 +168,7 @@ async def test_audit_logs_list(client: AsyncClient) -> None:
     resp = await client.get("/api/audit/?page=1&page_size=10", headers=headers)
     assert resp.status_code == 200
     data = resp.json()
-    assert "logs" in data
+    assert "data" in data
     assert data["total"] >= 1
 
     await _cleanup_user(admin.id)
@@ -233,14 +235,14 @@ async def test_dashboard_stream_unit() -> None:
 async def test_sync_auto_config(client: AsyncClient) -> None:
     resp = await client.get("/api/sync/auto-config")
     assert resp.status_code == 200
-    assert "config" in resp.json()
+    assert "data" in resp.json()
 
 
 @pytest.mark.asyncio
 async def test_sync_history_list(client: AsyncClient) -> None:
     resp = await client.get("/api/sync/history")
     assert resp.status_code == 200
-    assert isinstance(resp.json()["history"], list)
+    assert isinstance(resp.json()["data"], list)
 
 
 # ── Metrics ─────────────────────────────────────────────

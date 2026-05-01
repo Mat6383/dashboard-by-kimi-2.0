@@ -12,9 +12,13 @@ import { createTRPCReact, httpBatchLink } from '@trpc/react-query';
 import type { AppRouter } from '~server/trpc/router';
 
 export function getBaseUrl() {
-  if (typeof window !== 'undefined') return '';
-  // En dev local le backend Python écoute aussi sur 3001
-  return import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  // En browser, si VITE_API_URL est '/api', on extrait la base URL
+  // pour que tRPC puisse atteindre le backend sur le même host:port
+  if (typeof window !== 'undefined') {
+    return envUrl.replace('/api', '') || '';
+  }
+  return envUrl;
 }
 
 export function generateRequestId(): string {
@@ -28,9 +32,11 @@ export const trpcClient = trpc.createClient({
     httpBatchLink({
       url: `${getBaseUrl()}/trpc`,
       headers() {
+        const token = localStorage.getItem('qa_dashboard_token') || '';
         return {
           'x-request-id': generateRequestId(),
-          Authorization: `Bearer ${localStorage.getItem('qa_dashboard_token') || ''}`,
+          Authorization: `Bearer ${token}`,
+          'X-Admin-Token': token,
         };
       },
     }),

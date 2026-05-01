@@ -7,11 +7,17 @@ jest.mock('../services/logger.service', () => ({
 }));
 
 jest.mock('../services/syncHistory.service', () => ({
-  db: { close: jest.fn() },
+  __esModule: true,
+  default: {
+    db: { close: jest.fn() },
+  },
 }));
 
 jest.mock('../services/comments.service', () => ({
-  db: { close: jest.fn() },
+  __esModule: true,
+  default: {
+    db: { close: jest.fn() },
+  },
 }));
 
 describe('gracefulShutdown', () => {
@@ -61,7 +67,7 @@ describe('gracefulShutdown', () => {
   });
 
   test('gère une erreur de fermeture DB', () => {
-    const syncHistory = require('../services/syncHistory.service');
+    const syncHistory = require('../services/syncHistory.service').default;
     syncHistory.db.close.mockImplementation(() => { throw new Error('DB busy'); });
 
     const server = { close: jest.fn((cb) => cb()) };

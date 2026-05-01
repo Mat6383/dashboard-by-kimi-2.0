@@ -30,7 +30,7 @@ describe('Anomalies Routes', () => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
     process.env.ADMIN_API_TOKEN = 'admin-test-token';
-    app = require('../../server');
+    app = require('../../server').default;
     const anomalyService = require('../../services/anomaly.service');
     detectAnomalies = anomalyService.detectAnomalies;
   });

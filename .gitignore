@@ -66,3 +66,4 @@ frontend/coverage/
 test-results/
 backend/backups/
 load-tests/.loadtest.env
+.claude/

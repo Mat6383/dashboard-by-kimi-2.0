@@ -25,7 +25,7 @@ describe('Circuit Breakers Health', () => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
     process.env.ADMIN_API_TOKEN = 'admin-test-token';
-    app = require('../../server');
+    app = require('../../server').default;
   });
 
   it('GET /api/health/circuit-breakers retourne les statuts', async () => {

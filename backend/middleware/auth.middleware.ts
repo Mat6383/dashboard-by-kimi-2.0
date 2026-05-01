@@ -82,4 +82,33 @@ function requireRole(...allowedRoles: any[]) {
   };
 }
 
-export { requireAuth, requireRole, extractToken };
+function requireAuthOrAdmin(req: any, res: any, next: any) {
+  // 1. Essayer JWT classique
+  const token = extractToken(req);
+  if (token) {
+    const payload = jwtService.verify(token);
+    if (payload) {
+      const user = usersService.findById(payload.sub);
+      if (user) {
+        req.user = user;
+        return next();
+      }
+    }
+  }
+
+  // 2. Fallback X-Admin-Token (machine-to-machine / tests e2e)
+  const adminToken = process.env.ADMIN_API_TOKEN;
+  const provided = req.headers['x-admin-token'];
+  if (adminToken && provided && provided === adminToken) {
+    req.user = { id: 'admin', email: 'admin@system', role: 'admin', name: 'Admin' };
+    return next();
+  }
+
+  return res.status(401).json({
+    success: false,
+    error: 'Authentification requise',
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export { requireAuth, requireRole, extractToken, requireAuthOrAdmin };

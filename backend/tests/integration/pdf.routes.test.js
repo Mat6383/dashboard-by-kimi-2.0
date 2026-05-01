@@ -17,7 +17,10 @@ jest.mock('../../services/logger.service', () => ({
 }));
 
 jest.mock('../../services/pdf.service', () => ({
-  generateDashboardPDF: jest.fn().mockResolvedValue({ buffer: Buffer.from('%PDF-1.4 test'), durationMs: 1245 }),
+  __esModule: true,
+  default: {
+    generateDashboardPDF: jest.fn().mockResolvedValue({ buffer: Buffer.from('%PDF-1.4 test'), durationMs: 1245 }),
+  },
 }));
 
 jest.mock('../../services/testmo.service', () => ({
@@ -41,9 +44,9 @@ describe('PDF Routes', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
-    app = require('../../server');
+    app = require('../../server').default;
 
-    const usersService = require('../../services/users.service');
+    const usersService = require('../../services/users.service').default;
     usersService.init();
     const user = usersService.upsertFromGitLab({
       id: '200',

@@ -24,9 +24,9 @@ describe('Webhooks Routes', () => {
     jest.resetModules();
     process.env.JWT_SECRET = 'test-secret';
     process.env.ADMIN_API_TOKEN = 'admin-test-token';
-    app = require('../../server');
+    app = require('../../server').default;
 
-    const usersService = require('../../services/users.service');
+    const usersService = require('../../services/users.service').default;
     usersService.init();
     const user = usersService.upsertFromGitLab({
       id: '100',
@@ -104,7 +104,7 @@ describe('Webhooks Routes', () => {
   });
 
   it('GET /api/webhooks gère une erreur serveur', async () => {
-    const webhooksService = require('../../services/webhooks.service');
+    const webhooksService = require('../../services/webhooks.service').default;
     jest.spyOn(webhooksService, 'getAll').mockImplementation(() => {
       throw new Error('DB fail');
     });
@@ -114,7 +114,7 @@ describe('Webhooks Routes', () => {
   });
 
   it('POST /api/webhooks retourne 500 si création échoue', async () => {
-    const webhooksService = require('../../services/webhooks.service');
+    const webhooksService = require('../../services/webhooks.service').default;
     jest.spyOn(webhooksService, 'create').mockReturnValue(null);
     const res = await request(app)
       .post('/api/webhooks')
@@ -125,7 +125,7 @@ describe('Webhooks Routes', () => {
   });
 
   it('PUT /api/webhooks retourne 500 si mise à jour échoue', async () => {
-    const webhooksService = require('../../services/webhooks.service');
+    const webhooksService = require('../../services/webhooks.service').default;
     const createRes = await request(app)
       .post('/api/webhooks')
       .set('Authorization', token)
@@ -139,7 +139,7 @@ describe('Webhooks Routes', () => {
   });
 
   it('DELETE /api/webhooks retourne 500 si suppression échoue', async () => {
-    const webhooksService = require('../../services/webhooks.service');
+    const webhooksService = require('../../services/webhooks.service').default;
     const createRes = await request(app)
       .post('/api/webhooks')
       .set('Authorization', token)
@@ -158,7 +158,7 @@ describe('Webhooks Routes', () => {
   });
 
   it('requêtes avec rôle non-admin retournent 403', async () => {
-    const usersService = require('../../services/users.service');
+    const usersService = require('../../services/users.service').default;
     const user = usersService.upsertFromGitLab({
       id: '101',
       emails: [{ value: 'user@test.com' }],
