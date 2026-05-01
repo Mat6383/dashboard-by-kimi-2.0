@@ -6,8 +6,8 @@ export default function NotificationChannels({ isDark, settings, setSettings, on
   const { t } = useTranslation();
 
   const cardStyle = {
-    backgroundColor: isDark ? '#1e293b' : '#f9fafb',
-    border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+    backgroundColor: 'var(--surface-muted)',
+    border: `1px solid ${'var(--border-color)'}`,
     borderRadius: '8px',
     padding: '20px',
     marginBottom: '16px',
@@ -18,16 +18,16 @@ export default function NotificationChannels({ isDark, settings, setSettings, on
     fontSize: '0.875rem',
     fontWeight: 500,
     marginBottom: '6px',
-    color: isDark ? '#e2e8f0' : '#374151',
+    color: 'var(--text-color)',
   };
 
   const inputStyle = {
     width: '100%',
     padding: '8px 12px',
     borderRadius: '6px',
-    border: `1px solid ${isDark ? '#475569' : '#d1d5db'}`,
-    backgroundColor: isDark ? '#0f172a' : '#fff',
-    color: isDark ? '#f1f5f9' : '#1f2937',
+    border: `1px solid ${'var(--border-color)'}`,
+    backgroundColor: 'var(--surface-default)',
+    color: 'var(--text-color)',
     fontSize: '0.875rem',
   };
 
@@ -119,7 +119,7 @@ export default function NotificationChannels({ isDark, settings, setSettings, on
         onClick={onSave}
         disabled={savePending}
         type="button"
-        style={{ backgroundColor: '#10B981', color: '#fff', border: 'none' }}
+        style={{ backgroundColor: 'var(--text-success)', color: '#fff', border: 'none' }}
       >
         <Save size={16} />
         {savePending ? t('common.saving') : t('common.save')}

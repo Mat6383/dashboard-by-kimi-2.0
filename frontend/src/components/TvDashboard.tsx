@@ -24,7 +24,7 @@ const TvDashboard = ({ metrics, project, isDark, useBusiness }) => {
         <div className={`tv-dashboard ${isDark ? 'tv-dark-theme' : ''}`}>
             {/* Top Header */}
             <div className="tv-header-info">
-                <span style={{ color: '#60A5FA', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Shield size={16} /> NEO-FUGU — Dashboard QA Testmo
                 </span>
             </div>
@@ -86,7 +86,7 @@ const TvDashboard = ({ metrics, project, isDark, useBusiness }) => {
                                 <div className={`kpi-card-value ${(metrics.istqb?.avgPassRate >= metrics.istqb?.passRateTarget) ? 'success' : (metrics.istqb?.avgPassRate >= metrics.istqb?.passRateTarget - 5) ? 'warning' : 'danger'}`}>
                                     {metrics.istqb?.avgPassRate}%
                                 </div>
-                                <span style={{ fontSize: '1.2rem', color: (metrics.istqb?.avgPassRate >= metrics.istqb?.passRateTarget) ? '#10B981' : '#EF4444' }}>
+                                <span style={{ fontSize: '1.2rem', color: (metrics.istqb?.avgPassRate >= metrics.istqb?.passRateTarget) ? 'var(--text-success)' : 'var(--text-danger)' }}>
                                     {(metrics.istqb?.avgPassRate >= metrics.istqb?.passRateTarget) ? '▲' : '▼'}
                                 </span>
                             </div>
@@ -105,7 +105,7 @@ const TvDashboard = ({ metrics, project, isDark, useBusiness }) => {
                                 <div className={`kpi-card-value ${(metrics.istqb?.blockRate <= metrics.istqb?.blockRateTarget) ? 'success' : (metrics.istqb?.blockRate <= metrics.istqb?.blockRateTarget + 5) ? 'warning' : 'danger'}`}>
                                     {metrics.istqb?.blockRate}%
                                 </div>
-                                <span style={{ fontSize: '1.2rem', color: (metrics.istqb?.blockRate <= metrics.istqb?.blockRateTarget) ? '#10B981' : '#EF4444' }}>
+                                <span style={{ fontSize: '1.2rem', color: (metrics.istqb?.blockRate <= metrics.istqb?.blockRateTarget) ? 'var(--text-success)' : 'var(--text-danger)' }}>
                                     {(metrics.istqb?.blockRate <= metrics.istqb?.blockRateTarget) ? '▼' : '▲'}
                                 </span>
                             </div>
@@ -124,7 +124,7 @@ const TvDashboard = ({ metrics, project, isDark, useBusiness }) => {
                                 <div className={`kpi-card-value ${(metrics.itil?.mttr <= metrics.itil?.mttrTarget) ? 'success' : (metrics.itil?.mttr <= metrics.itil?.mttrTarget + 24) ? 'warning' : 'danger'}`}>
                                     {metrics.itil?.mttr}h
                                 </div>
-                                <span style={{ fontSize: '1.2rem', color: (metrics.itil?.mttr <= metrics.itil?.mttrTarget) ? '#10B981' : '#EF4444' }}>
+                                <span style={{ fontSize: '1.2rem', color: (metrics.itil?.mttr <= metrics.itil?.mttrTarget) ? 'var(--text-success)' : 'var(--text-danger)' }}>
                                     {(metrics.itil?.mttr <= metrics.itil?.mttrTarget) ? '▼' : '▲'}
                                 </span>
                             </div>
@@ -143,7 +143,7 @@ const TvDashboard = ({ metrics, project, isDark, useBusiness }) => {
                                 <div className={`kpi-card-value ${(metrics.itil?.changeFailRate <= metrics.itil?.changeFailRateTarget) ? 'success' : (metrics.itil?.changeFailRate <= metrics.itil?.changeFailRateTarget + 10) ? 'warning' : 'danger'}`}>
                                     {metrics.itil?.changeFailRate}%
                                 </div>
-                                <span style={{ fontSize: '1.2rem', color: (metrics.itil?.changeFailRate <= metrics.itil?.changeFailRateTarget) ? '#10B981' : '#EF4444' }}>
+                                <span style={{ fontSize: '1.2rem', color: (metrics.itil?.changeFailRate <= metrics.itil?.changeFailRateTarget) ? 'var(--text-success)' : 'var(--text-danger)' }}>
                                     {(metrics.itil?.changeFailRate <= metrics.itil?.changeFailRateTarget) ? '▼' : '▲'}
                                 </span>
                             </div>
@@ -227,11 +227,11 @@ const TvDashboard = ({ metrics, project, isDark, useBusiness }) => {
                                 </div>
                                 <div className="tv-run-metric">
                                     <div className="tv-run-metric-label"><RotateCcw size={12} /> {useBusiness ? 'À retester' : 'Retest'}</div>
-                                    <div className="tv-run-metric-value" style={{ color: '#8B5CF6' }}>{run.retest !== undefined ? run.retest : '...'}</div>
+                                    <div className="tv-run-metric-value" style={{ color: 'var(--text-secondary)' }}>{run.retest !== undefined ? run.retest : '...'}</div>
                                 </div>
                                 <div className="tv-run-metric">
                                     <div className="tv-run-metric-label"><CircleDashed size={12} /> {useBusiness ? 'Non testés' : 'Untested'}</div>
-                                    <div className="tv-run-metric-value" style={{ color: '#9CA3AF' }}>{run.untested !== undefined ? run.untested : '...'}</div>
+                                    <div className="tv-run-metric-value" style={{ color: 'var(--text-muted)' }}>{run.untested !== undefined ? run.untested : '...'}</div>
                                 </div>
                             </div>
                         </div>

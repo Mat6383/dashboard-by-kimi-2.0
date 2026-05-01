@@ -41,7 +41,7 @@ const Dashboard4 = ({
   const [showReportGenerator, setShowReportGenerator] = React.useState(false);
   const { exportPDF } = useExportPDF({
     orientation: 'landscape',
-    backgroundColor: isDark ? '#111827' : '#F9FAFB',
+    backgroundColor: 'var(--bg-color)',
   });
 
   const runs = useMemo(() => metrics?.runs || [], [metrics?.runs]);

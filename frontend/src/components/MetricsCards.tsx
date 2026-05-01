@@ -97,16 +97,16 @@ const MetricsCards = ({ metrics, useBusiness }) => {
  */
 const MetricCard = ({ title, subtitle, value, total, target, icon: Icon, color, trend, description, alert, useBusiness }) => {
   const TrendIcon = trend === 'up' ? TrendingUp : TrendingDown;
-  const trendColor = trend === 'up' ? '#10B981' : '#EF4444';
+  const trendColor = trend === 'up' ? 'var(--text-success)' : 'var(--text-danger)';
 
   return (
-    <div className="metric-card" style={{ borderLeftColor: alert ? (alert.severity === 'warning' ? '#F59E0B' : '#EF4444') : color }}>
+    <div className="metric-card" style={{ borderLeftColor: alert ? (alert.severity === 'warning' ? 'var(--text-warning)' : 'var(--text-danger)') : color }}>
       <div className="card-header">
         <div className="card-title">
           <h3>{title}</h3>
           <span className="subtitle" style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{subtitle}</span>
         </div>
-        <div className="card-icon" style={{ backgroundColor: `${color}20`, padding: '10px', borderRadius: '50%' }}>
+        <div className="card-icon" style={{ backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`, padding: '10px', borderRadius: '50%' }}>
           <Icon size={24} color={color} />
         </div>
       </div>
@@ -119,7 +119,7 @@ const MetricCard = ({ title, subtitle, value, total, target, icon: Icon, color, 
           </span>
         </div>
         <div className="metric-total" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
-          <span style={{ padding: '0.2rem 0.5rem', backgroundColor: `${color}15`, color, borderRadius: '4px', fontWeight: 600, fontSize: '0.85rem' }}>
+          <span style={{ padding: '0.2rem 0.5rem', backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`, color, borderRadius: '4px', fontWeight: 600, fontSize: '0.85rem' }}>
             {total}
           </span>
           {target && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>(Cible: {target})</span>}
@@ -130,7 +130,7 @@ const MetricCard = ({ title, subtitle, value, total, target, icon: Icon, color, 
         <span className="description" style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{description}</span>
 
         {alert && (
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.75rem', backgroundColor: alert.severity === 'warning' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)', borderRadius: '6px', color: alert.severity === 'warning' ? '#F59E0B' : '#EF4444' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', padding: '0.75rem', backgroundColor: alert.severity === 'warning' ? 'color-mix(in srgb, var(--text-warning) 10%, transparent)' : 'color-mix(in srgb, var(--text-danger) 10%, transparent)', borderRadius: '6px', color: alert.severity === 'warning' ? 'var(--text-warning)' : 'var(--text-danger)' }}>
             <AlertTriangle size={16} style={{ marginTop: '0.1rem', flexShrink: 0 }} />
             <span style={{ fontSize: '0.8rem', fontWeight: 500, lineHeight: 1.4 }}>
               {useBusiness ? (
@@ -151,18 +151,18 @@ const MetricCard = ({ title, subtitle, value, total, target, icon: Icon, color, 
  * Détermine la couleur selon seuils ISTQB
  */
 function getColorByThreshold(value, targetThreshold, warningThreshold) {
-  if (value >= targetThreshold) return '#10B981'; // Vert
-  if (value >= warningThreshold) return '#F59E0B'; // Orange
-  return '#EF4444'; // Rouge
+  if (value >= targetThreshold) return 'var(--text-success)';
+  if (value >= warningThreshold) return 'var(--text-warning)';
+  return 'var(--text-danger)';
 }
 
 /**
  * Couleur pour le taux d'échec (inverse)
  */
 function getColorForFailure(value) {
-  if (value <= 5) return '#10B981'; // Vert si peu d'échecs
-  if (value <= 10) return '#F59E0B'; // Orange
-  return '#EF4444'; // Rouge si beaucoup d'échecs
+  if (value <= 5) return 'var(--text-success)';
+  if (value <= 10) return 'var(--text-warning)';
+  return 'var(--text-danger)';
 }
 
 export { getColorByThreshold, getColorForFailure };

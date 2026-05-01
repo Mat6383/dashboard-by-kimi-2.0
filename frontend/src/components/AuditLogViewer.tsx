@@ -45,8 +45,8 @@ function StatusBadge({ success, t }: { success: boolean; t: (key: string) => str
         borderRadius: '9999px',
         fontSize: '0.75rem',
         fontWeight: 600,
-        backgroundColor: success ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-        color: success ? '#10B981' : '#EF4444',
+        backgroundColor: success ? 'color-mix(in srgb, var(--text-success) 15%, transparent)' : 'color-mix(in srgb, var(--text-danger) 15%, transparent)',
+        color: success ? 'var(--text-success)' : 'var(--text-danger)',
       }}
     >
       {success ? t('auditLog.success') : t('auditLog.failure')}
@@ -116,14 +116,14 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
       padding: '24px',
       maxWidth: '1400px',
       margin: '0 auto',
-      color: isDark ? '#e5e7eb' : '#1f2937',
+      color: 'var(--text-color)',
     },
     card: {
-      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+      backgroundColor: 'var(--surface-default)',
       borderRadius: '12px',
       padding: '24px',
       boxShadow: isDark ? '0 4px 6px rgba(0,0,0,0.3)' : '0 4px 6px rgba(0,0,0,0.05)',
-      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+      border: '1px solid var(--border-color)',
     },
     header: {
       display: 'flex',
@@ -147,24 +147,24 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
     input: {
       padding: '8px 12px',
       borderRadius: '8px',
-      border: `1px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
-      backgroundColor: isDark ? '#374151' : '#ffffff',
-      color: isDark ? '#e5e7eb' : '#1f2937',
+      border: '1px solid var(--border-color)',
+      backgroundColor: 'var(--surface-default)',
+      color: 'var(--text-color)',
       fontSize: '0.875rem',
     },
     select: {
       padding: '8px 12px',
       borderRadius: '8px',
-      border: `1px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
-      backgroundColor: isDark ? '#374151' : '#ffffff',
-      color: isDark ? '#e5e7eb' : '#1f2937',
+      border: '1px solid var(--border-color)',
+      backgroundColor: 'var(--surface-default)',
+      color: 'var(--text-color)',
       fontSize: '0.875rem',
     },
     btnPrimary: {
       padding: '8px 16px',
       borderRadius: '8px',
-      backgroundColor: '#3B82F6',
-      color: '#ffffff',
+      backgroundColor: 'var(--action-primary-bg)',
+      color: 'var(--action-primary-text)',
       border: 'none',
       cursor: 'pointer',
       fontSize: '0.875rem',
@@ -181,14 +181,14 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
     th: {
       textAlign: 'left',
       padding: '12px',
-      borderBottom: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+      borderBottom: '2px solid var(--border-color)',
       fontWeight: 600,
-      color: isDark ? '#9ca3af' : '#6b7280',
+      color: 'var(--text-muted)',
       whiteSpace: 'nowrap',
     },
     td: {
       padding: '12px',
-      borderBottom: `1px solid ${isDark ? '#374151' : '#f3f4f6'}`,
+      borderBottom: '1px solid var(--border-color)',
       verticalAlign: 'top',
     },
     pagination: {
@@ -201,9 +201,9 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
     pageBtn: {
       padding: '6px 12px',
       borderRadius: '6px',
-      border: `1px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
-      backgroundColor: isDark ? '#374151' : '#ffffff',
-      color: isDark ? '#e5e7eb' : '#1f2937',
+      border: '1px solid var(--border-color)',
+      backgroundColor: 'var(--surface-default)',
+      color: 'var(--text-color)',
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
@@ -272,7 +272,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
               padding: '12px',
               borderRadius: '8px',
               backgroundColor: 'rgba(239,68,68,0.1)',
-              color: '#EF4444',
+              color: 'var(--text-danger)',
               marginBottom: '16px',
             }}
           >
@@ -293,7 +293,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
             <tbody>
               {logs.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={columnOrder.length} style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
+                  <td colSpan={columnOrder.length} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
                     {t('auditLog.noEntries')}
                   </td>
                 </tr>
@@ -310,10 +310,10 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
                             {log.actor_email ? (
                               <>
                                 <div>{log.actor_email}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{log.actor_role}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{log.actor_role}</div>
                               </>
                             ) : (
-                              <span style={{ color: '#9ca3af' }}>—</span>
+                              <span style={{ color: 'var(--text-muted)' }}>—</span>
                             )}
                           </td>
                         );
@@ -336,14 +336,14 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
                             <code
                               style={{
                                 fontSize: '0.75rem',
-                                backgroundColor: isDark ? '#374151' : '#f3f4f6',
+                                backgroundColor: 'var(--surface-muted)',
                                 padding: '2px 6px',
                                 borderRadius: '4px',
                               }}
                             >
                               {log.method}
                             </code>
-                            <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '2px' }}>{log.path}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{log.path}</div>
                           </td>
                         );
                       case 'httpStatus':
@@ -357,7 +357,7 @@ export default function AuditLogViewer({ isDark }: { isDark: boolean }) {
                       case 'ip':
                         return (
                           <td key={colKey} style={themeStyles.td}>
-                            <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{log.ip}</span>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{log.ip}</span>
                           </td>
                         );
                       default:

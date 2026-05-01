@@ -41,8 +41,8 @@ export default function AlertTemplates({ isDark, templates, onSave, savePending 
   };
 
   const cardStyle = {
-    backgroundColor: isDark ? '#1e293b' : '#f9fafb',
-    border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+    backgroundColor: 'var(--surface-muted)',
+    border: `1px solid ${'var(--border-color)'}`,
     borderRadius: '8px',
     padding: '20px',
     marginBottom: '16px',
@@ -53,9 +53,9 @@ export default function AlertTemplates({ isDark, templates, onSave, savePending 
     minHeight: '120px',
     padding: '10px',
     borderRadius: '6px',
-    border: `1px solid ${isDark ? '#475569' : '#d1d5db'}`,
-    backgroundColor: isDark ? '#0f172a' : '#fff',
-    color: isDark ? '#f1f5f9' : '#1f2937',
+    border: `1px solid ${'var(--border-color)'}`,
+    backgroundColor: 'var(--surface-default)',
+    color: 'var(--text-color)',
     fontFamily: 'monospace',
     fontSize: '0.875rem',
     resize: 'vertical',
@@ -64,8 +64,8 @@ export default function AlertTemplates({ isDark, templates, onSave, savePending 
   const previewStyle = {
     padding: '12px',
     borderRadius: '6px',
-    backgroundColor: isDark ? '#0f172a' : '#fff',
-    border: `1px solid ${isDark ? '#475569' : '#d1d5db'}`,
+    backgroundColor: 'var(--surface-default)',
+    border: `1px solid ${'var(--border-color)'}`,
     minHeight: '80px',
     whiteSpace: 'pre-wrap',
   };
@@ -99,8 +99,8 @@ export default function AlertTemplates({ isDark, templates, onSave, savePending 
               fontSize: '0.75rem',
               padding: '4px 8px',
               borderRadius: '4px',
-              backgroundColor: isDark ? '#334155' : '#e5e7eb',
-              color: isDark ? '#e2e8f0' : '#374151',
+              backgroundColor: 'var(--border-color)',
+              color: 'var(--text-color)',
             }}
           >
             {'{{' + v + '}}'}
@@ -118,7 +118,7 @@ export default function AlertTemplates({ isDark, templates, onSave, savePending 
           onClick={() => onSave(local)}
           disabled={savePending}
           type="button"
-          style={{ backgroundColor: '#10B981', color: '#fff', border: 'none' }}
+          style={{ backgroundColor: 'var(--text-success)', color: '#fff', border: 'none' }}
         >
           <Save size={16} />
           {savePending ? (t('common.saving') || 'Sauvegarde...') : (t('common.save') || 'Sauvegarder')}

@@ -14,17 +14,17 @@ describe('MetricsCards', () => {
       passed: 96,
       failed: 3,
       blocked: 1,
-      skipped: 0
+      skipped: 0,
     },
     slaStatus: {
       ok: true,
-      alerts: []
+      alerts: [],
     },
     statusDistribution: {
       labels: ['Passed', 'Failed', 'Blocked', 'Skipped'],
       values: [96, 3, 1, 0],
-      colors: ['#10B981', '#EF4444', '#F59E0B', '#6B7280']
-    }
+      colors: ['#10B981', '#EF4444', '#F59E0B', '#6B7280'],
+    },
   };
 
   it('renders loading state when metrics is null', () => {
@@ -60,10 +60,8 @@ describe('MetricsCards', () => {
       ...mockMetrics,
       slaStatus: {
         ok: false,
-        alerts: [
-          { metric: 'Pass Rate', severity: 'warning', message: 'Pass rate en warning: 88%' }
-        ]
-      }
+        alerts: [{ metric: 'Pass Rate', severity: 'warning', message: 'Pass rate en warning: 88%' }],
+      },
     };
 
     render(<MetricsCards metrics={metricsWithAlert} useBusiness={false} />);
@@ -73,28 +71,28 @@ describe('MetricsCards', () => {
 
 describe('getColorByThreshold', () => {
   it('returns green when value >= target', () => {
-    expect(getColorByThreshold(95, 90, 80)).toBe('#10B981');
+    expect(getColorByThreshold(95, 90, 80)).toBe('var(--text-success)');
   });
 
   it('returns orange when value >= warning but < target', () => {
-    expect(getColorByThreshold(85, 90, 80)).toBe('#F59E0B');
+    expect(getColorByThreshold(85, 90, 80)).toBe('var(--text-warning)');
   });
 
   it('returns red when value < warning', () => {
-    expect(getColorByThreshold(75, 90, 80)).toBe('#EF4444');
+    expect(getColorByThreshold(75, 90, 80)).toBe('var(--text-danger)');
   });
 });
 
 describe('getColorForFailure', () => {
   it('returns green when failure <= 5%', () => {
-    expect(getColorForFailure(3)).toBe('#10B981');
+    expect(getColorForFailure(3)).toBe('var(--text-success)');
   });
 
   it('returns orange when failure <= 10%', () => {
-    expect(getColorForFailure(8)).toBe('#F59E0B');
+    expect(getColorForFailure(8)).toBe('var(--text-warning)');
   });
 
   it('returns red when failure > 10%', () => {
-    expect(getColorForFailure(15)).toBe('#EF4444');
+    expect(getColorForFailure(15)).toBe('var(--text-danger)');
   });
 });

@@ -183,12 +183,12 @@ const ReportGeneratorModal = ({ isOpen, onClose, metrics, project, isDark }) => 
             </div>
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
               <span><strong>{runIds.length}</strong> {t('reportGenerator.runsIncluded', { count: runIds.length, plural: runIds.length > 1 ? 's' : '' })}</span>
-              <span style={{ color: '#10b981' }}><strong>{totalPassed}</strong> {t('reportGenerator.passed')}</span>
-              <span style={{ color: '#ef4444' }}><strong>{totalFailed}</strong> {t('reportGenerator.failed')}</span>
+              <span style={{ color: 'var(--text-success)' }}><strong>{totalPassed}</strong> {t('reportGenerator.passed')}</span>
+              <span style={{ color: 'var(--text-danger)' }}><strong>{totalFailed}</strong> {t('reportGenerator.failed')}</span>
               <span><strong>{totalTests}</strong> {t('reportGenerator.totalTests')}</span>
             </div>
             {runIds.length === 0 && (
-              <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: 6, padding: '0.5rem 0.75rem', fontSize: '0.82rem', color: '#92400e', marginBottom: '0.5rem' }}>
+              <div style={{ background: 'var(--action-warning-surface)', border: '1px solid var(--action-warning-border)', borderRadius: 6, padding: '0.5rem 0.75rem', fontSize: '0.82rem', color: 'var(--action-warning-text)', marginBottom: '0.5rem' }}>
                 ⚠️ {t('reportGenerator.noStandardRunWarning')}
               </div>
             )}
@@ -385,7 +385,7 @@ const ReportGeneratorModal = ({ isOpen, onClose, metrics, project, isDark }) => 
           )}
 
           {error && (
-            <div style={{ padding: '0.75rem', background: '#fee2e2', border: '1px solid #ef4444', borderRadius: 8, color: '#991b1b', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            <div style={{ padding: '0.75rem', background: 'var(--badge-danger-bg)', border: '1px solid var(--badge-danger-border)', borderRadius: 8, color: 'var(--text-danger)', fontSize: '0.85rem', marginBottom: '1rem' }}>
               <strong>{t('reportGenerator.errorLabel')}</strong> {error}
             </div>
           )}

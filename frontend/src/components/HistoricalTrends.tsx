@@ -64,10 +64,10 @@ export default function HistoricalTrends({ projectId, isDark }) {
     return {
       labels,
       datasets: [
-        dataset('Pass Rate', 'pass_rate', '#10B981'),
-        dataset('Completion', 'completion_rate', '#3B82F6'),
-        dataset('Escape Rate', 'escape_rate', '#EF4444'),
-        dataset('Detection', 'detection_rate', '#8B5CF6'),
+        dataset('Pass Rate', 'pass_rate', 'var(--text-success)'),
+        dataset('Completion', 'completion_rate', 'var(--text-primary)'),
+        dataset('Escape Rate', 'escape_rate', 'var(--text-danger)'),
+        dataset('Detection', 'detection_rate', 'var(--text-secondary)'),
       ],
     };
   }, [data]);
@@ -77,17 +77,17 @@ export default function HistoricalTrends({ projectId, isDark }) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: isDark ? '#E2E8F0' : '#111827' } },
+        legend: { labels: { color: 'var(--text-color)' } },
         tooltip: { mode: 'index', intersect: false },
       },
       scales: {
         x: {
-          ticks: { color: isDark ? '#9CA3AF' : '#6B7280' },
-          grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+          ticks: { color: 'var(--text-muted)' },
+          grid: { color: 'var(--border-color)' },
         },
         y: {
-          ticks: { color: isDark ? '#9CA3AF' : '#6B7280' },
-          grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
+          ticks: { color: 'var(--text-muted)' },
+          grid: { color: 'var(--border-color)' },
           min: 0,
           max: 100,
         },
@@ -96,9 +96,9 @@ export default function HistoricalTrends({ projectId, isDark }) {
     [isDark]
   );
 
-  const cardBg = isDark ? '#1e293b' : '#f9fafb';
-  const border = isDark ? '#334155' : '#e5e7eb';
-  const text = isDark ? '#f1f5f9' : '#1f2937';
+  const cardBg = 'var(--surface-muted)';
+  const border = 'var(--border-color)';
+  const text = 'var(--text-color)';
 
   return (
     <div style={{ padding: '24px' }}>
@@ -133,7 +133,7 @@ export default function HistoricalTrends({ projectId, isDark }) {
       )}
 
       {error && (
-        <div style={{ color: '#EF4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ color: 'var(--text-danger)', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <AlertCircle size={20} />
           {error}
         </div>

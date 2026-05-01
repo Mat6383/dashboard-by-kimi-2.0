@@ -20,7 +20,7 @@ export default function SyncHistoryPanel({ history, onRefresh }) {
         Historique (50 derniers runs)
         <button
           className="d6-btn d6-btn-ghost"
-          style={{ marginLeft: 'auto', padding: '2px 8px', fontSize: '0.7rem', color: '#CBD5E1' }}
+          style={{ marginLeft: 'auto', padding: '2px 8px', fontSize: '0.7rem', color: 'var(--text-muted)' }}
           onClick={onRefresh}
         >
           <RefreshCw size={11} />

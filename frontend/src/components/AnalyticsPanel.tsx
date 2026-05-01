@@ -12,10 +12,10 @@ const typeIcons: Record<string, React.ReactNode> = {
 };
 
 const typeColors: Record<string, string> = {
-  trend: '#F59E0B',
-  pattern: '#8B5CF6',
-  recommendation: '#10B981',
-  anomaly: '#EF4444',
+  trend: 'var(--text-warning)',
+  pattern: 'var(--text-secondary)',
+  recommendation: 'var(--text-success)',
+  anomaly: 'var(--text-danger)',
 };
 
 export default function AnalyticsPanel({ projectId, isDark }: { projectId?: number; isDark: boolean }) {
@@ -52,7 +52,7 @@ export default function AnalyticsPanel({ projectId, isDark }: { projectId?: numb
           <Brain size={24} color="#8B5CF6" />
           {t('analytics.title', 'Analytics & Insights IA')}
           {unreadCount > 0 && (
-            <span className="badge" style={{ background: '#EF4444', color: '#fff', borderRadius: 12, padding: '2px 8px', fontSize: 12 }}>
+            <span className="badge" style={{ background: 'var(--text-danger)', color: '#fff', borderRadius: 12, padding: '2px 8px', fontSize: 12 }}>
               {unreadCount}
             </span>
           )}
@@ -83,8 +83,8 @@ export default function AnalyticsPanel({ projectId, isDark }: { projectId?: numb
               key={insight.id}
               className={`insight-card ${insight.read ? 'read' : 'unread'}`}
               style={{
-                background: isDark ? '#1F2937' : '#F9FAFB',
-                borderLeft: `4px solid ${typeColors[insight.type] || '#9CA3AF'}`,
+                background: 'var(--surface-muted)',
+                borderLeft: `4px solid ${typeColors[insight.type] || 'var(--text-muted)'}`,
                 borderRadius: 8,
                 padding: 16,
                 opacity: insight.read ? 0.7 : 1,
@@ -94,7 +94,7 @@ export default function AnalyticsPanel({ projectId, isDark }: { projectId?: numb
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {typeIcons[insight.type]}
                   <strong>{insight.title}</strong>
-                  <span style={{ fontSize: 12, color: '#9CA3AF' }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
                     {Math.round(insight.confidence * 100)}% {t('analytics.confidence', 'confiance')}
                   </span>
                 </div>
@@ -105,7 +105,7 @@ export default function AnalyticsPanel({ projectId, isDark }: { projectId?: numb
                 )}
               </div>
               <p style={{ margin: '8px 0 0', fontSize: 14 }}>{insight.message}</p>
-              <p style={{ margin: '4px 0 0', fontSize: 12, color: '#9CA3AF' }}>
+              <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
                 {new Date(insight.created_at).toLocaleString()}
               </p>
             </div>

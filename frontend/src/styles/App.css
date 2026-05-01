@@ -39,13 +39,13 @@
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
 
-  /* Semantic Theme Variables (Light default) */
-  --bg-color: var(--color-gray-50);
-  --text-color: var(--color-gray-900);
-  --text-muted: var(--color-gray-500);
-  --header-bg: #ffffff;
-  --card-bg: #ffffff;
-  --border-color: var(--color-gray-300);
+  /* Semantic Theme Variables (Light default) — mapped to design tokens */
+  --bg-color: var(--surface-page);
+  --text-color: var(--text-default);
+  --text-muted: var(--text-muted);
+  --header-bg: var(--surface-default);
+  --card-bg: var(--surface-default);
+  --border-color: var(--border-color);
 
   /* Espacements */
   --spacing-xs: 0.25rem;
@@ -56,16 +56,16 @@
   --spacing-2xl: 3rem;
 
   /* Borders */
-  --border-radius-sm: 0.375rem;
-  --border-radius-md: 0.5rem;
-  --border-radius-lg: 0.75rem;
-  --border-radius-xl: 1rem;
+  --border-radius-sm: var(--radius-sm);
+  --border-radius-md: var(--radius-md);
+  --border-radius-lg: var(--radius-lg);
+  --border-radius-xl: var(--radius-xl);
 
-  /* Ombres */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  /* Ombres modernes subtiles */
+  --shadow-sm: var(--shadow-card);
+  --shadow-md: var(--shadow-elevated);
+  --shadow-lg: var(--shadow-floating);
+  --shadow-xl: var(--shadow-modal);
 
   /* Compact mode variables */
   --section-padding: 2rem;
@@ -166,12 +166,52 @@ body.compact-mode .d7-table-wrapper th {
 }
 
 .app.dark-theme {
-  --bg-color: #0b1120;
+  /* Backgrounds */
+  --bg-color: #0f172a;
   --text-color: #e2e8f0;
-  --text-muted: #9ca3af;
-  --header-bg: #111827;
-  --card-bg: #111827;
-  --border-color: #475569;
+  --text-muted: #94a3b8;
+  --header-bg: #1e293b;
+  --card-bg: #1e293b;
+  --border-color: #334155;
+
+  /* Semantic status colors (légèrement plus clairs pour dark mode) */
+  --color-primary: #3b82f6;
+  --color-secondary: #8b5cf6;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #06b6d4;
+
+  /* ISTQB status colors */
+  --color-passed: #34d399;
+  --color-failed: #f87171;
+  --color-blocked: #fbbf24;
+  --color-skipped: #94a3b8;
+  --color-untested: #475569;
+
+  /* Action colors */
+  --action-primary-bg-hover: #60a5fa;
+  --action-success-bg-hover: #34d399;
+  --action-secondary-bg-hover: #a78bfa;
+  --action-warning-bg: #d97706;
+  --action-warning-text: #fef3c7;
+  --action-warning-surface: rgba(245, 158, 11, 0.15);
+  --action-warning-border: rgba(245, 158, 11, 0.4);
+  --action-danger-bg: #dc2626;
+  --action-auth-bg: #fb923c;
+
+  /* Status surfaces */
+  --status-ok-bg: rgba(52, 211, 153, 0.15);
+  --status-ok-text: #34d399;
+  --status-info-bg-light: rgba(96, 165, 250, 0.1);
+  --status-info-bg-dark: rgba(96, 165, 250, 0.15);
+  --status-info-border: rgba(96, 165, 250, 0.3);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
 /* TV Mode Adjustments */
@@ -357,14 +397,16 @@ table.data-table th {
    ========================================== */
 .app-header {
   background: var(--header-bg);
-  padding: var(--spacing-lg) var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-xl);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
   z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .header-left {
@@ -374,10 +416,11 @@ table.data-table th {
 }
 
 .header-title h1 {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-color);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .header-subtitle {
@@ -424,7 +467,7 @@ table.data-table th {
 .project-selector:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 /* Boutons */
@@ -445,7 +488,7 @@ table.data-table th {
 
 .btn-icon:hover,
 .btn-toggle:hover {
-  background: var(--bg-color);
+  background: var(--surface-hover);
   border-color: var(--color-primary);
 }
 
@@ -461,9 +504,10 @@ table.data-table th {
 }
 
 .btn-toggle.active {
-  background: var(--color-primary);
-  color: white;
-  border-color: var(--color-primary);
+  background: var(--action-primary-bg);
+  color: var(--action-primary-text);
+  border-color: var(--action-primary-bg);
+  box-shadow: var(--shadow-button-primary);
 }
 
 /* Theme Switch */
@@ -527,8 +571,9 @@ table.data-table th {
   font-size: 0.875rem;
   font-weight: 500;
   padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+  border: 1px solid var(--border-color);
 }
 
 /* ==========================================
@@ -555,8 +600,14 @@ table.data-table th {
 .chart-container {
   background: var(--card-bg);
   padding: var(--spacing-xl);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s var(--ease-out);
+}
+
+.chart-container:hover {
+  box-shadow: var(--shadow-elevated);
 }
 
 /* ==========================================
@@ -1148,6 +1199,35 @@ table.data-table th {
   .charts-section {
     grid-template-columns: 1fr;
   }
+}
+
+/* ==================================================
+   Dark Theme Global Overrides
+   ================================================== */
+.app.dark-theme .app-error p {
+  color: var(--text-muted);
+}
+
+.app.dark-theme .project-selector:focus {
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25);
+}
+
+.app.dark-theme .btn-icon:hover,
+.app.dark-theme .btn-toggle:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.app.dark-theme .btn-toggle.active {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.app.dark-theme .backend-status {
+  background: var(--surface-muted);
+}
+
+.app.dark-theme .mobile-bottom-nav {
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Safe area support for notched devices */

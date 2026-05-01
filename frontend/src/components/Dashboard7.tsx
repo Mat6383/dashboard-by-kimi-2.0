@@ -309,7 +309,7 @@ export default function Dashboard7({ isDark: _isDark }) {
             Chargement...
           </span>
         ) : iterationsError ? (
-          <span style={{ color: '#ef4444', fontSize: '0.875rem' }}>Erreur: {iterationsError}</span>
+          <span style={{ color: 'var(--text-danger)', fontSize: '0.875rem' }}>Erreur: {iterationsError}</span>
         ) : (
           <select
             className="d7-select"

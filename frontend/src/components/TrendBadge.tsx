@@ -10,9 +10,9 @@ export default function TrendBadge({ trend, style = {} }: TrendBadgeProps) {
   if (!trend) return null;
 
   const config = {
-    up: { symbol: '↑', color: '#10B981', bg: 'rgba(16,185,129,0.15)' },
-    down: { symbol: '↓', color: '#EF4444', bg: 'rgba(239,68,68,0.15)' },
-    stable: { symbol: '→', color: '#6B7280', bg: 'rgba(107,114,128,0.15)' },
+    up: { symbol: '↑', color: 'var(--text-success)', bg: 'var(--badge-success-bg)' },
+    down: { symbol: '↓', color: 'var(--text-danger)', bg: 'var(--badge-danger-bg)' },
+    stable: { symbol: '→', color: 'var(--text-muted)', bg: 'var(--badge-neutral-bg)' },
   };
 
   const { symbol, color, bg } = config[(trend.direction as keyof typeof config) || 'stable'];

@@ -51,8 +51,8 @@ export default function CompareDashboard({ isDark }) {
     const datasets = data.map((d, i) => ({
       label: d.projectName,
       data: [d.passRate, d.completionRate, d.escapeRate, d.detectionRate, d.blockedRate],
-      borderColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'][i % 5],
-      backgroundColor: ['#3B82F620', '#10B98120', '#F59E0B20', '#EF444420', '#8B5CF620'][i % 5],
+      borderColor: ['var(--text-primary)', 'var(--text-success)', 'var(--text-warning)', 'var(--text-danger)', 'var(--text-secondary)'][i % 5],
+      backgroundColor: ['color-mix(in srgb, var(--text-primary) 12%, transparent)', 'color-mix(in srgb, var(--text-success) 12%, transparent)', 'color-mix(in srgb, var(--text-warning) 12%, transparent)', 'color-mix(in srgb, var(--text-danger) 12%, transparent)', 'color-mix(in srgb, var(--text-secondary) 12%, transparent)'][i % 5],
       pointRadius: 4,
     }));
     return { labels, datasets };
@@ -63,13 +63,13 @@ export default function CompareDashboard({ isDark }) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: isDark ? '#E2E8F0' : '#111827' } },
+        legend: { labels: { color: 'var(--text-color)' } },
       },
       scales: {
         r: {
-          ticks: { color: isDark ? '#9CA3AF' : '#6B7280', backdropColor: 'transparent' },
-          grid: { color: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' },
-          pointLabels: { color: isDark ? '#E2E8F0' : '#111827' },
+          ticks: { color: 'var(--text-muted)', backdropColor: 'transparent' },
+          grid: { color: 'var(--border-color)' },
+          pointLabels: { color: 'var(--text-color)' },
           min: 0,
           max: 100,
         },
@@ -78,9 +78,9 @@ export default function CompareDashboard({ isDark }) {
     [isDark]
   );
 
-  const cardBg = isDark ? '#1e293b' : '#f9fafb';
-  const border = isDark ? '#334155' : '#e5e7eb';
-  const text = isDark ? '#f1f5f9' : '#1f2937';
+  const cardBg = 'var(--surface-muted)';
+  const border = 'var(--border-color)';
+  const text = 'var(--text-color)';
 
   const toggleProject = (id) => {
     setSelected((prev) => {
@@ -108,8 +108,8 @@ export default function CompareDashboard({ isDark }) {
               style={{
                 padding: '6px 14px',
                 borderRadius: '20px',
-                border: `2px solid ${active ? '#3B82F6' : border}`,
-                background: active ? '#3B82F6' : cardBg,
+                border: `2px solid ${active ? 'var(--text-primary)' : border}`,
+                background: active ? 'var(--text-primary)' : cardBg,
                 color: active ? '#fff' : text,
                 cursor: 'pointer',
                 fontWeight: 500,
@@ -129,7 +129,7 @@ export default function CompareDashboard({ isDark }) {
       )}
 
       {error && (
-        <div style={{ color: '#EF4444', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ color: 'var(--text-danger)', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <AlertCircle size={20} />
           {error}
         </div>

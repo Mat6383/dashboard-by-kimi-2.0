@@ -20,6 +20,7 @@ interface AlertItemProps {
 
 function AlertItem({ alert, useBusiness }: AlertItemProps) {
   if (!alert) return null;
+  const isWarning = alert.severity === 'warning';
   return (
     <div
       style={{
@@ -28,9 +29,10 @@ function AlertItem({ alert, useBusiness }: AlertItemProps) {
         alignItems: 'flex-start',
         gap: '0.5rem',
         padding: '0.75rem',
-        backgroundColor: alert.severity === 'warning' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)',
-        borderRadius: '6px',
-        color: alert.severity === 'warning' ? '#F59E0B' : '#EF4444',
+        backgroundColor: isWarning ? 'var(--badge-warning-bg)' : 'var(--badge-danger-bg)',
+        borderRadius: 'var(--radius-md)',
+        color: isWarning ? 'var(--badge-warning-text)' : 'var(--badge-danger-text)',
+        border: `1px solid ${isWarning ? 'var(--badge-warning-border)' : 'var(--badge-danger-border)'}`,
       }}
     >
       <svg
@@ -130,9 +132,9 @@ export default function MetricCard({
         <span
           style={{
             padding: '0.2rem 0.6rem',
-            backgroundColor: `${color}1A`, // 10% opacity hex
+            backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
             color,
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-md)',
             fontWeight: 600,
           }}
         >

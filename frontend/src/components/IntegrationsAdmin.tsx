@@ -71,7 +71,7 @@ export default function IntegrationsAdmin({ isDark }: { isDark: boolean }) {
 
       {showForm && (
         <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div className="modal" style={{ background: isDark ? '#1F2937' : '#fff', padding: 24, borderRadius: 12, width: 480, maxWidth: '90vw' }}>
+          <div className="modal" style={{ background: 'var(--surface-default)', padding: 24, borderRadius: 12, width: 480, maxWidth: '90vw' }}>
             <h3>{t('integrations.new', 'Nouvelle intégration')}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 16 }}>
               <input placeholder={t('integrations.name', 'Nom')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
@@ -106,16 +106,16 @@ export default function IntegrationsAdmin({ isDark }: { isDark: boolean }) {
       ) : integrations && integrations.length > 0 ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {integrations.map((integration: any) => (
-            <div key={integration.id} style={{ background: isDark ? '#1F2937' : '#F9FAFB', borderRadius: 8, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={integration.id} style={{ background: 'var(--surface-muted)', borderRadius: 8, padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {typeIcons[integration.type]}
                   <strong>{integration.name}</strong>
-                  <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 12, background: integration.enabled ? '#D1FAE5' : '#FEE2E2', color: integration.enabled ? '#065F46' : '#991B1B' }}>
+                  <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 12, background: integration.enabled ? 'color-mix(in srgb, var(--text-success) 15%, transparent)' : 'color-mix(in srgb, var(--text-danger) 15%, transparent)', color: integration.enabled ? 'var(--text-success)' : 'var(--text-danger)' }}>
                     {integration.enabled ? t('integrations.active', 'Active') : t('integrations.inactive', 'Inactive')}
                   </span>
                 </div>
-                <p style={{ margin: '4px 0 0', fontSize: 12, color: '#9CA3AF' }}>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: 'var(--text-muted)' }}>
                   {integration.type} {integration.last_sync_at ? `— ${t('integrations.lastSync', 'Dernière synchro')}: ${new Date(integration.last_sync_at).toLocaleString()}` : ''}
                 </p>
               </div>
@@ -135,7 +135,7 @@ export default function IntegrationsAdmin({ isDark }: { isDark: boolean }) {
       )}
 
       {testConnection.data && (
-        <div style={{ marginTop: 16, padding: 12, borderRadius: 8, background: testConnection.data.success ? '#D1FAE5' : '#FEE2E2', color: testConnection.data.success ? '#065F46' : '#991B1B' }}>
+        <div style={{ marginTop: 16, padding: 12, borderRadius: 8, background: testConnection.data.success ? 'color-mix(in srgb, var(--text-success) 15%, transparent)' : 'color-mix(in srgb, var(--text-danger) 15%, transparent)', color: testConnection.data.success ? 'var(--text-success)' : 'var(--text-danger)' }}>
           {testConnection.data.success ? <CheckCircle size={16} /> : <XCircle size={16} />} {testConnection.data.message}
         </div>
       )}

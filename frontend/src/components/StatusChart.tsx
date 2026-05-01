@@ -69,7 +69,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
         position: 'bottom',
         labels: {
           padding: 15,
-          color: isDark ? '#E2E8F0' : '#111827',
+          color: 'var(--text-color)',
           font: {
             size: 12,
             family: "'Inter', sans-serif"
@@ -92,7 +92,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
       title: {
         display: true,
         text: useBusiness ? t('statusChart.doughnutTitleBusiness') : t('statusChart.doughnutTitle'),
-        color: isDark ? '#E2E8F0' : '#111827',
+        color: 'var(--text-color)',
         font: {
           size: 16,
           weight: 'bold'
@@ -139,7 +139,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
       title: {
         display: true,
         text: useBusiness ? t('statusChart.barTitleBusiness') : t('statusChart.barTitle'),
-        color: isDark ? '#E2E8F0' : '#111827',
+        color: isDark ? 'var(--text-color)' : 'var(--text-color)',
         font: {
           size: 16,
           weight: 'bold'
@@ -151,15 +151,15 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
         beginAtZero: true,
         ticks: {
           precision: 0,
-          color: isDark ? '#9CA3AF' : '#6B7280'
+          color: 'var(--text-muted)'
         },
         grid: {
-          color: isDark ? '#1E3A8A' : '#E5E7EB'
+          color: 'var(--border-color)'
         }
       },
       x: {
         ticks: {
-          color: isDark ? '#9CA3AF' : '#6B7280'
+          color: 'var(--text-muted)'
         },
         grid: {
           display: false

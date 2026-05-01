@@ -2,74 +2,136 @@
  * ================================================
  * DESIGN TOKENS — QA Dashboard
  * ================================================
- * Tokens sémantiques unifiés : couleurs, typographie,
- * espacements, ombres, border-radius et animations.
+ * Palette moderne inspirée des design systems
+ * GitHub Primer, Tailwind UI et Material 3.
+ * Support complet light / dark mode (WCAG AA).
  */
 
 :root {
   /* ==================================================
-     Semantic Colors (Backgrounds & Surfaces)
+     Base Surfaces (elevation hierarchy)
      ================================================== */
+  --surface-page: #f8fafc;
   --surface-default: #ffffff;
   --surface-elevated: #ffffff;
-  --surface-muted: #f9fafb;
-  --surface-inverse: #111827;
+  --surface-muted: #f1f5f9;
+  --surface-hover: rgba(148, 163, 184, 0.08);
+  --surface-active: rgba(148, 163, 184, 0.14);
+  --surface-inverse: #0f172a;
 
   /* ==================================================
      Semantic Text Colors
      ================================================== */
-  --text-default: #111827;
+  --text-default: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
   --text-inverse: #ffffff;
-  --text-primary: #3b82f6;
-  --text-success: #10b981;
-  --text-warning: #f59e0b;
-  --text-danger: #ef4444;
-  --text-secondary: #8b5cf6;
+
+  --text-primary: #2563eb;
+  --text-success: #059669;
+  --text-warning: #b45309;
+  --text-danger: #dc2626;
+  --text-info: #0891b2;
+  --text-secondary-accent: #7c3aed;
 
   /* ==================================================
-     Button / Action Colors
+     Core Action Colors
      ================================================== */
-  --action-primary-bg: #3b82f6;
-  --action-primary-bg-hover: #2563eb;
+  --action-primary-bg: #2563eb;
+  --action-primary-bg-hover: #1d4ed8;
   --action-primary-text: #ffffff;
 
-  --action-success-bg: #10b981;
-  --action-success-bg-hover: #059669;
+  --action-success-bg: #059669;
+  --action-success-bg-hover: #047857;
   --action-success-text: #ffffff;
 
-  --action-secondary-bg: #8b5cf6;
-  --action-secondary-bg-hover: #7c3aed;
+  --action-secondary-bg: #7c3aed;
+  --action-secondary-bg-hover: #6d28d9;
   --action-secondary-text: #ffffff;
 
-  --action-warning-bg: #f59e0b;
-  --action-warning-text: #92400e;
-  --action-warning-surface: #fef3c7;
+  --action-warning-bg: #d97706;
+  --action-warning-bg-hover: #b45309;
+  --action-warning-text: #78350f;
+  --action-warning-surface: #fffbeb;
   --action-warning-border: #fcd34d;
 
-  --action-danger-bg: #ef4444;
+  --action-danger-bg: #dc2626;
+  --action-danger-bg-hover: #b91c1c;
   --action-danger-text: #ffffff;
 
-  --action-auth-bg: #fc6d26;
+  --action-auth-bg: #ea580c;
   --action-auth-text: #ffffff;
 
   /* ==================================================
-     Status Surfaces (subtle backgrounds)
+     Borders & Dividers
      ================================================== */
-  --status-ok-bg: rgba(16, 185, 129, 0.12);
-  --status-ok-text: #10b981;
+  --border-color: #e2e8f0;
+  --border-subtle: #f1f5f9;
+  --divider-color: #e2e8f0;
+  --focus-ring: rgba(37, 99, 235, 0.35);
 
-  --status-info-bg-light: rgba(59, 130, 246, 0.06);
-  --status-info-bg-dark: rgba(59, 130, 246, 0.1);
-  --status-info-border: rgba(59, 130, 246, 0.2);
+  /* ==================================================
+     Status Surfaces
+     ================================================== */
+  --status-ok-bg: #d1fae5;
+  --status-ok-text: #065f46;
+
+  --status-info-bg-light: #eff6ff;
+  --status-info-bg-dark: #dbeafe;
+  --status-info-border: #bfdbfe;
+
+  /* ==================================================
+     Badge / Chip Colors (solid soft backgrounds)
+     ================================================== */
+  --badge-success-bg: #d1fae5;
+  --badge-success-text: #065f46;
+  --badge-success-border: #a7f3d0;
+
+  --badge-warning-bg: #fef3c7;
+  --badge-warning-text: #92400e;
+  --badge-warning-border: #fde68a;
+
+  --badge-danger-bg: #fee2e2;
+  --badge-danger-text: #991b1b;
+  --badge-danger-border: #fecaca;
+
+  --badge-info-bg: #cffafe;
+  --badge-info-text: #155e75;
+  --badge-info-border: #a5f3fc;
+
+  --badge-primary-bg: #dbeafe;
+  --badge-primary-text: #1e40af;
+  --badge-primary-border: #bfdbfe;
+
+  --badge-neutral-bg: #f1f5f9;
+  --badge-neutral-text: #475569;
+  --badge-neutral-border: #e2e8f0;
+
+  /* ==================================================
+     Table Colors
+     ================================================== */
+  --table-header-bg: #f8fafc;
+  --table-header-text: #0f172a;
+  --table-row-alt: #f8fafc;
+  --table-row-hover: rgba(37, 99, 235, 0.04);
 
   /* ==================================================
      Toast Colors
      ================================================== */
-  --toast-error-bg: #ef4444;
+  --toast-error-bg: #dc2626;
   --toast-error-text: #ffffff;
-  --toast-success-bg: #10b981;
+  --toast-success-bg: #059669;
   --toast-success-text: #ffffff;
-  --toast-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --toast-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+
+  /* ==================================================
+     Radius Scale
+     ================================================== */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
 
   /* ==================================================
      Typography Scale
@@ -93,22 +155,133 @@
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* ==================================================
-     Shadows (unified)
+     Shadows (modern, soft)
      ================================================== */
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.05);
-  --shadow-button-primary: 0 2px 4px rgba(59, 130, 246, 0.3);
-  --shadow-button-success: 0 2px 4px rgba(16, 185, 129, 0.3);
-  --shadow-button-secondary: 0 2px 4px rgba(139, 92, 246, 0.3);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --shadow-floating: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+
+  --shadow-button-primary: 0 1px 2px rgba(37, 99, 235, 0.2);
+  --shadow-button-success: 0 1px 2px rgba(5, 150, 105, 0.2);
+  --shadow-button-secondary: 0 1px 2px rgba(124, 58, 237, 0.2);
 }
 
 /* ==================================================
    Dark-theme token overrides
    ================================================== */
-.app.dark-theme {
-  --surface-default: #0b1120;
-  --surface-elevated: #111827;
+.app.dark-theme,
+.dark-theme {
+  /* Surfaces — elevation via lightness, not shadows */
+  --surface-page: #0b1120;
+  --surface-default: #111827;
+  --surface-elevated: #1e293b;
   --surface-muted: #0f172a;
-  --text-default: #e2e8f0;
+  --surface-hover: rgba(255, 255, 255, 0.04);
+  --surface-active: rgba(255, 255, 255, 0.08);
+  --surface-inverse: #f8fafc;
+
+  /* Text — warm off-whites for reduced halation */
+  --text-default: #f1f5f9;
+  --text-secondary: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-inverse: #0f172a;
+
+  --text-primary: #60a5fa;
+  --text-success: #34d399;
+  --text-warning: #fbbf24;
+  --text-danger: #f87171;
+  --text-info: #22d3ee;
+  --text-secondary-accent: #a78bfa;
+
+  /* Actions — slightly desaturated for comfort */
+  --action-primary-bg: #3b82f6;
+  --action-primary-bg-hover: #60a5fa;
+  --action-primary-text: #ffffff;
+
+  --action-success-bg: #10b981;
+  --action-success-bg-hover: #34d399;
+  --action-success-text: #ffffff;
+
+  --action-secondary-bg: #8b5cf6;
+  --action-secondary-bg-hover: #a78bfa;
+  --action-secondary-text: #ffffff;
+
+  --action-warning-bg: #d97706;
+  --action-warning-bg-hover: #f59e0b;
+  --action-warning-text: #fef3c7;
+  --action-warning-surface: rgba(245, 158, 11, 0.12);
+  --action-warning-border: rgba(251, 191, 36, 0.25);
+
+  --action-danger-bg: #ef4444;
+  --action-danger-bg-hover: #f87171;
+  --action-danger-text: #ffffff;
+
+  --action-auth-bg: #fb923c;
+  --action-auth-text: #ffffff;
+
+  /* Borders — barely visible for calm UI */
+  --border-color: #1e293b;
+  --border-subtle: #0f172a;
+  --divider-color: #1e293b;
+  --focus-ring: rgba(96, 165, 250, 0.35);
+
+  /* Status — muted opacity backgrounds */
+  --status-ok-bg: rgba(52, 211, 153, 0.12);
+  --status-ok-text: #34d399;
+
+  --status-info-bg-light: rgba(96, 165, 250, 0.08);
+  --status-info-bg-dark: rgba(96, 165, 250, 0.12);
+  --status-info-border: rgba(96, 165, 250, 0.2);
+
+  /* Badges — dark mode needs higher opacity */
+  --badge-success-bg: rgba(52, 211, 153, 0.12);
+  --badge-success-text: #34d399;
+  --badge-success-border: rgba(52, 211, 153, 0.25);
+
+  --badge-warning-bg: rgba(251, 191, 36, 0.12);
+  --badge-warning-text: #fbbf24;
+  --badge-warning-border: rgba(251, 191, 36, 0.25);
+
+  --badge-danger-bg: rgba(248, 113, 113, 0.12);
+  --badge-danger-text: #f87171;
+  --badge-danger-border: rgba(248, 113, 113, 0.25);
+
+  --badge-info-bg: rgba(34, 211, 238, 0.1);
+  --badge-info-text: #22d3ee;
+  --badge-info-border: rgba(34, 211, 238, 0.2);
+
+  --badge-primary-bg: rgba(96, 165, 250, 0.12);
+  --badge-primary-text: #60a5fa;
+  --badge-primary-border: rgba(96, 165, 250, 0.25);
+
+  --badge-neutral-bg: rgba(148, 163, 184, 0.1);
+  --badge-neutral-text: #94a3b8;
+  --badge-neutral-border: rgba(148, 163, 184, 0.2);
+
+  /* Tables */
+  --table-header-bg: #1e293b;
+  --table-header-text: #f8fafc;
+  --table-row-alt: rgba(30, 41, 59, 0.4);
+  --table-row-hover: rgba(96, 165, 250, 0.06);
+
+  /* Toasts */
+  --toast-error-bg: #dc2626;
+  --toast-error-text: #ffffff;
+  --toast-success-bg: #059669;
+  --toast-success-text: #ffffff;
+  --toast-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+
+  /* Shadows — darker, more diffuse */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.15);
+  --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-floating: 0 10px 15px -3px rgba(0, 0, 0, 0.35), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.25);
+
+  --shadow-button-primary: 0 1px 2px rgba(59, 130, 246, 0.25);
+  --shadow-button-success: 0 1px 2px rgba(16, 185, 129, 0.25);
+  --shadow-button-secondary: 0 1px 2px rgba(139, 92, 246, 0.25);
 }

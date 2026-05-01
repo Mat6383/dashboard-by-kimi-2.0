@@ -1,5 +1,5 @@
 /* ==========================================
-   Dashboard 4 — Refactored inline styles
+   Dashboard 4 — Vue Globale (refonte visuelle)
    ========================================== */
 
 .dashboard4-root {
@@ -18,13 +18,14 @@
 .dashboard4-label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-color);
+  color: var(--text-muted);
 }
 
 .dashboard4-card {
   padding: 0.75rem 1.5rem;
-  background-color: var(--bg-color);
-  border-radius: 16px;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color);
   box-shadow: var(--shadow-card);
 }
 
@@ -40,7 +41,7 @@
   margin-bottom: 1rem;
   padding: 0.75rem 1.5rem;
   background-color: var(--status-info-bg-light);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--status-info-border);
   flex-wrap: wrap;
   text-align: center;
@@ -54,6 +55,7 @@
   font-size: var(--font-h1);
   font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .dashboard4-separator {
@@ -62,19 +64,21 @@
 }
 
 .dashboard4-run-name {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-color);
 }
 
 .dashboard4-badge {
-  padding: 0.2rem 0.65rem;
-  border-radius: 5px;
-  font-size: 0.95rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  background-color: var(--status-ok-bg);
-  color: var(--status-ok-text);
+  letter-spacing: 0.03em;
+  background-color: var(--badge-success-bg);
+  color: var(--badge-success-text);
+  border: 1px solid var(--badge-success-border);
 }
 
 .dashboard4-actions {

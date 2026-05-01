@@ -112,8 +112,8 @@ export default function NotificationSettings({ isDark }) {
   const tabStyle = (tab) => ({
     padding: '10px 20px',
     cursor: 'pointer',
-    borderBottom: activeTab === tab ? '2px solid #3B82F6' : '2px solid transparent',
-    color: activeTab === tab ? '#3B82F6' : isDark ? '#94a3b8' : '#6b7280',
+    borderBottom: activeTab === tab ? '2px solid var(--text-primary)' : '2px solid transparent',
+    color: activeTab === tab ? 'var(--text-primary)' : 'var(--text-muted)',
     fontWeight: activeTab === tab ? 600 : 400,
     display: 'flex',
     alignItems: 'center',
@@ -132,7 +132,7 @@ export default function NotificationSettings({ isDark }) {
         {t('notifications.title')}
       </h2>
 
-      <div style={{ display: 'flex', borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`, marginBottom: '24px' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '24px' }}>
         <button style={tabStyle(TAB_CHANNELS)} onClick={() => setActiveTab(TAB_CHANNELS)} type="button">
           <Settings size={16} /> {t('notifications.tabs.channels') || 'Paramètres'}
         </button>

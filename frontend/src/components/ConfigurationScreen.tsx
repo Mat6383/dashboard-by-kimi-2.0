@@ -228,11 +228,11 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
                                     key={m.id}
                                     style={{
                                         ...checkboxItemStyle,
-                                        backgroundColor: checked ? 'rgba(239,68,68,0.1)' : 'transparent',
-                                        color: checked ? '#EF4444' : 'var(--text-color)'
+                                        backgroundColor: checked ? 'color-mix(in srgb, var(--text-danger) 10%, transparent)' : 'transparent',
+                                        color: checked ? 'var(--text-danger)' : 'var(--text-color)'
                                     }}
-                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = checked ? 'rgba(239,68,68,0.15)' : 'var(--color-gray-100)'}
-                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = checked ? 'rgba(239,68,68,0.1)' : 'transparent'}
+                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = checked ? 'color-mix(in srgb, var(--text-danger) 15%, transparent)' : 'var(--surface-muted)'}
+                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = checked ? 'color-mix(in srgb, var(--text-danger) 10%, transparent)' : 'transparent'}
                                 >
                                     <input
                                         type="checkbox"
@@ -241,7 +241,7 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
                                         style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }}
                                         aria-checked={checked}
                                     />
-                                    {checked ? <CheckSquare size={18} color="#EF4444" /> : <Square size={18} color="var(--text-muted)" />}
+                                    {checked ? <CheckSquare size={18} color="var(--text-danger)" /> : <Square size={18} color="var(--text-muted)" />}
                                     <span>{m.name}</span>
                                 </label>
                             );
@@ -256,8 +256,8 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
                     onClick={handleSave}
                     style={{
                         padding: '0.8rem 2rem',
-                        backgroundColor: '#3B82F6',
-                        color: 'white',
+                        backgroundColor: 'var(--action-primary-bg)',
+                        color: 'var(--action-primary-text)',
                         border: 'none',
                         borderRadius: '8px',
                         fontSize: '1rem',

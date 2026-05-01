@@ -139,14 +139,14 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
       padding: '24px',
       maxWidth: '1200px',
       margin: '0 auto',
-      color: isDark ? '#e5e7eb' : '#1f2937',
+      color: 'var(--text-color)',
     },
     card: {
-      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+      backgroundColor: 'var(--surface-default)',
       borderRadius: '12px',
       padding: '24px',
       boxShadow: isDark ? '0 4px 6px rgba(0,0,0,0.3)' : '0 4px 6px rgba(0,0,0,0.05)',
-      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+      border: `1px solid ${'var(--border-color)'}`,
     },
     header: {
       display: 'flex',
@@ -168,7 +168,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
       padding: '8px 16px',
       borderRadius: '8px',
       border: 'none',
-      backgroundColor: '#3B82F6',
+      backgroundColor: 'var(--text-primary)',
       color: '#fff',
       fontWeight: 600,
       cursor: 'pointer',
@@ -180,9 +180,9 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
       gap: '6px',
       padding: '8px 16px',
       borderRadius: '8px',
-      border: `1px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
-      backgroundColor: isDark ? '#374151' : '#f9fafb',
-      color: isDark ? '#e5e7eb' : '#374151',
+      border: `1px solid ${'var(--border-color)'}`,
+      backgroundColor: 'var(--surface-muted)',
+      color: 'var(--text-color)',
       fontWeight: 600,
       cursor: 'pointer',
       fontSize: '0.875rem',
@@ -194,7 +194,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
       padding: '6px 12px',
       borderRadius: '6px',
       border: 'none',
-      backgroundColor: '#EF4444',
+      backgroundColor: 'var(--text-danger)',
       color: '#fff',
       fontWeight: 600,
       cursor: 'pointer',
@@ -207,9 +207,9 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
       width: '32px',
       height: '32px',
       borderRadius: '6px',
-      border: `1px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
+      border: `1px solid ${'var(--border-color)'}`,
       backgroundColor: 'transparent',
-      color: isDark ? '#9ca3af' : '#6b7280',
+      color: 'var(--text-muted)',
       cursor: 'pointer',
     },
     table: {
@@ -220,16 +220,16 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
     th: {
       textAlign: 'left',
       padding: '12px 16px',
-      borderBottom: `2px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+      borderBottom: `2px solid ${'var(--border-color)'}`,
       fontWeight: 600,
-      color: isDark ? '#9ca3af' : '#6b7280',
+      color: 'var(--text-muted)',
       textTransform: 'uppercase',
       fontSize: '0.75rem',
       letterSpacing: '0.05em',
     },
     td: {
       padding: '12px 16px',
-      borderBottom: `1px solid ${isDark ? '#374151' : '#f3f4f6'}`,
+      borderBottom: `1px solid ${'var(--surface-muted)'}`,
       verticalAlign: 'middle',
     },
     toggleBtn: {
@@ -242,7 +242,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
     },
     slider: {
       width: '120px',
-      accentColor: '#3B82F6',
+      accentColor: 'var(--text-primary)',
     },
     modalOverlay: {
       position: 'fixed',
@@ -255,21 +255,21 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
       padding: '16px',
     },
     modal: {
-      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+      backgroundColor: 'var(--surface-default)',
       borderRadius: '12px',
       padding: '24px',
       width: '100%',
       maxWidth: '480px',
       boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
-      border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`,
+      border: `1px solid ${'var(--border-color)'}`,
     },
     input: {
       width: '100%',
       padding: '8px 12px',
       borderRadius: '6px',
-      border: `1px solid ${isDark ? '#4b5563' : '#d1d5db'}`,
-      backgroundColor: isDark ? '#111827' : '#ffffff',
-      color: isDark ? '#e5e7eb' : '#1f2937',
+      border: `1px solid ${'var(--border-color)'}`,
+      backgroundColor: 'var(--surface-default)',
+      color: 'var(--text-color)',
       fontSize: '0.875rem',
       marginTop: '4px',
     },
@@ -278,7 +278,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
       fontSize: '0.875rem',
       fontWeight: 500,
       marginBottom: '4px',
-      color: isDark ? '#d1d5db' : '#374151',
+      color: 'var(--text-color)',
     },
     formGroup: {
       marginBottom: '16px',
@@ -286,7 +286,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
     emptyState: {
       textAlign: 'center',
       padding: '48px 24px',
-      color: isDark ? '#9ca3af' : '#6b7280',
+      color: 'var(--text-muted)',
     },
   };
 
@@ -334,7 +334,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <code
                           style={{
-                            backgroundColor: isDark ? '#111827' : '#f3f4f6',
+                            backgroundColor: isDark ? 'var(--text-color)' : '#f3f4f6',
                             padding: '2px 8px',
                             borderRadius: '4px',
                             fontSize: '0.8rem',
@@ -352,8 +352,8 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
                               style={{
                                 fontSize: '0.7rem',
                                 fontWeight: 700,
-                                color: '#92400E',
-                                backgroundColor: '#FEF3C7',
+                                color: 'var(--action-warning-text)',
+                                backgroundColor: 'var(--action-warning-surface)',
                                 padding: '1px 6px',
                                 borderRadius: '999px',
                                 textTransform: 'uppercase',
@@ -374,9 +374,9 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
                         type="button"
                       >
                         {flag.enabled ? (
-                          <ToggleRight size={24} color="#10B981" />
+                          <ToggleRight size={24} color="var(--text-success)" />
                         ) : (
-                          <ToggleLeft size={24} color="#9CA3AF" />
+                          <ToggleLeft size={24} color="var(--text-muted)" />
                         )}
                       </button>
                     </td>
@@ -404,7 +404,7 @@ export default function FeatureFlagsAdmin({ isDark }: FeatureFlagsAdminProps) {
                           <Pencil size={14} />
                         </button>
                         <button
-                          style={{ ...theme.btnIcon, color: '#EF4444' }}
+                          style={{ ...theme.btnIcon, color: 'var(--text-danger)' }}
                           onClick={() => handleDelete(flag.key)}
                           title={t('common.delete')}
                           type="button"

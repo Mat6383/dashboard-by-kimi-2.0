@@ -126,18 +126,18 @@ const ProgressBar = ({ value, color }) => {
  * Détermine la couleur selon le pass rate
  */
 function getStatusColor(passRate) {
-  if (passRate >= 95) return '#10B981'; // Vert
-  if (passRate >= 90) return '#F59E0B'; // Orange
-  return '#EF4444'; // Rouge
+  if (passRate >= 95) return 'var(--text-success)';
+  if (passRate >= 90) return 'var(--text-warning)';
+  return 'var(--text-danger)';
 }
 
 /**
  * Détermine la couleur selon le completion rate
  */
 function getCompletionColor(completionRate) {
-  if (completionRate >= 90) return '#10B981'; // Vert
-  if (completionRate >= 80) return '#F59E0B'; // Orange
-  return '#EF4444'; // Rouge
+  if (completionRate >= 90) return 'var(--text-success)';
+  if (completionRate >= 80) return 'var(--text-warning)';
+  return 'var(--text-danger)';
 }
 
 /**

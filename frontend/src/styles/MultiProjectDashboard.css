@@ -9,12 +9,13 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-color);
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-sm);
   border-bottom: 2px solid var(--color-primary);
+  letter-spacing: -0.02em;
 }
 
 .mpd-header svg {
@@ -33,7 +34,7 @@
 }
 
 .mpd-state-error {
-  color: #ef4444;
+  color: var(--text-danger);
 }
 
 .mpd-state-desc {
@@ -61,28 +62,27 @@
   gap: 6px;
   padding: 6px 14px;
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-md);
   background: var(--card-bg);
   color: var(--text-color);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition:
-    background 0.2s,
-    border-color 0.2s;
+  transition: all 0.2s var(--ease-out);
 }
 
 .mpd-btn:hover {
-  background: var(--color-gray-700, #374151);
+  background: var(--surface-hover);
   border-color: var(--color-primary);
 }
 
 .mpd-table-wrapper {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--radius-lg);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  box-shadow: var(--shadow-card);
 }
 
 .mpd-table {
@@ -98,8 +98,8 @@
 }
 
 .mpd-table th {
-  background: var(--color-gray-800, #1f2937);
-  color: #fff;
+  background: var(--table-header-bg);
+  color: var(--table-header-text);
   padding: 10px 14px;
   text-align: left;
   font-size: 0.75rem;
@@ -107,11 +107,11 @@
   letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .mpd-table tbody tr {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--divider-color);
   transition: background 0.15s;
 }
 
@@ -120,7 +120,7 @@
 }
 
 .mpd-table tbody tr:hover {
-  background: rgba(59, 130, 246, 0.07);
+  background: var(--table-row-hover);
 }
 
 .mpd-table td {
@@ -134,17 +134,17 @@
 }
 
 .rate-ok {
-  color: #10b981;
+  color: var(--text-success);
   font-weight: 700;
 }
 
 .rate-warning {
-  color: #f59e0b;
+  color: var(--text-warning);
   font-weight: 700;
 }
 
 .rate-critical {
-  color: #ef4444;
+  color: var(--text-danger);
   font-weight: 700;
 }
 
@@ -152,7 +152,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #10b981;
+  color: var(--text-success);
   font-weight: 700;
 }
 
@@ -160,6 +160,6 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #ef4444;
+  color: var(--text-danger);
   font-weight: 700;
 }

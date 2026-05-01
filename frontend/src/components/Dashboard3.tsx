@@ -71,7 +71,7 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
               backgroundColor: 'var(--card-bg)',
               padding: '1.5rem',
               borderRadius: '16px',
-              border: `2px solid ${escapeOk ? '#10B981' : '#EF4444'}`,
+              border: `2px solid ${escapeOk ? 'var(--text-success)' : 'var(--text-danger)'}`,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -83,7 +83,7 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
             }}
           >
             <div style={{ position: 'absolute', top: '-10px', right: '-10px', opacity: 0.1 }}>
-              <ShieldAlert size={120} color={escapeOk ? '#10B981' : '#EF4444'} />
+              <ShieldAlert size={120} color={escapeOk ? 'var(--text-success)' : 'var(--text-danger)'} />
             </div>
             <h2
               style={{
@@ -97,7 +97,7 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
                 fontWeight: 700,
               }}
             >
-              <ShieldAlert size={24} color={escapeOk ? '#10B981' : '#EF4444'} />
+              <ShieldAlert size={24} color={escapeOk ? 'var(--text-success)' : 'var(--text-danger)'} />
               Taux d&apos;Échappement
             </h2>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', zIndex: 1 }}>
@@ -105,13 +105,13 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
                 style={{
                   fontSize: '4rem',
                   fontWeight: 800,
-                  color: escapeOk ? '#10B981' : '#EF4444',
+                  color: escapeOk ? 'var(--text-success)' : 'var(--text-danger)',
                   letterSpacing: '-2px',
                 }}
               >
                 {rates.escapeRate}%
               </div>
-              <span style={{ fontSize: '1.5rem', color: escapeOk ? '#10B981' : '#EF4444' }}>
+              <span style={{ fontSize: '1.5rem', color: escapeOk ? 'var(--text-success)' : 'var(--text-danger)' }}>
                 {escapeOk ? '▼' : '▲'}
               </span>
             </div>
@@ -120,7 +120,7 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
                 style={{
                   padding: '0.2rem 0.6rem',
                   backgroundColor: escapeOk ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                  color: escapeOk ? '#10B981' : '#EF4444',
+                  color: escapeOk ? 'var(--text-success)' : 'var(--text-danger)',
                   borderRadius: '20px',
                   fontWeight: 700,
                   fontSize: '0.85rem',
@@ -176,7 +176,7 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
               backgroundColor: 'var(--card-bg)',
               padding: '1.5rem',
               borderRadius: '16px',
-              border: `2px solid ${ddpOk ? '#10B981' : '#EF4444'}`,
+              border: `2px solid ${ddpOk ? 'var(--text-success)' : 'var(--text-danger)'}`,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
@@ -188,7 +188,7 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
             }}
           >
             <div style={{ position: 'absolute', top: '-10px', right: '-10px', opacity: 0.1 }}>
-              <ShieldCheck size={120} color={ddpOk ? '#10B981' : '#EF4444'} />
+              <ShieldCheck size={120} color={ddpOk ? 'var(--text-success)' : 'var(--text-danger)'} />
             </div>
             <h2
               style={{
@@ -202,7 +202,7 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
                 fontWeight: 700,
               }}
             >
-              <ShieldCheck size={24} color={ddpOk ? '#10B981' : '#EF4444'} />
+              <ShieldCheck size={24} color={ddpOk ? 'var(--text-success)' : 'var(--text-danger)'} />
               Taux de Détection
             </h2>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', zIndex: 1 }}>
@@ -210,20 +210,20 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
                 style={{
                   fontSize: '4rem',
                   fontWeight: 800,
-                  color: ddpOk ? '#10B981' : '#EF4444',
+                  color: ddpOk ? 'var(--text-success)' : 'var(--text-danger)',
                   letterSpacing: '-2px',
                 }}
               >
                 {rates.detectionRate}%
               </div>
-              <span style={{ fontSize: '1.5rem', color: ddpOk ? '#10B981' : '#EF4444' }}>{ddpOk ? '▲' : '▼'}</span>
+              <span style={{ fontSize: '1.5rem', color: ddpOk ? 'var(--text-success)' : 'var(--text-danger)' }}>{ddpOk ? '▲' : '▼'}</span>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem', zIndex: 1 }}>
               <span
                 style={{
                   padding: '0.2rem 0.6rem',
                   backgroundColor: ddpOk ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                  color: ddpOk ? '#10B981' : '#EF4444',
+                  color: ddpOk ? 'var(--text-success)' : 'var(--text-danger)',
                   borderRadius: '20px',
                   fontWeight: 700,
                   fontSize: '0.85rem',
@@ -343,7 +343,7 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
                   style={{
                     width: `${rates.totalBugs > 0 ? (rates.bugsInTest / rates.totalBugs) * 100 : 0}%`,
                     height: '100%',
-                    backgroundColor: '#10B981',
+                    backgroundColor: 'var(--text-success)',
                   }}
                 ></div>
               </div>
@@ -371,7 +371,7 @@ const Dashboard3 = ({ metrics, project, isDark = false, useBusiness = true }) =>
                   style={{
                     width: `${rates.totalBugs > 0 ? (rates.bugsInProd / rates.totalBugs) * 100 : 0}%`,
                     height: '100%',
-                    backgroundColor: '#EF4444',
+                    backgroundColor: 'var(--text-danger)',
                   }}
                 ></div>
               </div>

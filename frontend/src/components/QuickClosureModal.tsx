@@ -204,7 +204,7 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                                 <Bug size={20} color="#EF4444" />
                                 {t('quickClosure.bugsTitle')}
                             </h3>
-                            <button onClick={addBug} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', background: '#3B82F6', color: 'white', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
+                            <button onClick={addBug} style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', background: 'var(--text-primary)', color: 'white', border: 'none', padding: '0.3rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}>
                                 <Plus size={14} /> {t('quickClosure.add')}
                             </button>
                         </div>
@@ -218,7 +218,7 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                                         <option value="Critique">{t('quickClosure.critical')}</option>
                                         <option value="Majeur">{t('quickClosure.major')}</option>
                                     </select>
-                                    <button onClick={() => removeBug(b.id)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '0.4rem' }} title={t('quickClosure.deleteBug')}>
+                                    <button onClick={() => removeBug(b.id)} style={{ background: 'none', border: 'none', color: 'var(--text-danger)', cursor: 'pointer', padding: '0.4rem' }} title={t('quickClosure.deleteBug')}>
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
@@ -254,9 +254,9 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                                             onClick={() => handleToggleRun(trend)}
                                             style={{
                                                 padding: '0.75rem 1rem',
-                                                border: `2px solid ${isSelected ? '#3B82F6' : 'var(--border-color)'}`,
+                                                border: `2px solid ${isSelected ? 'var(--text-primary)' : 'var(--border-color)'}`,
                                                 borderRadius: '8px',
-                                                backgroundColor: isSelected ? (isDark ? 'rgba(59,130,246,0.1)' : '#EFF6FF') : 'var(--card-bg)',
+                                                backgroundColor: isSelected ? (isDark ? 'rgba(59,130,246,0.1)' : 'color-mix(in srgb, var(--text-primary) 8%, transparent)') : 'var(--card-bg)',
                                                 cursor: 'pointer',
                                                 display: 'flex',
                                                 justifyContent: 'space-between',
@@ -265,11 +265,11 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                                             }}
                                         >
                                             <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                <span style={{ fontWeight: 600, color: isSelected ? '#3B82F6' : 'var(--text-color)' }}>{trend.version}</span>
+                                                <span style={{ fontWeight: 600, color: isSelected ? 'var(--text-primary)' : 'var(--text-color)' }}>{trend.version}</span>
                                                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{t('quickClosure.dateLabel')} {new Date(trend.date).toLocaleDateString(i18n.language)}</span>
                                             </div>
                                             <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
-                                                <span>{t('quickClosure.ddpLabel')} <strong style={{color: '#10B981'}}>{trend.detectionRate}%</strong></span>
+                                                <span>{t('quickClosure.ddpLabel')} <strong style={{color: 'var(--text-success)'}}>{trend.detectionRate}%</strong></span>
                                                 <span>{t('quickClosure.bugsTestLabel')} <strong>{trend.bugsInTest}</strong></span>
                                             </div>
                                         </div>
@@ -288,7 +288,7 @@ const QuickClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isD
                     <button onClick={onClose} disabled={isExporting} style={{ padding: '0.6rem 1.2rem', background: 'transparent', border: '1px solid var(--border-color)', color: 'var(--text-color)', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', opacity: isExporting ? 0.5 : 1 }}>
                         {t('common.cancel')}
                     </button>
-                    <button onClick={handleExport} disabled={isExporting} style={{ padding: '0.6rem 1.5rem', background: '#3B82F6', border: 'none', color: 'white', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s', opacity: isExporting ? 0.7 : 1 }}>
+                    <button onClick={handleExport} disabled={isExporting} style={{ padding: '0.6rem 1.5rem', background: 'var(--text-primary)', border: 'none', color: 'white', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s', opacity: isExporting ? 0.7 : 1 }}>
                         {isExporting ? <Activity size={18} className="spinner" /> : <Download size={18} />}
                         {isExporting ? t('quickClosure.generating') : t('quickClosure.generateDocx')}
                     </button>

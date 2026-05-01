@@ -12,8 +12,8 @@ export default function WebhookSubscriptions({ isDark, subscriptions, onCreate, 
   const [form, setForm] = useState({ url: '', events: [], secret: '', filters: null });
 
   const cardStyle = {
-    backgroundColor: isDark ? '#1e293b' : '#f9fafb',
-    border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+    backgroundColor: 'var(--surface-muted)',
+    border: `1px solid ${'var(--border-color)'}`,
     borderRadius: '8px',
     padding: '16px',
     marginBottom: '12px',
@@ -26,9 +26,9 @@ export default function WebhookSubscriptions({ isDark, subscriptions, onCreate, 
     width: '100%',
     padding: '8px 12px',
     borderRadius: '6px',
-    border: `1px solid ${isDark ? '#475569' : '#d1d5db'}`,
-    backgroundColor: isDark ? '#0f172a' : '#fff',
-    color: isDark ? '#f1f5f9' : '#1f2937',
+    border: `1px solid ${'var(--border-color)'}`,
+    backgroundColor: 'var(--surface-default)',
+    color: 'var(--text-color)',
     marginBottom: '8px',
     fontSize: '0.875rem',
   };
@@ -144,7 +144,7 @@ export default function WebhookSubscriptions({ isDark, subscriptions, onCreate, 
                 <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Webhook size={14} /> {sub.url}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: isDark ? '#94a3b8' : '#6b7280', marginTop: '4px' }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
                   {sub.events.join(', ')}
                   {sub.filters && <span> | {JSON.stringify(sub.filters)}</span>}
                 </div>

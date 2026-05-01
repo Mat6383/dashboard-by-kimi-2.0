@@ -66,7 +66,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
         legend: {
           position: 'top',
           labels: {
-            color: isDark ? '#E2E8F0' : '#111827',
+            color: 'var(--text-color)',
             font: { size: 12, weight: 600 },
           },
         },
@@ -77,12 +77,12 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
       },
       scales: {
         x: {
-          grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
-          ticks: { color: isDark ? '#9CA3AF' : '#6B7280' },
+          grid: { color: 'var(--border-color)' },
+          ticks: { color: 'var(--text-muted)' },
         },
         y: {
-          grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' },
-          ticks: { color: isDark ? '#9CA3AF' : '#6B7280' },
+          grid: { color: 'var(--border-color)' },
+          ticks: { color: 'var(--text-muted)' },
         },
       },
     } satisfies ChartOptions<'line'>),
@@ -96,8 +96,8 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
         {
           label: useBusiness ? 'Taux de Détection (DDP)' : 'Detection Rate (DDP)',
           data: trends.map((t) => t.detectionRate),
-          borderColor: '#10B981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          borderColor: 'var(--text-success)',
+          backgroundColor: 'color-mix(in srgb, var(--text-success) 10%, transparent)',
           fill: true,
           tension: 0.4,
           pointRadius: 6,
@@ -107,8 +107,8 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
         {
           label: useBusiness ? "Taux d'Échappement" : 'Escape Rate',
           data: trends.map((t) => t.escapeRate),
-          borderColor: '#EF4444',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          borderColor: 'var(--text-danger)',
+          backgroundColor: 'color-mix(in srgb, var(--text-danger) 10%, transparent)',
           fill: true,
           tension: 0.4,
           pointRadius: 6,
@@ -168,7 +168,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
           alignItems: 'center',
           justifyContent: 'center',
           height: '60vh',
-          color: '#EF4444',
+          color: 'var(--text-danger)',
         }}
       >
         <AlertCircle size={48} />
@@ -181,8 +181,8 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
   const previous = trends[trends.length - 2] || {};
 
   const getTrendIcon = (curr, prev) => {
-    if (curr > prev) return <ArrowUpRight size={20} color="#EF4444" />;
-    if (curr < prev) return <ArrowDownRight size={20} color="#10B981" />;
+    if (curr > prev) return <ArrowUpRight size={20} color="var(--text-danger)" />;
+    if (curr < prev) return <ArrowDownRight size={20} color="var(--text-success)" />;
     return null;
   };
 
@@ -190,7 +190,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
     <div className={`dashboard-fade-in ${isDark ? 'tv-dark-theme' : ''}`} style={{ padding: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <div style={{ backgroundColor: '#3B82F6', padding: '0.5rem', borderRadius: '8px', color: 'white' }}>
+          <div style={{ backgroundColor: 'var(--action-primary-bg)', padding: '0.5rem', borderRadius: '8px', color: 'var(--action-primary-text)' }}>
             <TrendingUp size={24} />
           </div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: 'var(--text-color)' }}>
@@ -384,7 +384,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
                     <td style={{ padding: '0.75rem', fontSize: '0.85rem' }}>{new Date(t.date).toLocaleDateString()}</td>
                     <td style={{ padding: '0.75rem', textAlign: 'center' }}>{t.bugsInTest}</td>
                     <td style={{ padding: '0.75rem', textAlign: 'center' }}>{t.bugsInProd}</td>
-                    <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 700, color: '#10B981' }}>
+                    <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: 700, color: 'var(--text-success)' }}>
                       {t.detectionRate}%
                     </td>
                     <td
@@ -392,7 +392,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
                         padding: '0.75rem',
                         textAlign: 'center',
                         fontWeight: 700,
-                        color: t.escapeRate > 5 ? '#EF4444' : '#10B981',
+                        color: t.escapeRate > 5 ? 'var(--text-danger)' : 'var(--text-success)',
                       }}
                     >
                       {t.escapeRate}%
@@ -406,11 +406,11 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
                           fontWeight: 800,
                           backgroundColor:
                             t.escapeRate <= 3
-                              ? 'rgba(16, 185, 129, 0.1)'
+                              ? 'color-mix(in srgb, var(--text-success) 10%, transparent)'
                               : t.escapeRate <= 7
-                                ? 'rgba(245, 158, 11, 0.1)'
-                                : 'rgba(239, 68, 68, 0.1)',
-                          color: t.escapeRate <= 3 ? '#10B981' : t.escapeRate <= 7 ? '#F59E0B' : '#EF4444',
+                                ? 'color-mix(in srgb, var(--text-warning) 10%, transparent)'
+                                : 'color-mix(in srgb, var(--text-danger) 10%, transparent)',
+                          color: t.escapeRate <= 3 ? 'var(--text-success)' : t.escapeRate <= 7 ? 'var(--text-warning)' : 'var(--text-danger)',
                         }}
                       >
                         {t.escapeRate <= 3 ? 'EXCELLENT' : t.escapeRate <= 7 ? 'ACCEPTABLE' : 'CRITICAL'}

@@ -142,7 +142,7 @@ export default function CommentCell({ issue, comment, milestoneTitle, onSaved, o
                 <button onClick={() => setShowConfirm(false)} className="d7-comment-cancel-btn">
                   {t('common.cancel')}
                 </button>
-                <button onClick={confirmDelete} className="d7-comment-save-btn" style={{ backgroundColor: '#EF4444' }}>
+                <button onClick={confirmDelete} className="d7-comment-save-btn" style={{ backgroundColor: 'var(--text-danger)' }}>
                   {t('common.delete')}
                 </button>
               </div>

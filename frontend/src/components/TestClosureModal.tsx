@@ -126,7 +126,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
   // Style dynamique selon le thème et la décision
   const isGo = decision === 'GO_PRODUCTION';
   const isGoReserve = decision === 'GO_RESERVE';
-  const decisionColor = isGo ? '#10B981' : isGoReserve ? '#F59E0B' : '#EF4444';
+  const decisionColor = isGo ? 'var(--text-success)' : isGoReserve ? 'var(--text-warning)' : 'var(--text-danger)';
 
   const commonPDFStyle = {
     position: 'absolute',
@@ -362,7 +362,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                     style={{
                       fontSize: '1.2rem',
                       fontWeight: 700,
-                      color: m.completionRate >= 90 ? '#10B981' : '#F59E0B',
+                      color: m.completionRate >= 90 ? 'var(--text-success)' : 'var(--text-warning)',
                     }}
                   >
                     {m.completionRate}%
@@ -371,7 +371,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('testClosure.success')}</span>
                   <span
-                    style={{ fontSize: '1.2rem', fontWeight: 700, color: m.passRate >= 95 ? '#10B981' : '#EF4444' }}
+                    style={{ fontSize: '1.2rem', fontWeight: 700, color: m.passRate >= 95 ? 'var(--text-success)' : 'var(--text-danger)' }}
                   >
                     {m.passRate}%
                   </span>
@@ -379,7 +379,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{t('testClosure.failures')}</span>
                   <span
-                    style={{ fontSize: '1.2rem', fontWeight: 700, color: m.failureRate <= 5 ? '#10B981' : '#EF4444' }}
+                    style={{ fontSize: '1.2rem', fontWeight: 700, color: m.failureRate <= 5 ? 'var(--text-success)' : 'var(--text-danger)' }}
                   >
                     {m.failureRate}%
                   </span>
@@ -408,8 +408,8 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.2rem',
-                    background: '#3B82F6',
-                    color: 'white',
+                    background: 'var(--action-primary-bg)',
+                    color: 'var(--action-primary-text)',
                     border: 'none',
                     padding: '0.3rem 0.6rem',
                     borderRadius: '4px',
@@ -476,7 +476,7 @@ const TestClosureModal = ({ isOpen, onClose, metrics, project, useBusiness, isDa
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#EF4444',
+                        color: 'var(--text-danger)',
                         cursor: 'pointer',
                         padding: '0.4rem',
                       }}

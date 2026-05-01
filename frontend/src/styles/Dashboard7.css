@@ -2,7 +2,7 @@
  * ================================================
  * DASHBOARD 7 - CrossTest OK — Tickets Validés
  * ================================================
- * Dark-themed table dashboard, consistent with app CSS variables
+ * Dark-themed table dashboard, consistent with modern design system
  *
  * @author Matou - Neo-Logix QA Lead
  * @version 1.0.0
@@ -26,12 +26,13 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  font-size: 1.375rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-color);
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-sm);
   border-bottom: 2px solid var(--color-primary);
+  letter-spacing: -0.02em;
 }
 
 .d7-header svg {
@@ -60,17 +61,20 @@
   background: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-md);
   padding: 6px 12px;
   font-size: 0.875rem;
   cursor: pointer;
   min-width: 160px;
-  transition: border-color 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .d7-select:focus {
   outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .d7-btn {
@@ -79,20 +83,18 @@
   gap: 6px;
   padding: 6px 14px;
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-md);
   background: var(--card-bg);
   color: var(--text-color);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition:
-    background 0.2s,
-    border-color 0.2s;
+  transition: all 0.2s var(--ease-out);
   white-space: nowrap;
 }
 
 .d7-btn:hover:not(:disabled) {
-  background: var(--color-gray-700, #374151);
+  background: var(--surface-hover);
   border-color: var(--color-primary);
 }
 
@@ -102,14 +104,15 @@
 }
 
 .d7-btn-primary {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-  color: #fff;
+  background: var(--action-primary-bg);
+  border-color: var(--action-primary-bg);
+  color: var(--action-primary-text);
+  box-shadow: var(--shadow-button-primary);
 }
 
 .d7-btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-dark, #2563eb);
-  border-color: var(--color-primary-dark, #2563eb);
+  background: var(--action-primary-bg-hover);
+  border-color: var(--action-primary-bg-hover);
 }
 
 .d7-spacer {
@@ -120,16 +123,19 @@
   background: var(--card-bg);
   color: var(--text-color);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-md);
   padding: 6px 12px;
   font-size: 0.875rem;
   min-width: 200px;
-  transition: border-color 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .d7-filter-input:focus {
   outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 /* ==========================================
@@ -142,7 +148,7 @@
 }
 
 .d7-summary strong {
-  color: var(--color-primary);
+  color: var(--text-primary);
   font-weight: 700;
 }
 
@@ -152,8 +158,9 @@
 .d7-table-section {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-card);
 }
 
 .d7-table-wrapper {
@@ -177,8 +184,8 @@
 }
 
 .d7-table th {
-  background: var(--color-gray-800, #1f2937);
-  color: #fff;
+  background: var(--table-header-bg);
+  color: var(--table-header-text);
   padding: 10px 14px;
   text-align: left;
   font-size: 0.75rem;
@@ -186,7 +193,7 @@
   letter-spacing: 0.07em;
   text-transform: uppercase;
   white-space: nowrap;
-  border-bottom: 2px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .d7-table th:first-child {
@@ -196,7 +203,7 @@
 
 /* ---- Lignes ---- */
 .d7-table tbody tr {
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--divider-color);
   transition: background 0.15s;
 }
 
@@ -205,7 +212,7 @@
 }
 
 .d7-table tbody tr:hover {
-  background: rgba(59, 130, 246, 0.07);
+  background: var(--table-row-hover);
 }
 
 .d7-table td {
@@ -225,7 +232,7 @@
    Cellule Ticket (lien)
    ========================================== */
 .d7-issue-link {
-  color: var(--color-primary);
+  color: var(--text-primary);
   text-decoration: none;
   font-weight: 500;
   display: inline-flex;
@@ -236,7 +243,7 @@
 }
 
 .d7-issue-link:hover {
-  color: var(--color-primary-dark, #2563eb);
+  color: var(--action-primary-bg-hover);
   text-decoration: underline;
 }
 
@@ -260,13 +267,13 @@
 .d7-label-chip {
   display: inline-block;
   padding: 1px 7px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   font-size: 0.68rem;
   font-weight: 600;
-  background: var(--color-gray-700, #374151);
-  color: #e5e7eb;
+  background: var(--badge-neutral-bg);
+  color: var(--badge-neutral-text);
   white-space: nowrap;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--badge-neutral-border);
 }
 
 /* ==========================================
@@ -277,7 +284,7 @@
   align-items: center;
   gap: 4px;
   padding: 3px 10px;
-  border-radius: 99px;
+  border-radius: var(--radius-full);
   font-size: 0.72rem;
   font-weight: 700;
   white-space: nowrap;
@@ -285,15 +292,15 @@
 }
 
 .d7-badge-closed {
-  background: rgba(16, 185, 129, 0.18);
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  background: var(--badge-success-bg);
+  color: var(--badge-success-text);
+  border: 1px solid var(--badge-success-border);
 }
 
 .d7-badge-open {
-  background: rgba(245, 158, 11, 0.18);
-  color: #f59e0b;
-  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: var(--badge-warning-bg);
+  color: var(--badge-warning-text);
+  border: 1px solid var(--badge-warning-border);
 }
 
 /* ==========================================
@@ -308,7 +315,7 @@
 .d7-comment-add-btn {
   background: none;
   border: 1px dashed var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-md);
   color: var(--text-muted);
   font-size: 0.8rem;
   padding: 4px 10px;
@@ -323,7 +330,7 @@
 
 .d7-comment-add-btn:hover {
   border-color: var(--color-primary);
-  color: var(--color-primary);
+  color: var(--text-primary);
 }
 
 /* Affichage commentaire existant */
@@ -363,15 +370,15 @@
 }
 
 .d7-icon-btn:hover:not(:disabled) {
-  background: var(--color-gray-700, #374151);
+  background: var(--surface-hover);
 }
 
 .d7-icon-btn.edit:hover {
-  color: var(--color-primary);
+  color: var(--text-primary);
 }
 
 .d7-icon-btn.del:hover {
-  color: #ef4444;
+  color: var(--text-danger);
 }
 
 .d7-icon-btn:disabled {
@@ -389,10 +396,10 @@
 .d7-comment-textarea {
   width: 100%;
   min-height: 60px;
-  background: var(--card-bg);
+  background: var(--surface-page);
   color: var(--text-color);
   border: 1px solid var(--color-primary);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-md);
   padding: 6px 8px;
   font-size: 0.82rem;
   font-family: inherit;
@@ -404,7 +411,7 @@
 .d7-comment-textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .d7-comment-form-actions {
@@ -415,10 +422,10 @@
 
 .d7-comment-save-btn {
   padding: 4px 12px;
-  background: var(--color-primary);
-  color: #fff;
+  background: var(--action-primary-bg);
+  color: var(--action-primary-text);
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-md);
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -426,7 +433,7 @@
 }
 
 .d7-comment-save-btn:hover:not(:disabled) {
-  background: var(--color-primary-dark, #2563eb);
+  background: var(--action-primary-bg-hover);
 }
 
 .d7-comment-save-btn:disabled {
@@ -439,7 +446,7 @@
   background: transparent;
   color: var(--text-muted);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius);
+  border-radius: var(--radius-md);
   font-size: 0.8rem;
   cursor: pointer;
   transition:
@@ -488,7 +495,7 @@
 }
 
 .d7-state-error .d7-state-title {
-  color: #ef4444;
+  color: var(--text-danger);
 }
 
 /* Spinner */
