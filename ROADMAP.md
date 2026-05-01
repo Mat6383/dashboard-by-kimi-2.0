@@ -8,7 +8,7 @@
 
 **Branch :** `main`  
 **Commits récents :** P0→P28 livrés (avril 2026)  
-**Tests :** 595/595 backend ✅ | 217/217 frontend ✅ | Build ✅ | TypeCheck backend & frontend ✅ | Lint 0 ✅
+**Tests :** 694/694 backend ✅ | 275/275 frontend ✅ | 38/38 Python ✅ | Build ✅ | TypeCheck backend & frontend ✅ | Lint 0 ✅
 
 ---
 
@@ -126,8 +126,9 @@
 
 | Métrique             | Actuel       | Cible |
 | -------------------- | ------------ | ----- |
-| Tests backend        | 595 / 595 ✅ | 610+  |
-| Tests frontend       | 217 / 217 ✅ | 240+  |
+| Tests backend        | 694 / 694 ✅ | 700+  |
+| Tests frontend       | 275 / 275 ✅ | 280+  |
+| Tests Python         | 38 / 38 ✅   | 40+   |
 | Couverture backend   | 80 % ✅      | 70 %  |
 | Couverture frontend  | 87 % ✅      | 50 %  |
 | Vulnérabilités npm   | 0 ✅         | 0     |
@@ -158,6 +159,7 @@
 - [x] **P5#5 Export CSV/Excel** — Complément au PDF/PPTX existant (`xlsx`, routes `/api/export/csv` & `/excel`)
 - [x] **P5#6 Tests E2E Playwright** — Parcours complet login → dashboard → export → notifications
 - [x] **P5#7 Tests unitaires services SQLite** — syncHistory, comments, featureFlags services
+- [x] **Correction massive des tests** — Compatibilité Jest/CommonJS (`bootstrap/dotenv`), normalisation `export default` services, auth e2e (`requireAuthOrAdmin` + tRPC), format API projects, 34 fichiers mis à jour
 - [x] **P5#8 Coverage routes SSE backend** — sync/execute, sync/status-to-gitlab, sync/preview, sync/iteration
 
 ## 🚀 P6 — Évolutions Futures (Session actuelle)

@@ -43,8 +43,9 @@
 
 | Métrique             | Actuel       |
 | -------------------- | ------------ |
-| Tests backend        | 565/565 ✅   |
-| Tests frontend       | 172/172 ✅   |
+| Tests backend        | 694/694 ✅   |
+| Tests frontend       | 275/275 ✅   |
+| Tests Python         | 38/38 ✅     |
 | Build frontend       | ~2.8s ✅     |
 | Lint                 | 0 erreur ✅  |
 | Vulnérabilités npm   | 0 critique ✅ |
@@ -103,8 +104,8 @@ npx playwright test
 ## 🌿 État Git
 
 - **Branche active** : `main`
-- **Commits non pushés** : P18 en cours de commit
-- **Dernier commit sur `main`** : Option B — Tests de charge & Performance (k6, corrections rate limit, health cache, export cache, pool PDF)
+- **Commits non pushés** : Aucun
+- **Dernier commit sur `main`** : Correction massive des tests backend, frontend, Python et e2e
 
 ---
 
@@ -150,5 +151,6 @@ npx playwright test
 
 ## 🚀 Prochaines Étapes Suggérées (P23+)
 
-- [ ] **P23** — Améliorations UX : raccourcis clavier, drag-and-drop tableaux, mode compact
-- [ ] **P24** — Alerting avancé : webhooks personnalisés par métrique, templates d'alerte configurables
+- [x] **P23** — Améliorations UX : raccourcis clavier, drag-and-drop tableaux, mode compact
+- [x] **P24** — Alerting avancé : webhooks personnalisés par métrique, templates d'alerte configurables
+- [x] **Correction massive des tests** — Compatibilité Jest/CommonJS, normalisation exports, auth e2e, 34 fichiers mis à jour
