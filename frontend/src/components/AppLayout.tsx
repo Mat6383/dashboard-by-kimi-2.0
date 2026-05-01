@@ -198,7 +198,7 @@ export default function AppLayout({
             <button
               className="btn-icon"
               onClick={() => setDrawerOpen(true)}
-              aria-label={t('layout.menu')}
+              aria-label={t('layout.openMenu')}
               type="button"
               style={{ minWidth: '44px', minHeight: '44px' }}
             >
@@ -231,7 +231,9 @@ export default function AppLayout({
             type="button"
           >
             <Monitor size={16} />
-            {tvMode ? t('layout.tvModeOn') : t('layout.tvModeOff')}
+            <span className="header-toggle-label">
+              {tvMode ? t('layout.tvModeOn') : t('layout.tvModeOff')}
+            </span>
           </button>
 
           {/* Toggle Compact Mode */}
@@ -243,13 +245,15 @@ export default function AppLayout({
             data-testid="compact-mode-toggle"
           >
             <LayoutTemplate size={16} />
-            {compactMode ? t('layout.compactModeOn') : t('layout.compactModeOff')}
+            <span className="header-toggle-label">
+              {compactMode ? t('layout.compactModeOn') : t('layout.compactModeOff')}
+            </span>
           </button>
 
           {/* Toggle Dark Theme */}
           <div
             className="switch-container"
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px', marginRight: '8px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>{t('layout.darkTheme')}</span>
             <label className="theme-switch" aria-label={t('layout.darkTheme')}>
@@ -259,7 +263,7 @@ export default function AppLayout({
           </div>
 
           {/* Sélecteur de Dashboard */}
-          <div style={{ marginLeft: '8px', marginRight: '8px' }}>
+          <div>
             <select
               value={currentPath}
               onChange={onDashboardChange}
@@ -323,7 +327,7 @@ export default function AppLayout({
           {/* Toggle Vocabulaire Métier */}
           <div
             className="switch-container"
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px', marginRight: '8px' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>
               {t('layout.businessTerms')}
@@ -383,7 +387,6 @@ export default function AppLayout({
             onClick={() => changeLanguage(i18n.language === 'fr' ? 'en' : 'fr')}
             title={t('common.language')}
             type="button"
-            style={{ marginLeft: '8px', marginRight: '8px' }}
           >
             <Globe size={16} />
             {i18n.language === 'fr' ? 'FR' : 'EN'}
@@ -397,7 +400,9 @@ export default function AppLayout({
             type="button"
           >
             <RefreshCw size={16} className={autoRefresh ? 'spinning' : ''} />
-            {autoRefresh ? t('layout.autoRefreshOn') : t('layout.autoRefreshOff')}
+            <span className="header-toggle-label">
+              {autoRefresh ? t('layout.autoRefreshOn') : t('layout.autoRefreshOff')}
+            </span>
           </button>
 
           {/* Refresh manuel */}
@@ -414,7 +419,7 @@ export default function AppLayout({
           {isAuthenticated && user ? (
             <div
               className="user-badge"
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '8px' }}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
             >
               <User size={16} />
               <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>
@@ -431,7 +436,7 @@ export default function AppLayout({
               onClick={onLogin}
               title={t('auth.login')}
               type="button"
-              style={{ marginLeft: '8px', backgroundColor: 'var(--action-auth-bg)', color: 'var(--action-auth-text)', border: 'none' }}
+              style={{ backgroundColor: 'var(--action-auth-bg)', color: 'var(--action-auth-text)', border: 'none' }}
             >
               <LogIn size={16} />
               {t('layout.loginGitLab')}

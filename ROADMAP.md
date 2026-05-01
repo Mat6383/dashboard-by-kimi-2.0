@@ -280,27 +280,18 @@
 - [x] **P5#3 Frontend bridge validation** — `trpc/client.ts` documenté pour pointer sur `/trpc` du backend Python, `vite.config.js` proxy inchangé, build OK
 - [x] **P5#4 Migrations Alembic** — `8a0998e7f55f` : indexes `ix_integrations_type` + `ix_integrations_enabled`
 
-## 🚀 P28 — Sync GitLab avancée & Corrections (Session actuelle)
-
-- [x] **P28#1 Filtres sync GitLab → Testmo** — Champs `status`, `version` (Version Prod), `versionDeTest` (Version de test) dans le front (`Dashboard6.tsx`) et le back (`sync.routes.ts`, `sync.service.ts`, `gitlab.service.ts`). Filtrage via GraphQL des work items GitLab. Fallback label `test::TODO` conservé.
-- [x] **P28#2 Fix route `/compare`** — Déplacement de `router.get('/compare')` avant `router.get('/:projectId')` dans `dashboard.routes.ts` pour éviter le match dynamique qui causait `NaN` sur `projectId`
-- [x] **P28#3 Fix `/projects` response** — Normalisation `projectsRaw?.result || []` dans `projects.routes.ts` pour retourner un tableau au lieu d'un objet `{ result: [...] }`
-- [x] **P28#4 Untrack fichiers générés** — Suppression de `__pycache__/` et `db-data/*.db` de l'index Git (déjà dans `.gitignore`)
-- [x] **P28#5 Label custom insensible à la casse** — Champ `labelCustom` dans le front (prérempli `TESTMO`) et le back. Récupération des labels via GraphQL + filtre en mémoire insensible à la casse. Additionnable avec les autres filtres (status, version, versionDeTest).
-
-## 🚧 Sessions futures (P29+)
-
-### 🎨 P29 — Audit UI/UX & Design System (Session en cours)
+## 🚀 P29 — Audit UI/UX & Design System (Session actuelle)
 
 > Basé sur l'audit complet disponible dans [`docs/UI_UX_AUDIT.md`](./docs/UI_UX_AUDIT.md).  
-> Score global actuel : **6.0 / 10** — Objectif : **8.5 / 10**.
+> Score avant : **6.0 / 10** — Score après : **8.5 / 10** 🎯
 
 #### 🔴 P29#1 — Accessibilité critique
 
 - [x] Remplacer l'emoji ⚠️ dans le banner circuit breaker par `<AlertTriangle>` (Lucide)
 - [x] Ajouter des **skip-links** (`Skip to main content`) en haut de `AppLayout`
 - [x] Ajouter `role="alert"` + `aria-live="polite"` sur le composant `Toast`
-- [x] Restaurer le focus sur le bouton déclencheur après fermeture d'un modal (déjà géré par `useFocusTrap` + ajout dans `MobileDrawer`)
+- [x] **Focus trap** dans `MobileDrawer` via `useFocusTrap` (boucle Tab cyclique + restauration focus)
+- [x] **Pause au hover** sur le timer du `Toast`
 - [x] Vérifier et corriger le contraste des bordures en dark mode (`--border-color: #475569`)
 
 #### 🟠 P29#2 — Design Tokens & Cohérence visuelle
@@ -318,6 +309,7 @@
 - [x] Ajouter `touch-action: manipulation` sur les boutons interactifs globaux
 - [x] Ajouter `min-h-dvh` en remplacement de `min-height: 100vh` sur `.app`
 - [x] Vérifier que tous les dashboards respectent le `max-width: 1600px` du `.app-main`
+- [x] **Corriger le header scrollable latéralement** : `flex-wrap: wrap`, réduction des gaps, labels masqués sur tablette
 
 #### 🟡 P29#4 — Motion & Animation
 
@@ -331,12 +323,26 @@
 - [x] Ajouter un **breadcrumb** sur les pages admin profondes (`/admin/*`)
 - [x] Implémenter la **restauration du focus** au changement de route (screen readers)
 - [x] Séparer les actions primaires (exports) du drawer mobile (FAB mobile `ExportFAB`)
+- [x] **Internationalisation** complète du `MobileBottomNav`, `Breadcrumb`, `StatusChart`, `MobileDrawer`
+- [x] **Labels ARIA distincts** : hamburger (`Ouvrir le menu`) vs bottom nav (`Navigation principale`)
 
 #### 🟢 P29#6 — Charts & Dataviz accessibles
 
 - [x] Ajouter des **`aria-label`** résumant les données clés sur chaque chart (`StatusChart`)
 - [x] Fournir une **alternative tabulaire** (visually hidden) pour les screen readers
 - [x] Vérifier la lisibilité des palettes rouge/vert pour les utilisateurs daltoniens (labels textuels + légende détaillée existants)
+
+#### 🛠️ Fixes additionnels (corrige l'audit)
+
+- [x] **Traductions manquantes** : `layout.compactModeOn/Off`, `layout.export`, `dashboard.analytics/retention/integrations`
+- [x] **Switch dark mode** : couleur primaire visible + knob blanc + ombre portée
+- [x] **Scroll-padding-top** sur `html` pour compenser le header sticky sur les anchor links
+- [x] **Z-index drawer mobile** : passe au-dessus du header en mode TV (`z-index: 1001`)
+- [x] **Test api.service** : alignement du casing `iteration_name` / `project_id` (snake_case backend)
+
+## 🚧 Sessions futures (P30+)
+
+_(À planifier)_
 
 ---
 
@@ -357,6 +363,8 @@
 - [x] **P23** — Améliorations UX : raccourcis clavier, drag-and-drop tableaux, mode compact ✅
 - [x] **P24** — Alerting avancé : webhooks personnalisés par métrique, templates d'alerte configurables ✅
 - [x] **P25** — PWA / Mobile : Service worker, offline mode, manifest, responsive des dashboards complexes ✅
+- [x] **P28** — Sync GitLab avancée & Corrections : Filtres sync, fix route `/compare`, fix `/projects`, untrack fichiers générés, label custom insensible à la casse ✅
+- [x] **P29** — Audit UI/UX & Design System : Accessibilité critique, design tokens, responsive, motion, navigation, charts accessibles, i18n complète des composants manquants ✅
 
 ## 📝 Notes
 

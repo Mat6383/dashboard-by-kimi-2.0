@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -9,11 +11,11 @@ interface MobileDrawerProps {
 }
 
 export default function MobileDrawer({ isOpen, onClose, title, children }: MobileDrawerProps) {
-  const previouslyFocused = useRef<HTMLElement | null>(null);
+  const { t } = useTranslation();
+  const drawerRef = useFocusTrap(isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
-    previouslyFocused.current = document.activeElement as HTMLElement | null;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -23,7 +25,6 @@ export default function MobileDrawer({ isOpen, onClose, title, children }: Mobil
     window.addEventListener('keydown', handleEscape);
     return () => {
       window.removeEventListener('keydown', handleEscape);
-      previouslyFocused.current?.focus();
     };
   }, [isOpen, onClose]);
 
@@ -32,6 +33,7 @@ export default function MobileDrawer({ isOpen, onClose, title, children }: Mobil
   return (
     <div className="mobile-drawer-overlay" onClick={onClose} role="presentation">
       <div
+        ref={drawerRef}
         className="mobile-drawer"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -43,8 +45,9 @@ export default function MobileDrawer({ isOpen, onClose, title, children }: Mobil
           <button
             className="btn-icon"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={t('common.close')}
             type="button"
+            data-modal-close
             style={{ minWidth: '44px', minHeight: '44px' }}
           >
             <X size={20} />

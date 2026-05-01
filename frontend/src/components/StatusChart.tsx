@@ -11,6 +11,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -37,8 +38,10 @@ ChartJS.register(
 );
 
 const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = false }) => {
+  const { t } = useTranslation();
+
   if (!metrics || !metrics.statusDistribution) {
-    return <div className="chart-loading">Chargement des graphiques...</div>;
+    return <div className="chart-loading">{t('statusChart.loading')}</div>;
   }
 
   const { labels, values, colors } = metrics.statusDistribution;
@@ -48,7 +51,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
     labels: labels,
     datasets: [
       {
-        label: 'Nombre de tests',
+        label: t('statusChart.numberOfTests'),
         data: values,
         backgroundColor: colors,
         borderColor: colors.map(c => c + 'CC'),
@@ -88,7 +91,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
       },
       title: {
         display: true,
-        text: useBusiness ? 'Distribution des Statuts de Tests' : 'Test Status Distribution',
+        text: useBusiness ? t('statusChart.doughnutTitleBusiness') : t('statusChart.doughnutTitle'),
         color: isDark ? '#E2E8F0' : '#111827',
         font: {
           size: 16,
@@ -107,7 +110,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
     labels: labels,
     datasets: [
       {
-        label: 'Nombre de tests',
+        label: t('statusChart.numberOfTests'),
         data: values,
         backgroundColor: colors,
         borderColor: colors.map(c => c + 'CC'),
@@ -135,7 +138,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
       },
       title: {
         display: true,
-        text: useBusiness ? 'Répartition par Statut' : 'Status Distribution',
+        text: useBusiness ? t('statusChart.barTitleBusiness') : t('statusChart.barTitle'),
         color: isDark ? '#E2E8F0' : '#111827',
         font: {
           size: 16,
@@ -170,7 +173,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
 
   return (
     <div className="status-chart-container">
-      <div className="chart-wrapper" aria-label={`Graphique de répartition des statuts. ${summaryText}`} role="img">
+      <div className="chart-wrapper" aria-label={t('statusChart.ariaLabel', { summary: summaryText })} role="img">
         {chartType === 'doughnut' ? (
           <Doughnut data={doughnutData} options={doughnutOptions} />
         ) : (
@@ -180,12 +183,12 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
 
       {/* Alternative tabulaire pour les lecteurs d'écran */}
       <table className="sr-only">
-        <caption>{useBusiness ? 'Répartition des statuts de tests (données)' : 'Test status distribution data'}</caption>
+        <caption>{useBusiness ? t('statusChart.tableCaptionBusiness') : t('statusChart.tableCaption')}</caption>
         <thead>
           <tr>
-            <th>Statut</th>
-            <th>Nombre</th>
-            <th>Pourcentage</th>
+            <th>{t('statusChart.status')}</th>
+            <th>{t('statusChart.count')}</th>
+            <th>{t('statusChart.percentage')}</th>
           </tr>
         </thead>
         <tbody>
@@ -201,7 +204,7 @@ const StatusChart = ({ metrics, chartType = 'doughnut', useBusiness, isDark = fa
 
       {/* Statistiques détaillées */}
       <div className="status-details">
-        <h4>{useBusiness ? 'Détails par Statut' : 'Status Details'}</h4>
+        <h4>{t('statusChart.details')}</h4>
         <div className="status-list">
           {labels.map((label, index) => (
             <StatusItem

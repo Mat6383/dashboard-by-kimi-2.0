@@ -1,4 +1,5 @@
 import React, { useRef, useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Activity, CheckSquare } from 'lucide-react';
 import TestClosureModal from './TestClosureModal';
 import { useExportPDF } from '../hooks/useExportPDF';
@@ -6,6 +7,7 @@ import QuickClosureModal from './QuickClosureModal';
 import ReportGeneratorModal from './ReportGeneratorModal';
 import PreprodSection from './PreprodSection';
 import ProductionSection from './ProductionSection';
+import '../styles/Dashboard4.css';
 
 const DEFAULT_RATES = {
   escapeRate: 0,
@@ -31,6 +33,7 @@ const Dashboard4 = ({
   onToggleProductionSection,
   anomalies = [],
 }) => {
+  const { t } = useTranslation();
   const dashboardRef = useRef(null);
   const [showAllRuns, setShowAllRuns] = React.useState(false);
   const [showClosureModal, setShowClosureModal] = React.useState(false);
@@ -81,7 +84,7 @@ const Dashboard4 = ({
     return (
       <div className="tv-loading">
         <Activity size={48} className="spinner" />
-        <h2>Chargement des données ISTQB...</h2>
+        <h2>{t('dashboard4.loading')}</h2>
       </div>
     );
   }
@@ -90,19 +93,14 @@ const Dashboard4 = ({
   const raw = d1.raw || { completed: 0, total: 0, passed: 0, failed: 0, wip: 0, blocked: 0, untested: 0 };
 
   return (
-    <div style={{ padding: '0.5rem', width: '100%', margin: '0 auto' }}>
+    <div className="dashboard4-root">
       {projects.length > 0 && onProjectChange && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>Projet :</span>
+        <div className="dashboard4-project-row">
+          <span className="dashboard4-label">{t('dashboard4.project')}</span>
           <select
             value={projectId}
             onChange={(e) => onProjectChange(parseInt(e.target.value))}
             className="project-selector"
-            style={{
-              backgroundColor: 'var(--card-bg)',
-              color: 'var(--text-color)',
-              border: '1px solid var(--border-color)',
-            }}
           >
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
@@ -115,50 +113,20 @@ const Dashboard4 = ({
 
       <div
         ref={dashboardRef}
-        className={`tv-dashboard ${isDark ? 'tv-dark-theme' : ''}`}
-        style={{
-          padding: '0.75rem 1.5rem',
-          backgroundColor: 'var(--bg-color)',
-          borderRadius: '16px',
-          boxShadow: 'var(--shadow-card)',
-        }}
+        className={`tv-dashboard dashboard4-card ${isDark ? 'tv-dark-theme' : ''}`}
       >
-        <header style={{ display: 'none' }}>{/* Ancien header masqué */}</header>
+        <header className="dashboard4-hidden-header">{/* Ancien header masqué */}</header>
         {(project || latestRun) && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.75rem',
-              marginBottom: '1rem',
-              padding: '0.75rem 1.5rem',
-              backgroundColor: isDark ? 'var(--status-info-bg-dark)' : 'var(--status-info-bg-light)',
-              borderRadius: '10px',
-              border: '1px solid var(--status-info-border)',
-              flexWrap: 'wrap',
-              textAlign: 'center',
-            }}
-          >
-            <span style={{ fontSize: 'var(--font-h1)', fontWeight: 700, color: 'var(--text-primary)' }}>{project?.name}</span>
+          <div className={`dashboard4-banner ${isDark ? 'dashboard4-banner--dark' : ''}`}>
+            <span className="dashboard4-project-name">{project?.name}</span>
             {latestRun && (
               <>
-                <span style={{ color: 'var(--text-muted)', fontSize: '1.35rem' }}>—</span>
-                <span style={{ fontSize: '1.35rem', fontWeight: 600, color: 'var(--text-color)' }}>
+                <span className="dashboard4-separator">—</span>
+                <span className="dashboard4-run-name">
                   {latestRun.name}
                 </span>
-                <span
-                  style={{
-                    padding: '0.2rem 0.65rem',
-                    borderRadius: '5px',
-                    fontSize: '0.95rem',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    backgroundColor: 'var(--status-ok-bg)',
-                    color: 'var(--status-ok-text)',
-                  }}
-                >
-                  En cours
+                <span className="dashboard4-badge">
+                  {t('dashboard4.inProgress')}
                 </span>
               </>
             )}
@@ -166,15 +134,15 @@ const Dashboard4 = ({
         )}
 
         {/* Boutons d'action */}
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+        <div className="dashboard4-actions">
           <button className="btn-action btn-action-primary" onClick={() => setShowClosureModal(true)}>
-            <CheckSquare size={16} /> Clôture de Test
+            <CheckSquare size={16} /> {t('dashboard4.testClosure')}
           </button>
           <button className="btn-action btn-action-success" onClick={() => setShowQuickClosureModal(true)}>
-            <CheckSquare size={16} /> Quick Clôture DOCX
+            <CheckSquare size={16} /> {t('dashboard4.quickClosure')}
           </button>
           <button className="btn-action btn-action-secondary" onClick={() => setShowReportGenerator(true)}>
-            <CheckSquare size={16} /> Rapport HTML / PPTX
+            <CheckSquare size={16} /> {t('dashboard4.reportGenerator')}
           </button>
         </div>
 

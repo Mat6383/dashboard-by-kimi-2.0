@@ -1,28 +1,29 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronRight, Home } from 'lucide-react';
 
 interface BreadcrumbItem {
-  label: string;
+  labelKey: string;
   path?: string;
 }
 
-function getBreadcrumbItems(pathname: string): BreadcrumbItem[] {
+function getBreadcrumbItems(pathname: string, t: (key: string) => string): BreadcrumbItem[] {
   if (!pathname.startsWith('/admin/')) return [];
 
   const segments = pathname.split('/').filter(Boolean);
-  const items: BreadcrumbItem[] = [{ label: 'Admin', path: '/admin/audit' }];
+  const items: BreadcrumbItem[] = [{ labelKey: 'breadcrumb.admin', path: '/admin/audit' }];
 
   if (segments.length >= 2) {
     const pageMap: Record<string, string> = {
-      audit: 'Audit Logs',
-      'feature-flags': 'Feature Flags',
-      analytics: 'Analytics',
-      retention: 'Data Retention',
-      integrations: 'Integrations',
+      audit: 'breadcrumb.auditLogs',
+      'feature-flags': 'breadcrumb.featureFlags',
+      analytics: 'breadcrumb.analytics',
+      retention: 'breadcrumb.retention',
+      integrations: 'breadcrumb.integrations',
     };
     const page = segments[1];
-    items.push({ label: pageMap[page] || page });
+    items.push({ labelKey: pageMap[page] || page });
   }
 
   return items;
@@ -30,7 +31,15 @@ function getBreadcrumbItems(pathname: string): BreadcrumbItem[] {
 
 export default function Breadcrumb() {
   const { pathname } = useLocation();
-  const items = getBreadcrumbItems(pathname);
+  const { t } = useTranslation();
+  const items = getBreadcrumbItems(pathname, t);
+  const currentRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (items.length > 0 && currentRef.current) {
+      currentRef.current.focus({ preventScroll: true });
+    }
+  }, [pathname, items.length]);
 
   if (items.length === 0) return null;
 
@@ -40,21 +49,26 @@ export default function Breadcrumb() {
         <li className="breadcrumb-item">
           <Link to="/" className="breadcrumb-link">
             <Home size={14} />
-            <span className="sr-only">Home</span>
+            <span className="sr-only">{t('nav.home')}</span>
           </Link>
           <ChevronRight size={14} className="breadcrumb-separator" aria-hidden="true" />
         </li>
         {items.map((item, index) => {
           const isLast = index === items.length - 1;
           return (
-            <li key={item.label} className="breadcrumb-item">
+            <li key={item.labelKey} className="breadcrumb-item">
               {item.path && !isLast ? (
                 <Link to={item.path} className="breadcrumb-link">
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               ) : (
-                <span className="breadcrumb-current" aria-current="page">
-                  {item.label}
+                <span
+                  ref={isLast ? currentRef : null}
+                  className="breadcrumb-current"
+                  aria-current="page"
+                  tabIndex={-1}
+                >
+                  {t(item.labelKey)}
                 </span>
               )}
               {!isLast && <ChevronRight size={14} className="breadcrumb-separator" aria-hidden="true" />}

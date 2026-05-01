@@ -69,7 +69,7 @@ describe('AppLayout mobile', () => {
 
   it('shows bottom nav on mobile', () => {
     renderAppLayout({ isAdmin: true });
-    expect(screen.getByLabelText('Navigation mobile')).toBeInTheDocument();
+    expect(screen.getByLabelText('Navigation principale')).toBeInTheDocument();
   });
 
   it('hides subtitle on mobile', () => {
@@ -90,6 +90,6 @@ describe('AppLayout desktop', () => {
 
   it('does not show bottom nav on desktop', () => {
     renderAppLayout();
-    expect(screen.queryByLabelText('Navigation mobile')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Navigation principale')).not.toBeInTheDocument();
   });
 });

@@ -39,6 +39,8 @@
     "selectDashboard": "Sélectionner un dashboard",
     "tvModeOn": "Mode TV",
     "tvModeOff": "Mode Standard",
+    "compactModeOn": "Compact ON",
+    "compactModeOff": "Compact OFF",
     "darkTheme": "Dark thème",
     "businessTerms": "Vocabulaire Métier",
     "autoRefreshOn": "Auto ON",
@@ -46,6 +48,7 @@
     "liveIndicator": "Connexion temps réel active",
     "offlineIndicator": "OFFLINE",
     "clearCache": "Nettoyer le cache",
+    "export": "Exporter",
     "exportPdf": "Exporter en PDF",
     "exportPdfBackend": "Exporter PDF (backend)",
     "exportCsv": "Exporter CSV",
@@ -65,6 +68,8 @@
       "standards": "Standards: ISTQB | LEAN | ITIL"
     },
     "menu": "Menu",
+    "openMenu": "Ouvrir le menu",
+    "bottomNav": "Navigation principale",
     "settings": "Paramètres",
     "skipToContent": "Aller au contenu principal"
   },
@@ -83,7 +88,10 @@
     "autoSync": "🤖 Auto-Sync Testmo → GitLab",
     "notifications": "🔔 Notifications",
     "auditLogs": "🛡️ Audit Logs",
-    "featureFlags": "🎛️ Feature Flags"
+    "featureFlags": "🎛️ Feature Flags",
+    "analytics": "📊 Analytics",
+    "retention": "🗄️ Rétention",
+    "integrations": "🔌 Intégrations"
   },
   "app": {
     "loadingMetrics": "Chargement des métriques ISTQB...",
@@ -393,5 +401,44 @@
     },
     "statusTitle": "Statut",
     "priorityTitle": "Priorité"
+  },
+  "nav": {
+    "home": "Accueil",
+    "global": "Global",
+    "quality": "Qualité",
+    "compare": "Compare",
+    "config": "Config",
+    "flags": "Flags"
+  },
+  "breadcrumb": {
+    "admin": "Admin",
+    "auditLogs": "Audit Logs",
+    "featureFlags": "Feature Flags",
+    "analytics": "Analytics",
+    "retention": "Data Retention",
+    "integrations": "Integrations"
+  },
+  "statusChart": {
+    "loading": "Chargement des graphiques...",
+    "ariaLabel": "Graphique de répartition des statuts. {{summary}}",
+    "tableCaptionBusiness": "Répartition des statuts de tests (données)",
+    "tableCaption": "Test status distribution data",
+    "status": "Statut",
+    "count": "Nombre",
+    "percentage": "Pourcentage",
+    "details": "Détails par Statut",
+    "numberOfTests": "Nombre de tests",
+    "doughnutTitleBusiness": "Distribution des Statuts de Tests",
+    "doughnutTitle": "Test Status Distribution",
+    "barTitleBusiness": "Répartition par Statut",
+    "barTitle": "Status Distribution"
+  },
+  "dashboard4": {
+    "loading": "Chargement des données ISTQB...",
+    "project": "Projet :",
+    "inProgress": "En cours",
+    "testClosure": "Clôture de Test",
+    "quickClosure": "Quick Clôture DOCX",
+    "reportGenerator": "Rapport HTML / PPTX"
   }
 }

@@ -39,6 +39,8 @@
     "selectDashboard": "Select a dashboard",
     "tvModeOn": "TV Mode",
     "tvModeOff": "Standard Mode",
+    "compactModeOn": "Compact ON",
+    "compactModeOff": "Compact OFF",
     "darkTheme": "Dark theme",
     "businessTerms": "Business Vocabulary",
     "autoRefreshOn": "Auto ON",
@@ -46,6 +48,7 @@
     "liveIndicator": "Real-time connection active",
     "offlineIndicator": "OFFLINE",
     "clearCache": "Clear cache",
+    "export": "Export",
     "exportPdf": "Export PDF",
     "exportPdfBackend": "Export PDF (backend)",
     "exportCsv": "Export CSV",
@@ -65,6 +68,8 @@
       "standards": "Standards: ISTQB | LEAN | ITIL"
     },
     "menu": "Menu",
+    "openMenu": "Open menu",
+    "bottomNav": "Main navigation",
     "settings": "Settings",
     "skipToContent": "Skip to main content"
   },
@@ -83,7 +88,10 @@
     "autoSync": "🤖 Auto-Sync Testmo → GitLab",
     "notifications": "🔔 Notifications",
     "auditLogs": "🛡️ Audit Logs",
-    "featureFlags": "🎛️ Feature Flags"
+    "featureFlags": "🎛️ Feature Flags",
+    "analytics": "📊 Analytics",
+    "retention": "🗄️ Retention",
+    "integrations": "🔌 Integrations"
   },
   "app": {
     "loadingMetrics": "Loading ISTQB metrics...",
@@ -393,5 +401,44 @@
     },
     "statusTitle": "Status",
     "priorityTitle": "Priority"
+  },
+  "nav": {
+    "home": "Home",
+    "global": "Global",
+    "quality": "Quality",
+    "compare": "Compare",
+    "config": "Config",
+    "flags": "Flags"
+  },
+  "breadcrumb": {
+    "admin": "Admin",
+    "auditLogs": "Audit Logs",
+    "featureFlags": "Feature Flags",
+    "analytics": "Analytics",
+    "retention": "Data Retention",
+    "integrations": "Integrations"
+  },
+  "statusChart": {
+    "loading": "Loading charts...",
+    "ariaLabel": "Status distribution chart. {{summary}}",
+    "tableCaptionBusiness": "Test status distribution data",
+    "tableCaption": "Test status distribution data",
+    "status": "Status",
+    "count": "Count",
+    "percentage": "Percentage",
+    "details": "Status Details",
+    "numberOfTests": "Number of tests",
+    "doughnutTitleBusiness": "Test Status Distribution",
+    "doughnutTitle": "Test Status Distribution",
+    "barTitleBusiness": "Status Distribution",
+    "barTitle": "Status Distribution"
+  },
+  "dashboard4": {
+    "loading": "Loading ISTQB data...",
+    "project": "Project:",
+    "inProgress": "In Progress",
+    "testClosure": "Test Closure",
+    "quickClosure": "Quick Closure DOCX",
+    "reportGenerator": "HTML / PPTX Report"
   }
 }

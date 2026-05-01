@@ -23,7 +23,7 @@ describe('MobileBottomNav', () => {
         <MobileBottomNav isAdmin={false} />
       </MemoryRouter>
     );
-    expect(screen.getByLabelText('Navigation mobile')).toBeInTheDocument();
+    expect(screen.getByLabelText('Navigation principale')).toBeInTheDocument();
     expect(screen.getByText('Accueil')).toBeInTheDocument();
     expect(screen.getByText('Global')).toBeInTheDocument();
   });
