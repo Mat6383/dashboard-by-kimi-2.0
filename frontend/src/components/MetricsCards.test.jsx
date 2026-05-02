@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import MetricsCards, { getColorByThreshold, getColorForFailure } from './MetricsCards';
+import MetricsCards, { getMetricColor } from './MetricsCards';
 
 describe('MetricsCards', () => {
   const mockMetrics = {
@@ -69,30 +69,28 @@ describe('MetricsCards', () => {
   });
 });
 
-describe('getColorByThreshold', () => {
-  it('returns green when value >= target', () => {
-    expect(getColorByThreshold(95, 90, 80)).toBe('var(--text-success)');
+describe('getMetricColor', () => {
+  it('returns success color for passRate >= target', () => {
+    expect(getMetricColor('passRate', 95)).toBe('var(--status-success)');
   });
 
-  it('returns orange when value >= warning but < target', () => {
-    expect(getColorByThreshold(85, 90, 80)).toBe('var(--text-warning)');
+  it('returns warning color for passRate in window', () => {
+    expect(getMetricColor('passRate', 85)).toBe('var(--status-warning)');
   });
 
-  it('returns red when value < warning', () => {
-    expect(getColorByThreshold(75, 90, 80)).toBe('var(--text-danger)');
-  });
-});
-
-describe('getColorForFailure', () => {
-  it('returns green when failure <= 5%', () => {
-    expect(getColorForFailure(3)).toBe('var(--text-success)');
+  it('returns danger color for passRate below warning', () => {
+    expect(getMetricColor('passRate', 75)).toBe('var(--status-danger)');
   });
 
-  it('returns orange when failure <= 10%', () => {
-    expect(getColorForFailure(8)).toBe('var(--text-warning)');
+  it('returns success color for failureRate <= target', () => {
+    expect(getMetricColor('failureRate', 3)).toBe('var(--status-success)');
   });
 
-  it('returns red when failure > 10%', () => {
-    expect(getColorForFailure(15)).toBe('var(--text-danger)');
+  it('returns warning color for failureRate in window', () => {
+    expect(getMetricColor('failureRate', 8)).toBe('var(--status-warning)');
+  });
+
+  it('returns danger color for failureRate above warning', () => {
+    expect(getMetricColor('failureRate', 15)).toBe('var(--status-danger)');
   });
 });
