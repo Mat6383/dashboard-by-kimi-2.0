@@ -12,20 +12,20 @@
    Variables CSS
    ========================================== */
 :root {
-  /* Couleurs principales */
-  --color-primary: #3b82f6;
-  --color-secondary: #8b5cf6;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #06b6d4;
+  /* Couleurs principales — mapped to semantic tokens */
+  --color-primary: var(--accent-primary);
+  --color-secondary: var(--accent-secondary);
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-danger: var(--status-danger);
+  --color-info: var(--status-info);
 
-  /* Couleurs de statut ISTQB */
-  --color-passed: #10b981;
-  --color-failed: #ef4444;
-  --color-blocked: #f59e0b;
-  --color-skipped: #6b7280;
-  --color-untested: #e5e7eb;
+  /* Couleurs de statut ISTQB — mapped to semantic tokens */
+  --color-passed: var(--status-success);
+  --color-failed: var(--status-danger);
+  --color-blocked: var(--status-warning);
+  --color-skipped: var(--text-muted);
+  --color-untested: var(--border-color);
 
   /* Niveaux de gris */
   --color-gray-50: #f9fafb;
@@ -166,21 +166,21 @@ body.compact-mode .d7-table-wrapper th {
 }
 
 .app.dark-theme {
-  /* Backgrounds */
-  --bg-color: #0f172a;
-  --text-color: #e2e8f0;
-  --text-muted: #94a3b8;
-  --header-bg: #1e293b;
-  --card-bg: #1e293b;
-  --border-color: #334155;
+  /* Backgrounds — mapped to tokens */
+  --bg-color: var(--surface-canvas);
+  --text-color: var(--text-default);
+  --text-muted: var(--text-muted);
+  --header-bg: var(--surface-default);
+  --card-bg: var(--surface-default);
+  --border-color: var(--border-color);
 
-  /* Semantic status colors (légèrement plus clairs pour dark mode) */
-  --color-primary: #3b82f6;
-  --color-secondary: #8b5cf6;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444;
-  --color-info: #06b6d4;
+  /* Semantic status colors — mapped to tokens */
+  --color-primary: var(--accent-primary);
+  --color-secondary: var(--accent-secondary);
+  --color-success: var(--status-success);
+  --color-warning: var(--status-warning);
+  --color-danger: var(--status-danger);
+  --color-info: var(--status-info);
 
   /* ISTQB status colors */
   --color-passed: #34d399;
