@@ -19,7 +19,8 @@ const runsInput = z.object({
 
 export const projectsRouter = router({
   list: publicProcedure.query(async () => {
-    const projects = await testmoService.getProjects();
+    const projectsRaw = await testmoService.getProjects();
+    const projects = Array.isArray(projectsRaw) ? projectsRaw : (projectsRaw as any)?.result || [];
     return { success: true as const, data: { result: projects }, timestamp: new Date().toISOString() };
   }),
 

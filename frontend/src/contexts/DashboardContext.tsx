@@ -165,7 +165,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   // Validation des IDs projets au chargement
   useEffect(() => {
-    if (projects.length > 0) {
+    if (Array.isArray(projects) && projects.length > 0) {
       const exists = projects.find((p) => p.id === projectId);
       if (!exists) {
         setProjectId(projects[0].id);

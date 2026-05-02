@@ -62,7 +62,10 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const currentProject = useMemo(() => projects.find((p) => p.id === projectId), [projects, projectId]);
+  const currentProject = useMemo(
+    () => (Array.isArray(projects) ? projects.find((p) => p.id === projectId) : undefined),
+    [projects, projectId]
+  );
 
   const handleSaveSelection = useCallback(
     (preprodMilestones, prodMilestones) => {
