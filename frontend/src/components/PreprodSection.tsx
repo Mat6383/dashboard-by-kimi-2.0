@@ -11,13 +11,12 @@
 import React from 'react';
 import { Activity, CheckSquare, XCircle, TrendingUp, BarChart3, Database, Search } from 'lucide-react';
 import MetricCard from './MetricCard';
+import { getMetricColor } from '../lib/colors';
 import type { DashboardMetrics, RawMetrics, Run, AnomalyItem, MetricAlert } from '../types/api.types';
 import '../styles/PreprodSection.css';
 
 export function getPassRateColor(passRate: number): string {
-  if (passRate >= 95) return 'var(--text-success)';
-  if (passRate >= 90) return 'var(--text-warning)';
-  return 'var(--text-danger)';
+  return getMetricColor('passRate', passRate);
 }
 
 function getTrend(anomalies: AnomalyItem[], metricKey: string) {
@@ -69,7 +68,7 @@ export default function PreprodSection({
           title={useBusiness ? "Taux d'Exécution" : 'Execution Rate'}
           icon={Activity}
           value={d1.completionRate}
-          color={d1.completionRate >= 90 ? 'var(--text-success)' : d1.completionRate >= 80 ? 'var(--text-warning)' : 'var(--text-danger)'}
+          color={getMetricColor('completionRate', d1.completionRate)}
           arrow={d1.completionRate >= 90 ? '▲' : '▼'}
           badge={`${raw.completed} / ${raw.total}`}
           label={useBusiness ? 'tests exécutés (Cible: ≥ 90%)' : 'tests executed (Target: ≥ 90%)'}
@@ -81,7 +80,7 @@ export default function PreprodSection({
           title={useBusiness ? 'Taux de Succès' : 'Pass Rate'}
           icon={CheckSquare}
           value={d1.passRate}
-          color={d1.passRate >= 95 ? 'var(--text-success)' : d1.passRate >= 90 ? 'var(--text-warning)' : 'var(--text-danger)'}
+          color={getMetricColor('passRate', d1.passRate)}
           arrow={d1.passRate >= 95 ? '▲' : '▼'}
           badge={raw.passed}
           label={useBusiness ? 'tests réussis (Cible: ≥ 95%)' : 'tests passed (Target: ≥ 95%)'}
@@ -98,7 +97,7 @@ export default function PreprodSection({
           title={useBusiness ? "Taux d'Échec" : 'Failure Rate'}
           icon={XCircle}
           value={d1.failureRate}
-          color={d1.failureRate <= 5 ? 'var(--text-success)' : d1.failureRate <= 10 ? 'var(--text-warning)' : 'var(--text-danger)'}
+          color={getMetricColor('failureRate', d1.failureRate)}
           arrow={d1.failureRate <= 5 ? '▼' : '▲'}
           badge={raw.failed}
           label={useBusiness ? 'tests échoués (Cible: ≤ 5%)' : 'tests failed (Target: ≤ 5%)'}
@@ -109,7 +108,7 @@ export default function PreprodSection({
           title={useBusiness ? 'Efficience des tests' : 'Test Efficiency'}
           icon={TrendingUp}
           value={d1.testEfficiency}
-          color={d1.testEfficiency >= 95 ? 'var(--text-success)' : d1.testEfficiency >= 90 ? 'var(--text-warning)' : 'var(--text-danger)'}
+          color={getMetricColor('testEfficiency', d1.testEfficiency)}
           arrow={d1.testEfficiency >= 95 ? '▲' : '▼'}
           badge={useBusiness ? 'Objectif' : 'Target'}
           label={useBusiness ? 'Approcher les 100% (≥ 95%)' : 'Approach 100% (≥ 95%)'}

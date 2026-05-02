@@ -15,6 +15,7 @@
 
 import React from 'react';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { getMetricColor } from '../lib/colors';
 import '../styles/MetricsCards.css';
 
 const MetricsCards = ({ metrics, useBusiness }) => {
@@ -40,7 +41,7 @@ const MetricsCards = ({ metrics, useBusiness }) => {
       total: `${metrics.raw.completed} / ${metrics.raw.total}`,
       target: '≥ 90%',
       icon: Clock,
-      color: getColorByThreshold(metrics.completionRate, 90, 80),
+      color: getMetricColor('completionRate', metrics.completionRate),
       trend: metrics.completionRate >= 90 ? 'up' : 'down',
       description: useBusiness ? 'Tests exécutés vs total' : 'Tests executed vs total',
       alert: getAlertForMetric('Completion Rate')
@@ -52,7 +53,7 @@ const MetricsCards = ({ metrics, useBusiness }) => {
       total: `${metrics.raw.passed} ${useBusiness ? 'tests' : 'tests'}`,
       target: '≥ 95%',
       icon: CheckCircle2,
-      color: getColorByThreshold(metrics.passRate, 95, 90),
+      color: getMetricColor('passRate', metrics.passRate),
       trend: metrics.passRate >= 95 ? 'up' : 'down',
       description: useBusiness ? 'Tests réussis / (Réussis + Échoués + Bloqués + Ignorés)' : 'Passed / Completed (Passed + Failed + Blocked + Skipped)',
       alert: getAlertForMetric('Pass Rate') || getAlertForMetric('Blocked Rate') // On affiche l'alerte de blocage ici aussi s'il n'y a pas d'alerte de succès
@@ -64,7 +65,7 @@ const MetricsCards = ({ metrics, useBusiness }) => {
       total: `${metrics.raw.failed} ${useBusiness ? 'défauts' : 'defects'}`,
       target: '≤ 5%',
       icon: XCircle,
-      color: getColorForFailure(metrics.failureRate),
+      color: getMetricColor('failureRate', metrics.failureRate),
       trend: metrics.failureRate > 5 ? 'down' : 'up',
       description: useBusiness ? 'Tests échoués détectés' : 'Failed tests detected',
       alert: getAlertForMetric('Failure Rate')
@@ -76,7 +77,7 @@ const MetricsCards = ({ metrics, useBusiness }) => {
       total: `${metrics.raw.passed + metrics.raw.failed} tests`,
       target: '≥ 95%',
       icon: TrendingUp,
-      color: getColorByThreshold(metrics.testEfficiency, 95, 90),
+      color: getMetricColor('testEfficiency', metrics.testEfficiency),
       trend: metrics.testEfficiency >= 95 ? 'up' : 'down',
       description: useBusiness ? 'Tests réussis / (Réussis + Échoués)' : 'Passed / (Passed + Failed)',
       alert: getAlertForMetric('Test Efficiency')
@@ -147,23 +148,5 @@ const MetricCard = ({ title, subtitle, value, total, target, icon: Icon, color, 
   );
 };
 
-/**
- * Détermine la couleur selon seuils ISTQB
- */
-function getColorByThreshold(value, targetThreshold, warningThreshold) {
-  if (value >= targetThreshold) return 'var(--text-success)';
-  if (value >= warningThreshold) return 'var(--text-warning)';
-  return 'var(--text-danger)';
-}
-
-/**
- * Couleur pour le taux d'échec (inverse)
- */
-function getColorForFailure(value) {
-  if (value <= 5) return 'var(--text-success)';
-  if (value <= 10) return 'var(--text-warning)';
-  return 'var(--text-danger)';
-}
-
-export { getColorByThreshold, getColorForFailure };
+export { getMetricColor };
 export default MetricsCards;

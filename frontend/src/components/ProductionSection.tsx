@@ -11,6 +11,7 @@
 import React from 'react';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
 import TrendBadge from './TrendBadge';
+import { getMetricColor, getMetricLevel } from '../lib/colors';
 import type { AnomalyItem, QualityRates } from '../types/api.types';
 import '../styles/ProductionSection.css';
 
@@ -37,8 +38,8 @@ function getTrend(anomalies: AnomalyItem[], metricKey: string) {
 
 export default function ProductionSection({
   rates,
-  escapeOk,
-  ddpOk,
+  escapeOk: _escapeOk,
+  ddpOk: _ddpOk,
   showProductionSection,
   onToggleProductionSection,
   isDark,
@@ -46,6 +47,11 @@ export default function ProductionSection({
   anomalies,
 }: ProductionSectionProps) {
   if (!rates) return null;
+
+  const escapeLevel = getMetricLevel('escapeRate', rates.escapeRate);
+  const ddpLevel = getMetricLevel('detectionRate', rates.detectionRate);
+  const escapeColor = getMetricColor('escapeRate', rates.escapeRate);
+  const ddpColor = getMetricColor('detectionRate', rates.detectionRate);
 
   return (
     <div className="prod-section">
@@ -76,10 +82,10 @@ export default function ProductionSection({
         <>
           <div className="prod-grid">
             {/* Escape Rate */}
-            <div className={`prod-card ${escapeOk ? 'prod-card--success' : 'prod-card--danger'}`}>
+            <div className="prod-card" style={{ borderColor: escapeColor }}>
               <div className="prod-card-content">
                 <h3 className="prod-card-title">
-                  <ShieldAlert size={24} color={escapeOk ? 'var(--color-passed)' : 'var(--color-failed)'} /> Taux d&apos;Échappement
+                  <ShieldAlert size={24} color={escapeColor} /> Taux d&apos;Échappement
                   <TrendBadge trend={getTrend(anomalies, 'escape_rate')} style={{ marginLeft: '8px' }} />
                 </h3>
                 <div className="prod-card-meta">
@@ -89,12 +95,12 @@ export default function ProductionSection({
                   </span>
                   <span>
                     {useBusiness ? 'Objectif' : 'Target'}:{' '}
-                    <strong className={escapeOk ? 'prod-target--success' : 'prod-target--danger'}>&lt; 5%</strong>
+                    <strong style={{ color: escapeColor }}>&lt; 5%</strong>
                   </span>
                 </div>
               </div>
               <div className="prod-card-value-wrap">
-                <div className={`prod-card-value ${escapeOk ? 'prod-card-value--success' : 'prod-card-value--danger'}`}>
+                <div className="prod-card-value" style={{ color: escapeColor }}>
                   {rates.escapeRate}%
                 </div>
                 <div className="prod-card-badge">
@@ -104,10 +110,10 @@ export default function ProductionSection({
             </div>
 
             {/* Detection Rate (DDP) */}
-            <div className={`prod-card ${ddpOk ? 'prod-card--success' : 'prod-card--danger'}`}>
+            <div className="prod-card" style={{ borderColor: ddpColor }}>
               <div className="prod-card-content">
                 <h3 className="prod-card-title">
-                  <ShieldCheck size={24} color={ddpOk ? 'var(--color-passed)' : 'var(--color-failed)'} /> Taux de Détection
+                  <ShieldCheck size={24} color={ddpColor} /> Taux de Détection
                   <TrendBadge trend={getTrend(anomalies, 'detection_rate')} style={{ marginLeft: '8px' }} />
                 </h3>
                 <div className="prod-card-meta">
@@ -117,12 +123,12 @@ export default function ProductionSection({
                   </span>
                   <span>
                     {useBusiness ? 'Objectif' : 'Target'}:{' '}
-                    <strong className={ddpOk ? 'prod-target--success' : 'prod-target--danger'}>&gt; 95%</strong>
+                    <strong style={{ color: ddpColor }}>&gt; 95%</strong>
                   </span>
                 </div>
               </div>
               <div className="prod-card-value-wrap">
-                <div className={`prod-card-value ${ddpOk ? 'prod-card-value--success' : 'prod-card-value--danger'}`}>
+                <div className="prod-card-value" style={{ color: ddpColor }}>
                   {rates.detectionRate}%
                 </div>
                 <div className="prod-card-badge">
