@@ -320,7 +320,7 @@ const apiService = {
   async previewSync(
     projectId: string,
     iterationName: string,
-    filters: { labelCustom?: string; status?: string; version?: string; versionDeTest?: string } = {}
+    filters: { labelCustom?: string; status?: string; version?: string; versionDeTest?: string; source?: string } = {}
   ): Promise<SyncPreviewResult> {
     return apiCall('Preview Sync', async () => {
       const response = await apiClient.post(
@@ -554,6 +554,47 @@ const apiService = {
   async deleteFeatureFlag(key: string): Promise<ApiResponse<{ deleted: boolean }>> {
     return apiCall('Delete Feature Flag', async () => {
       const response = await apiClient.delete(`/feature-flags/admin/${key}`);
+      return response.data;
+    });
+  },
+
+  // ---- Testmo Browser (Manual Runs) -------------------------------------
+
+  async createTestmoManualRun(data: {
+    projectId: number;
+    name: string;
+    milestoneId?: number;
+    configId?: number;
+    caseIds?: number[];
+  }): Promise<ApiResponse<{ runId: number; url: string }>> {
+    return apiCall('Create Testmo Manual Run', async () => {
+      const response = await apiClient.post('/testmo-browser/runs', data);
+      return response.data;
+    });
+  },
+
+  async addTestmoManualRunResults(
+    runId: number,
+    data: {
+      projectId: number;
+      results: Array<{
+        caseId?: number;
+        testId?: number;
+        status: string;
+        note?: string;
+        elapsed?: number;
+      }>;
+    }
+  ): Promise<ApiResponse<{ updated: number; errors: number }>> {
+    return apiCall('Add Testmo Manual Run Results', async () => {
+      const response = await apiClient.post(`/testmo-browser/runs/${runId}/results`, data);
+      return response.data;
+    });
+  },
+
+  async checkTestmoBrowserHealth(): Promise<ApiResponse<{ ok: boolean; message: string }>> {
+    return apiCall('Check Testmo Browser Health', async () => {
+      const response = await apiClient.get('/testmo-browser/health');
       return response.data;
     });
   },
