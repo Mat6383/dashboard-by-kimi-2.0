@@ -26,7 +26,7 @@
   --text-muted: #8c959f;
   --text-inverse: #ffffff;
 
-  --text-primary: #06b6d4;
+  --text-primary: #0e7490;
   --text-success: #16a34a;
   --text-warning: #d97706;
   --text-danger: #dc2626;
@@ -36,8 +36,8 @@
   /* ==================================================
      Core Action Colors
      ================================================== */
-  --action-primary-bg: #06b6d4;
-  --action-primary-bg-hover: #0891b2;
+  --action-primary-bg: #0e7490;
+  --action-primary-bg-hover: #155e75;
   --action-primary-text: #ffffff;
 
   --action-success-bg: #16a34a;
@@ -67,7 +67,7 @@
   --border-color: #d0d7de;
   --border-subtle: #e5e7eb;
   --divider-color: #d0d7de;
-  --focus-ring: rgba(6, 182, 212, 0.35);
+  --focus-ring: rgba(14, 116, 144, 0.35);
 
   /* ==================================================
      Status Surfaces (NEW semantic tokens)
