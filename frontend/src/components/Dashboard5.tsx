@@ -392,7 +392,7 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
                         padding: '0.75rem',
                         textAlign: 'center',
                         fontWeight: 700,
-                        color: t.escapeRate > 5 ? 'var(--text-danger)' : 'var(--text-success)',
+                        color: getMetricColor('escapeRate', t.escapeRate),
                       }}
                     >
                       {t.escapeRate}%
@@ -404,16 +404,11 @@ const Dashboard5 = ({ projectId, isDark, useBusiness }) => {
                           borderRadius: '4px',
                           fontSize: '0.75rem',
                           fontWeight: 800,
-                          backgroundColor:
-                            t.escapeRate <= 3
-                              ? 'color-mix(in srgb, var(--text-success) 10%, transparent)'
-                              : t.escapeRate <= 7
-                                ? 'color-mix(in srgb, var(--text-warning) 10%, transparent)'
-                                : 'color-mix(in srgb, var(--text-danger) 10%, transparent)',
-                          color: t.escapeRate <= 3 ? 'var(--text-success)' : t.escapeRate <= 7 ? 'var(--text-warning)' : 'var(--text-danger)',
+                          backgroundColor: getMetricBgColor('escapeRate', t.escapeRate),
+                          color: getMetricColor('escapeRate', t.escapeRate),
                         }}
                       >
-                        {t.escapeRate <= 3 ? 'EXCELLENT' : t.escapeRate <= 7 ? 'ACCEPTABLE' : 'CRITICAL'}
+                        {getMetricLevel('escapeRate', t.escapeRate) === 'success' ? 'EXCELLENT' : getMetricLevel('escapeRate', t.escapeRate) === 'warning' ? 'ACCEPTABLE' : 'CRITICAL'}
                       </span>
                     </td>
                   </tr>

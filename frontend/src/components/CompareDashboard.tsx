@@ -3,6 +3,7 @@ import { Radar } from 'react-chartjs-2';
 import { Loader2, AlertCircle, GitCompare } from 'lucide-react';
 import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js';
 import { apiClient } from '../services/api.service';
+import { getMetricColor } from '../lib/colors';
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
@@ -158,11 +159,11 @@ export default function CompareDashboard({ isDark }) {
               {data.map((d) => (
                 <tr key={d.projectId} style={{ borderBottom: `1px solid ${border}` }}>
                   <td style={{ padding: '8px', fontWeight: 500 }}>{d.projectName}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{d.passRate}%</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{d.completionRate}%</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{d.escapeRate}%</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{d.detectionRate}%</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{d.blockedRate}%</td>
+                  <td style={{ padding: '8px', textAlign: 'right', color: getMetricColor('passRate', d.passRate), fontWeight: 700 }}>{d.passRate}%</td>
+                  <td style={{ padding: '8px', textAlign: 'right', color: getMetricColor('completionRate', d.completionRate), fontWeight: 700 }}>{d.completionRate}%</td>
+                  <td style={{ padding: '8px', textAlign: 'right', color: getMetricColor('escapeRate', d.escapeRate), fontWeight: 700 }}>{d.escapeRate}%</td>
+                  <td style={{ padding: '8px', textAlign: 'right', color: getMetricColor('detectionRate', d.detectionRate), fontWeight: 700 }}>{d.detectionRate}%</td>
+                  <td style={{ padding: '8px', textAlign: 'right', color: getMetricColor('blockedRate', d.blockedRate), fontWeight: 700 }}>{d.blockedRate}%</td>
                 </tr>
               ))}
             </tbody>

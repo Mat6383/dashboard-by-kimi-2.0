@@ -1,25 +1,22 @@
 import React from 'react';
 import { useMultiProjectSummary } from '../hooks/queries';
 import { BarChart3, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
+import { getMetricColor } from '../lib/colors';
 import '../styles/MultiProjectDashboard.css';
 
-function getPassRateClass(value) {
+function getPassRateColor(value) {
   if (value === null) return '';
-  if (value < 85) return 'rate-critical';
-  if (value < 90) return 'rate-warning';
-  return 'rate-ok';
+  return getMetricColor('passRate', value);
 }
 
-function getBlockedRateClass(value) {
+function getBlockedRateColor(value) {
   if (value === null) return '';
-  if (value > 5) return 'rate-critical';
-  return 'rate-ok';
+  return getMetricColor('blockedRate', value);
 }
 
-function getCompletionRateClass(value) {
+function getCompletionRateColor(value) {
   if (value === null) return '';
-  if (value < 80) return 'rate-warning';
-  return 'rate-ok';
+  return getMetricColor('completionRate', value);
 }
 
 export default function MultiProjectDashboard({ isDark: _isDark }) {
@@ -76,13 +73,13 @@ export default function MultiProjectDashboard({ isDark: _isDark }) {
               {summaries.map((s) => (
                 <tr key={s.projectId}>
                   <td className="mpd-project-name">{s.projectName}</td>
-                  <td className={`${getPassRateClass(s.passRate)} tabular-nums`}>
+                  <td className="tabular-nums" style={{ color: getPassRateColor(s.passRate), fontWeight: 700 }}>
                     {s.passRate !== null ? `${s.passRate.toFixed(1)}%` : '—'}
                   </td>
-                  <td className={`${getCompletionRateClass(s.completionRate)} tabular-nums`}>
+                  <td className="tabular-nums" style={{ color: getCompletionRateColor(s.completionRate), fontWeight: 700 }}>
                     {s.completionRate !== null ? `${s.completionRate.toFixed(1)}%` : '—'}
                   </td>
-                  <td className={`${getBlockedRateClass(s.blockedRate)} tabular-nums`}>
+                  <td className="tabular-nums" style={{ color: getBlockedRateColor(s.blockedRate), fontWeight: 700 }}>
                     {s.blockedRate !== null ? `${s.blockedRate.toFixed(1)}%` : '—'}
                   </td>
                   <td className="tabular-nums">{s.escapeRate !== null ? `${s.escapeRate.toFixed(1)}%` : '—'}</td>
