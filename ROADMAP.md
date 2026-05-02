@@ -342,9 +342,103 @@
 - [x] **Z-index drawer mobile** : passe au-dessus du header en mode TV (`z-index: 1001`)
 - [x] **Test api.service** : alignement du casing `iteration_name` / `project_id` (snake_case backend)
 
-## 🚧 Sessions futures (P30+)
+## 🚀 P30 — Sync GitLab → Testmo Automation Runs (Session actuelle)
 
-_(À planifier)_
+> Objectif : Créer ou mettre à jour des **automation runs** Testmo depuis l'écran de synchro GitLab.  
+> Contexte : L'API Testmo ne permet pas d'écrire sur les runs manuels (lecture seule). Seuls les **automation runs** sont créables/modifiables via API.
+
+### P30#1 — Extension `TestmoService` (écriture)
+
+- [x] Ajouter `create_automation_run(project_id, name, source, tags, milestone_id)` → `POST /projects/{id}/automation/runs`
+- [x] Ajouter `find_automation_run(project_id, name, source)` → filtre dans `GET .../automation/runs`
+- [x] Ajouter `append_to_automation_run(run_id, fields, links)` → `POST .../append`
+- [x] Ajouter `create_automation_thread(run_id)` → `POST .../threads`
+- [x] Ajouter `append_test_results(thread_id, tests)` → `POST .../threads/{tid}/append` (batch)
+- [x] Ajouter `complete_automation_run(run_id)` → `POST .../complete`
+
+### P30#2 — Mapping GitLab → Testmo
+
+- [x] Définir le mapping statuts : `opened`+`Test::TODO` → `untested`, `opened`+`Bug` → `failed`, `closed` → `passed`
+- [x] Construire le `key` unique (`gitlab-{project_id}-{iid}`) et le `name` (`[#{iid}] {title}`)
+- [x] Mapper les métadonnées : URL issue, labels, estimate, description tronquée → `fields`
+
+### P30#3 — `SyncService.execute_sync()` (run creation/update)
+
+- [x] Trouver ou créer l'automation run cible par nom/itération (source=`gitlab-sync`)
+- [x] Créer un thread dans le run
+- [x] Batch des résultats par lot de 50
+- [x] Finalisation : compléter thread + run
+- [x] Mettre à jour les labels GitLab (`Sync-Updated`) et persister `testmo_run_id`
+
+### P30#4 — Persistance & Traçabilité
+
+- [x] Migration `SyncRun` : ajouter `testmo_run_id` (int, nullable) + `testmo_run_url` (str, nullable)
+- [x] Lien direct vers le run Testmo dans l'historique de sync
+
+### P30#5 — Frontend (Dashboard6)
+
+- [x] Ajouter champ optionnel **"Source"** (défaut `gitlab-sync`, paramètres avancés)
+- [x] Preview : afficher le run cible (existant ou à créer) + répartition par statut
+- [x] Summary SSE : afficher le lien vers le run Testmo créé/mis à jour
+
+### P30#6 — Auto-Sync
+
+- [x] Brancher `auto_sync_job` sur le nouveau `execute_sync` avec les paramètres configurés
+
+### P30#7 — Tests
+
+- [x] Tests unitaires des mappings statuts (13/13 ✅)
+- [x] Tests modèles mis à jour avec `testmo_run_id`/`testmo_run_url` (51/51 ✅)
+- [x] Fixture `init_db` session-scope pour création tables SQLite en test
+
+---
+
+## 🚧 Sessions futures (P31+)
+
+### 🟡 P31 — Sync GitLab → Testmo Cases (à planifier)
+
+> **Pivot après analyse P30.** L'API Testmo ne permet pas de créer des runs manuels (lecture seule).  
+> Seuls les **automation runs** sont créables via API, ce qui ne correspond pas au workflow de tests manuels de l'utilisateur.  
+> La nouvelle cible est d'intégrer la **Routine B** (script Node.js externe) dans le backend Python pour synchroniser les **cases** (référentiel de tests) depuis GitLab.
+
+- [ ] Porter la logique Routine B dans `backend_py/app/services/case_sync.py`
+- [ ] Extraire les steps depuis les notes GitLab (`[TEST]`, `[PRÉREQUIS]`, `[IMPACT]`…)
+- [ ] API Testmo : `POST /projects/{id}/cases` (création) + `PUT /projects/{id}/cases/{id}` (mise à jour)
+- [ ] Matching case existant par nom exact (`case.name === issue.title`)
+- [ ] UI Dashboard6 : pivot du wording "Run" → "Cases"
+- [ ] Tests : mapping steps, création/mise à jour cases mockées
+
+---
+
+## 📝 Analyse — Création de runs manuels Testmo (2026-04-30)
+
+### Constat API Testmo
+
+L'API REST officielle Testmo (v1, 2025) est **lecture seule** pour les runs manuels :
+
+| Endpoint                         | Méthode | Type de run                           |
+| -------------------------------- | ------- | ------------------------------------- |
+| `/projects/{id}/runs`            | `GET`   | Manuel — lecture seule                |
+| `/runs/{id}`                     | `GET`   | Manuel — lecture seule                |
+| `/runs/{id}/results`             | `GET`   | Manuel — lecture seule (nouveau 2025) |
+| `/projects/{id}/automation/runs` | `POST`  | **Automation** — écriture OK          |
+| `/automation/runs/{id}/append`   | `POST`  | **Automation** — écriture OK          |
+
+Source : [Testmo Blog — Announcing Runs Results API](https://www.testmo.com/blog/announcing-the-new-runs-results-api-in-testmo/) (fév 2025) :
+
+> _"manual runs are used to track the scripted or steps-based tests that your team is running manually, and you can add results for those kinds of tests **via the Runs page in the Testmo UI**._"
+
+### Décisions
+
+1. **P30 (Automation Runs) est techniquement fonctionnel mais métier-incorrect.** Il reste dans le codebase pour l'instant mais ne doit pas être utilisé pour du test manuel.
+2. **P31 (Cases) est la vraie cible.** Les cases sont le référentiel de tests réutilisable. L'API permet CRUD complet. C'est ce que fait déjà la Routine B en Node.js externe.
+3. **Option Playwright** (automatiser l'UI Testmo pour créer des runs manuels) reste possible mais est jugée trop fragile pour l'instant.
+
+### Todo pour demain
+
+- [ ] Décider si on garde ou supprime le code P30 (automation runs)
+- [ ] Coder P31 : sync des cases Testmo depuis GitLab
+- [ ] Tester l'intégration end-to-end avec l'instance Testmo de production
 
 ---
 

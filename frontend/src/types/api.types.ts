@@ -169,18 +169,43 @@ export interface SyncIteration {
 }
 
 export interface SyncPreviewResult {
-  iteration: SyncIteration;
+  iteration: { name: string; id: number };
   folder: string | null;
-  issues: unknown[];
-  summary: string;
+  issues: Array<{
+    iid: number;
+    url: string;
+    title: string;
+    status: 'create' | 'update' | 'skip';
+  }>;
+  summary: {
+    toCreate: number;
+    toUpdate: number;
+    toSkip: number;
+    total: number;
+  };
+  run_action?: 'use_existing' | 'create_new' | 'run_not_found' | 'none';
+  target_run?: {
+    id: number | null;
+    name: string;
+    source: string;
+  };
+  status_breakdown?: Record<string, number>;
 }
 
 export interface SyncHistoryEntry {
   id: number;
-  projectId: string;
-  iterationName: string;
-  status: string;
-  createdAt: string;
+  project_name: string;
+  iteration_name: string;
+  mode: string;
+  created: number;
+  updated: number;
+  skipped: number;
+  enriched: number;
+  errors: number;
+  total_issues: number;
+  testmo_run_id: number | null;
+  testmo_run_url: string | null;
+  executed_at: string;
 }
 
 // ─── Crosstest ───────────────────────────────────────────────────────────────

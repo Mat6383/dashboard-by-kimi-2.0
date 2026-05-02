@@ -104,6 +104,8 @@ class SyncPreviewPayload(BaseModel):
     iteration_name: str
     run_id: int | None = None
     version: str | None = None
+    source: str = "gitlab-sync"
+    testmo_project_id: int | None = None
 
 
 class SyncExecutePayload(BaseModel):
@@ -112,6 +114,8 @@ class SyncExecutePayload(BaseModel):
     run_id: int | None = None
     version: str | None = None
     dry_run: bool = False
+    source: str = "gitlab-sync"
+    testmo_project_id: int | None = None
 
 
 class SyncStatusPayload(BaseModel):

@@ -23,6 +23,8 @@ class SyncRun(Base):
     enriched: Mapped[int] = mapped_column(Integer, default=0)
     errors: Mapped[int] = mapped_column(Integer, default=0)
     total_issues: Mapped[int] = mapped_column(Integer, default=0)
+    testmo_run_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    testmo_run_url: Mapped[str | None] = mapped_column(String, nullable=True)
     executed_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc)
     )

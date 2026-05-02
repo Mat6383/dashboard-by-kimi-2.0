@@ -60,6 +60,15 @@ class TestmoService:
             resp.raise_for_status()
             return resp.json()
 
+    @with_resilience(breaker=None, max_attempts=3, base_delay_ms=500)
+    async def _post(self, path: str, json: dict[str, Any] | None = None) -> Any:
+        async with self.cb:
+            resp = await self.client.post(path, json=json)
+            resp.raise_for_status()
+            if resp.status_code == 204:
+                return {}
+            return resp.json() if resp.text else {}
+
     async def get_projects(self) -> list[dict[str, Any]]:
         key = self._cache_key("projects")
 
@@ -101,6 +110,10 @@ class TestmoService:
     async def get_run_details(self, run_id: int) -> dict[str, Any]:
         key = self._cache_key("run", run_id)
         return await self._cached_request(key, lambda: self._get(f"/runs/{run_id}"))
+
+    async def get_automation_run_details(self, run_id: int) -> dict[str, Any]:
+        key = self._cache_key("automation_run", run_id)
+        return await self._cached_request(key, lambda: self._get(f"/automation/runs/{run_id}"))
 
     async def get_run_results(self, run_id: int, status_filter: str | None = None) -> dict[str, Any]:
         key = self._cache_key("results", run_id, status_filter or "all")
@@ -367,6 +380,110 @@ class TestmoService:
             return True
         except Exception:
             return False
+
+    # ------------------------------------------------------------------
+    # Automation runs (write operations)
+    # ------------------------------------------------------------------
+
+    async def create_automation_run(
+        self,
+        project_id: int,
+        name: str,
+        source: str,
+        tags: list[str] | None = None,
+        milestone_id: int | None = None,
+        fields: list[dict[str, Any]] | None = None,
+        links: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Create a new automation run. Returns { id: int }."""
+        payload: dict[str, Any] = {"name": name, "source": source}
+        if tags:
+            payload["tags"] = tags
+        if milestone_id:
+            payload["milestone_id"] = milestone_id
+        if fields:
+            payload["fields"] = fields
+        if links:
+            payload["links"] = links
+        return await self._post(f"/projects/{project_id}/automation/runs", payload)
+
+    async def find_automation_run(
+        self,
+        project_id: int,
+        name: str,
+        source: str | None = None,
+    ) -> dict[str, Any] | None:
+        """Search for an existing automation run by name (and optionally source)."""
+        data = await self.get_automation_runs(project_id)
+        runs = data.get("result", []) if isinstance(data, dict) else data
+        for run in runs:
+            if run.get("name") == name:
+                if source is None or run.get("source") == source:
+                    return run
+        return None
+
+    async def append_to_automation_run(
+        self,
+        run_id: int,
+        fields: list[dict[str, Any]] | None = None,
+        links: list[dict[str, Any]] | None = None,
+        artifacts: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Append metadata to an existing automation run."""
+        payload: dict[str, Any] = {}
+        if fields:
+            payload["fields"] = fields
+        if links:
+            payload["links"] = links
+        if artifacts:
+            payload["artifacts"] = artifacts
+        return await self._post(f"/automation/runs/{run_id}/append", payload)
+
+    async def create_automation_thread(
+        self,
+        run_id: int,
+        elapsed_observed: int | None = None,
+        artifacts: list[dict[str, Any]] | None = None,
+        fields: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Create a thread inside an automation run. Returns { id: int }."""
+        payload: dict[str, Any] = {}
+        if elapsed_observed is not None:
+            payload["elapsed_observed"] = elapsed_observed
+        if artifacts:
+            payload["artifacts"] = artifacts
+        if fields:
+            payload["fields"] = fields
+        return await self._post(f"/automation/runs/{run_id}/threads", payload)
+
+    async def append_test_results(
+        self,
+        thread_id: int,
+        tests: list[dict[str, Any]],
+        elapsed_observed: int | None = None,
+        artifacts: list[dict[str, Any]] | None = None,
+        fields: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Append test results to an automation thread."""
+        payload: dict[str, Any] = {"tests": tests}
+        if elapsed_observed is not None:
+            payload["elapsed_observed"] = elapsed_observed
+        if artifacts:
+            payload["artifacts"] = artifacts
+        if fields:
+            payload["fields"] = fields
+        return await self._post(f"/automation/runs/threads/{thread_id}/append", payload)
+
+    async def complete_automation_run(
+        self,
+        run_id: int,
+        measure_elapsed: bool = True,
+    ) -> dict[str, Any]:
+        """Mark an automation run as complete."""
+        return await self._post(
+            f"/automation/runs/{run_id}/complete",
+            {"measure_elapsed": measure_elapsed},
+        )
 
     def clear_cache(self) -> None:
         self.cache.clear()

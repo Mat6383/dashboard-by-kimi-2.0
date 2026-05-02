@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     # ── Testmo ──────────────────────────────────────────
     testmo_url: str = Field(alias="TESTMO_URL")
     testmo_token: str = Field(alias="TESTMO_TOKEN")
+    testmo_project_id: int = Field(default=1, alias="TESTMO_PROJECT_ID")
 
     # ── GitLab ──────────────────────────────────────────
     gitlab_url: str = Field(alias="GITLAB_URL")

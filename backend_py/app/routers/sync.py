@@ -39,7 +39,12 @@ async def get_iterations(project_id: int | str, search: str | None = Query(None)
 @router.post("/preview")
 async def sync_preview(payload: SyncPreviewPayload, db: DBMain):
     preview = await sync_service.preview_sync(
-        payload.project_id, payload.iteration_name, payload.run_id, payload.version
+        payload.project_id,
+        payload.iteration_name,
+        payload.run_id,
+        payload.version,
+        payload.source,
+        payload.testmo_project_id,
     )
     return {"success": True, "data": preview}
 
@@ -54,6 +59,8 @@ async def sync_execute(request: Request, payload: SyncExecutePayload, db: DBMain
             payload.run_id,
             payload.version,
             payload.dry_run,
+            payload.source,
+            payload.testmo_project_id,
         ):
             if await request.is_disconnected():
                 logger.info("Sync execute SSE disconnected")
@@ -66,6 +73,8 @@ async def sync_execute(request: Request, payload: SyncExecutePayload, db: DBMain
                 stats["enriched"] = event.get("enriched", 0)
                 stats["errors"] = event.get("errors", 0)
                 stats["total_issues"] = event.get("total_issues", 0)
+                stats["testmo_run_id"] = event.get("testmo_run_id")
+                stats["testmo_run_url"] = event.get("testmo_run_url")
             yield f"data: {json.dumps(event)}\n\n"
 
         # Persist to DB after stream ends

@@ -26,6 +26,8 @@ async def test_create_sync_run() -> None:
             enriched=2,
             errors=0,
             total_issues=15,
+            testmo_run_id=123,
+            testmo_run_url="https://testmo.example.com/automation/runs/123",
         )
         db.add(run)
         await db.commit()
@@ -34,6 +36,8 @@ async def test_create_sync_run() -> None:
         fetched = result.scalar_one()
         assert fetched.iteration_name == "v1.0"
         assert fetched.total_issues == 15
+        assert fetched.testmo_run_id == 123
+        assert fetched.testmo_run_url == "https://testmo.example.com/automation/runs/123"
 
         # cleanup
         await db.execute(delete(SyncRun).where(SyncRun.project_name == project))
