@@ -114,7 +114,7 @@ export default function RetentionAdmin({ isDark }: { isDark: boolean }) {
                 </tbody>
               </table>
             ) : (
-              <p style={{ opacity: 0.7 }}>{t('retention.noArchives', 'Aucune archive.')}</p>
+              <p style={{ color: 'var(--text-secondary)' }}>{t('retention.noArchives', 'Aucune archive.')}</p>
             )}
           </section>
         </>

@@ -125,7 +125,7 @@ const ConfigurationScreen = ({ projectId, isDark, onSaveSelection, initialPrepro
                     <Settings size={40} color="var(--primary-color)" />
                     <div>
                         <h1 style={{ margin: 0 }}>{t('config.title')}</h1>
-                        <h2 style={{ margin: 0, opacity: 0.8, fontSize: '1.2rem', fontWeight: 400 }}>{t('config.subtitle')}</h2>
+                        <h2 style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '1.2rem', fontWeight: 400 }}>{t('config.subtitle')}</h2>
                     </div>
                 </div>
             </header>

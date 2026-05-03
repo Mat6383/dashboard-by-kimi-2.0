@@ -131,7 +131,7 @@ export default function IntegrationsAdmin({ isDark }: { isDark: boolean }) {
           ))}
         </div>
       ) : (
-        <p style={{ opacity: 0.7 }}>{t('integrations.empty', 'Aucune intégration configurée.')}</p>
+        <p style={{ color: 'var(--text-secondary)' }}>{t('integrations.empty', 'Aucune intégration configurée.')}</p>
       )}
 
       {testConnection.data && (

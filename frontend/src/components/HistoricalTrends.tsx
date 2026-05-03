@@ -140,7 +140,7 @@ export default function HistoricalTrends({ projectId, isDark }) {
       )}
 
       {!loading && !error && data.length === 0 && (
-        <div style={{ color: text, opacity: 0.7, display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Calendar size={20} />
           Aucune donnée historique disponible. Les snapshots sont collectés quotidiennement.
         </div>

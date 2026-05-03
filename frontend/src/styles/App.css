@@ -762,7 +762,6 @@ table.data-table th {
 
 .breadcrumb-separator {
   color: var(--text-muted);
-  opacity: 0.6;
 }
 
 @media (max-width: 768px) {

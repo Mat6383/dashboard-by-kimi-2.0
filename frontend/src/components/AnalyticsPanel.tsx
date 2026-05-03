@@ -75,7 +75,7 @@ export default function AnalyticsPanel({ projectId, isDark }: { projectId?: numb
       {isLoading ? (
         <p>{t('app.loadingMetrics')}</p>
       ) : filtered.length === 0 ? (
-        <p style={{ opacity: 0.7 }}>{t('analytics.empty', 'Aucun insight pour le moment.')}</p>
+        <p style={{ color: 'var(--text-secondary)' }}>{t('analytics.empty', 'Aucun insight pour le moment.')}</p>
       ) : (
         <div className="insights-list" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {filtered.map((insight) => (
@@ -87,7 +87,7 @@ export default function AnalyticsPanel({ projectId, isDark }: { projectId?: numb
                 borderLeft: `4px solid ${typeColors[insight.type] || 'var(--text-muted)'}`,
                 borderRadius: 8,
                 padding: 16,
-                opacity: insight.read ? 0.7 : 1,
+                color: insight.read ? 'var(--text-secondary)' : 'var(--text-color)',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

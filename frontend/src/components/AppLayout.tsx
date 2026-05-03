@@ -424,7 +424,7 @@ export default function AppLayout({
               <User size={16} />
               <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-color)' }}>
                 {user.name}
-                {isAdmin && <span style={{ fontSize: '0.75rem', marginLeft: '4px', opacity: 0.7 }}>{t('layout.adminBadge')}</span>}
+                {isAdmin && <span style={{ fontSize: '0.75rem', marginLeft: '4px', color: 'var(--text-secondary)' }}>{t('layout.adminBadge')}</span>}
               </span>
               <button className="btn-icon" onClick={onLogout} title={t('layout.logout')} type="button">
                 <LogOut size={16} />
@@ -561,7 +561,7 @@ export default function AppLayout({
                 <span style={{ fontSize: '0.875rem', fontWeight: 500 }}>
                   <User size={16} style={{ display: 'inline', marginRight: 6 }} />
                   {user.name}
-                  {isAdmin && <span style={{ fontSize: '0.75rem', marginLeft: 4, opacity: 0.7 }}>{t('layout.adminBadge')}</span>}
+                  {isAdmin && <span style={{ fontSize: '0.75rem', marginLeft: 4, color: 'var(--text-secondary)' }}>{t('layout.adminBadge')}</span>}
                 </span>
                 <button className="btn-icon" onClick={onLogout} type="button">
                   <LogOut size={16} />

@@ -17,7 +17,10 @@ export default function CompareDashboard({ isDark }) {
   useEffect(() => {
     apiClient
       .get('/projects')
-      .then((res) => setProjects(res.data.data || []))
+      .then((res) => {
+        const raw = res.data?.data?.result || res.data?.data || res.data?.projects || [];
+        setProjects(Array.isArray(raw) ? raw : []);
+      })
       .catch(() => {});
   }, []);
 
@@ -34,7 +37,19 @@ export default function CompareDashboard({ isDark }) {
           params: { projectIds: selected.join(',') },
           signal: controller.signal,
         });
-        setData(res.data.data || []);
+        const raw = res.data?.data || res.data?.projects || [];
+        const list = Array.isArray(raw) ? raw : [];
+        setData(
+          list.map((d) => ({
+            projectId: d.projectId ?? d.project_id ?? 0,
+            projectName: d.projectName ?? d.project_name ?? `Projet ${d.projectId ?? d.project_id ?? 0}`,
+            passRate: d.passRate ?? d.pass_rate ?? 0,
+            completionRate: d.completionRate ?? d.completion_rate ?? 0,
+            escapeRate: d.escapeRate ?? d.escape_rate ?? 0,
+            detectionRate: d.detectionRate ?? d.detection_rate ?? 0,
+            blockedRate: d.blockedRate ?? d.blocked_rate ?? 0,
+          }))
+        );
         setError(null);
       } catch (err) {
         if (controller.signal.aborted) return;
@@ -97,7 +112,14 @@ export default function CompareDashboard({ isDark }) {
         <GitCompare size={24} />
         Comparateur multi-projets
       </h2>
-      <p style={{ color: text, opacity: 0.7 }}>Sélectionnez 2 à 4 projets à comparer</p>
+      <p style={{ color: 'var(--text-secondary)' }}>Sélectionnez 2 à 4 projets à comparer</p>
+
+      {projects.length === 0 && !loading && (
+        <div style={{ color: 'var(--text-secondary)', margin: '16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertCircle size={20} />
+          Aucun projet disponible.
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', margin: '16px 0' }}>
         {projects.map((p) => {

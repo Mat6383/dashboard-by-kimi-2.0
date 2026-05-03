@@ -123,7 +123,7 @@
 .state-action {
   font-size: 0.875rem;
   margin-top: 0.25rem;
-  opacity: 0.8;
+  color: var(--tv-muted);
 }
 
 .tv-legend {
